@@ -16,10 +16,7 @@
         th { background-color: #ffcc00; color: black; }
         .status-active { color: white; background-color: green; padding: 5px; border-radius: 5px; }
         .status-inactive { color: white; background-color: red; padding: 5px; border-radius: 5px; }
-        .actions button { margin: 2px; padding: 5px 10px; }
-        .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #ffcc00; }
-        .detail-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); }
-        .close-btn { background-color: red; color: white; padding: 5px 10px; border: none; cursor: pointer; }
+        .file-section { text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -28,29 +25,26 @@
         <input type="text" id="username" placeholder="Tài khoản">
         <input type="password" id="password" placeholder="Mật khẩu">
         <button onclick="login()">Đăng nhập</button>
-        
         <div id="updateSection" style="display: none;">
             <h2>Cập nhật thông tin</h2>
-            <input type="file" id="uploadExcel" accept=".xlsx">
-            <button onclick="uploadExcel()">Tải lên Excel</button>
-            <a href="mau.xlsx" download>📥 Tải file mẫu</a>
-            
-            <h2>Thêm mới thông tin</h2>
-            <input type="text" id="newID" placeholder="ID">
-            <select id="newStatus">
+            <input type="text" id="id" placeholder="ID">
+            <select id="status">
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
             </select>
-            <input type="text" id="newGen" placeholder="Gen">
-            <input type="text" id="newBan" placeholder="Ban">
-            <input type="text" id="newName" placeholder="Name">
-            <input type="date" id="newDOB">
-            <input type="text" id="newPhone" placeholder="Phone">
-            <input type="email" id="newEmail" placeholder="Email">
-            <input type="text" id="newNote" placeholder="Note">
-            <input type="file" id="newImage" accept="image/*">
-            <button onclick="addEntry()">Thêm</button>
-            
+            <input type="text" id="gen" placeholder="Gen">
+            <input type="text" id="ban" placeholder="Ban">
+            <input type="text" id="name" placeholder="Name">
+            <input type="date" id="dob" placeholder="DOB">
+            <input type="text" id="phone" placeholder="Phone">
+            <input type="email" id="email" placeholder="Email">
+            <input type="text" id="note" placeholder="Note">
+            <button onclick="addRecord()">Thêm</button>
+            <button onclick="clearData()">Xóa tất cả</button>
+            <div class="file-section">
+                <input type="file" id="fileInput" accept=".xlsx, .xls" onchange="importExcel()">
+                <a href="template.xlsx" download><button>Tải file mẫu</button></a>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -70,7 +64,6 @@
             </table>
         </div>
     </div>
-    
     <script>
         function login() {
             let username = document.getElementById('username').value;
@@ -84,14 +77,36 @@
             }
         }
 
+        function addRecord() {
+            let data = JSON.parse(localStorage.getItem('data')) || [];
+            data.push(getFormData());
+            localStorage.setItem('data', JSON.stringify(data));
+            loadTable();
+        }
+
+        function getFormData() {
+            return {
+                id: document.getElementById('id').value,
+                status: document.getElementById('status').value,
+                gen: document.getElementById('gen').value,
+                ban: document.getElementById('ban').value,
+                name: document.getElementById('name').value,
+                dob: document.getElementById('dob').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                note: document.getElementById('note').value
+            };
+        }
+
         function loadTable() {
             let data = JSON.parse(localStorage.getItem('data')) || [];
             let tableBody = document.getElementById('dataTable');
             tableBody.innerHTML = '';
             data.forEach((row, index) => {
-                let tr = `<tr>
+                let statusClass = row.status === 'Active' ? 'status-active' : 'status-inactive';
+                tableBody.innerHTML += `<tr>
                     <td>${row.id}</td>
-                    <td class="${row.status === 'Active' ? 'status-active' : 'status-inactive'}">${row.status}</td>
+                    <td><span class="${statusClass}">${row.status}</span></td>
                     <td>${row.gen}</td>
                     <td>${row.ban}</td>
                     <td>${row.name}</td>
@@ -100,28 +115,35 @@
                     <td>${row.email}</td>
                     <td>${row.note}</td>
                     <td>
-                        <button onclick="editEntry(${index})">Chỉnh sửa</button>
-                        <button onclick="deleteEntry(${index})">Xóa</button>
+                        <button onclick="editRecord(${index})">Chỉnh sửa</button>
+                        <button onclick="viewDetails(${index})">Chi tiết</button>
+                        <button onclick="deleteRecord(${index})">Xóa</button>
                     </td>
                 </tr>`;
-                tableBody.innerHTML += tr;
             });
         }
 
-        function addEntry() {
+        function editRecord(index) {
             let data = JSON.parse(localStorage.getItem('data')) || [];
-            let newEntry = {
-                id: document.getElementById('newID').value,
-                status: document.getElementById('newStatus').value,
-                gen: document.getElementById('newGen').value,
-                ban: document.getElementById('newBan').value,
-                name: document.getElementById('newName').value,
-                dob: document.getElementById('newDOB').value,
-                phone: document.getElementById('newPhone').value,
-                email: document.getElementById('newEmail').value,
-                note: document.getElementById('newNote').value
+            let record = data[index];
+            Object.keys(record).forEach(key => {
+                document.getElementById(key).value = record[key];
+            });
+            document.getElementById('updateButton').onclick = function() {
+                data[index] = getFormData();
+                localStorage.setItem('data', JSON.stringify(data));
+                loadTable();
             };
-            data.push(newEntry);
+        }
+
+        function viewDetails(index) {
+            let record = JSON.parse(localStorage.getItem('data'))[index];
+            alert(JSON.stringify(record, null, 4));
+        }
+
+        function deleteRecord(index) {
+            let data = JSON.parse(localStorage.getItem('data')) || [];
+            data.splice(index, 1);
             localStorage.setItem('data', JSON.stringify(data));
             loadTable();
         }
