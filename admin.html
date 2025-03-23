@@ -7,6 +7,9 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         input, button { margin: 5px; padding: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
@@ -16,35 +19,99 @@
     <button onclick="login()">Đăng nhập</button>
     <div id="updateSection" style="display: none;">
         <h2>Cập nhật thông tin</h2>
-        <input type="text" id="key" placeholder="Từ khóa">
-        <input type="text" id="value" placeholder="Nội dung">
-        <button onclick="updateInfo()">Lưu</button>
+        <input type="text" id="id" placeholder="ID">
+        <input type="text" id="name" placeholder="Name">
+        <input type="text" id="phone" placeholder="Phone">
+        <input type="email" id="email" placeholder="Email">
+        <input type="text" id="note" placeholder="Note">
+        <button onclick="addRecord()">Thêm</button>
         <button onclick="clearData()">Xóa tất cả</button>
+        <input type="file" id="fileInput" accept=".xlsx, .xls" onchange="importExcel()">
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Note</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable"></tbody>
+        </table>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script>
         function login() {
             let username = document.getElementById('username').value;
             let password = document.getElementById('password').value;
             if (username === 'tuhm' && password === '1234') {
                 document.getElementById('updateSection').style.display = 'block';
+                loadTable();
                 alert('Đăng nhập thành công!');
             } else {
                 alert('Sai tài khoản hoặc mật khẩu!');
             }
         }
 
-        function updateInfo() {
-            let key = document.getElementById('key').value;
-            let value = document.getElementById('value').value;
-            let data = JSON.parse(localStorage.getItem('data')) || {};
-            data[key] = value;
+        function addRecord() {
+            let id = document.getElementById('id').value;
+            let name = document.getElementById('name').value;
+            let phone = document.getElementById('phone').value;
+            let email = document.getElementById('email').value;
+            let note = document.getElementById('note').value;
+            let data = JSON.parse(localStorage.getItem('data')) || [];
+            data.push({ id, name, phone, email, note });
             localStorage.setItem('data', JSON.stringify(data));
-            alert('Lưu thành công!');
+            loadTable();
+        }
+
+        function loadTable() {
+            let data = JSON.parse(localStorage.getItem('data')) || [];
+            let tableBody = document.getElementById('dataTable');
+            tableBody.innerHTML = '';
+            data.forEach((row, index) => {
+                let tr = `<tr>
+                    <td>${index + 1}</td>
+                    <td>${row.id}</td>
+                    <td>${row.name}</td>
+                    <td>${row.phone}</td>
+                    <td>${row.email}</td>
+                    <td>${row.note}</td>
+                    <td><button onclick="deleteRecord(${index})">Xóa</button></td>
+                </tr>`;
+                tableBody.innerHTML += tr;
+            });
+        }
+
+        function deleteRecord(index) {
+            let data = JSON.parse(localStorage.getItem('data')) || [];
+            data.splice(index, 1);
+            localStorage.setItem('data', JSON.stringify(data));
+            loadTable();
         }
 
         function clearData() {
             localStorage.removeItem('data');
+            loadTable();
             alert('Đã xóa toàn bộ dữ liệu!');
+        }
+
+        function importExcel() {
+            let fileInput = document.getElementById('fileInput');
+            let file = fileInput.files[0];
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let data = new Uint8Array(e.target.result);
+                let workbook = XLSX.read(data, { type: 'array' });
+                let sheet = workbook.Sheets[workbook.SheetNames[0]];
+                let json = XLSX.utils.sheet_to_json(sheet);
+                localStorage.setItem('data', JSON.stringify(json));
+                loadTable();
+            };
+            reader.readAsArrayBuffer(file);
         }
     </script>
 </body>
