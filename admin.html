@@ -5,44 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cập nhật thông tin</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        input, button { margin: 5px; padding: 8px; }
+        body { font-family: Montserrat, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); }
+        input, button { margin: 5px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid black; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        th, td { border: 1px solid black; padding: 10px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        .status-active { color: white; background-color: green; padding: 5px; border-radius: 5px; }
+        .status-inactive { color: white; background-color: red; padding: 5px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <h1>Đăng nhập để cập nhật thông tin</h1>
-    <input type="text" id="username" placeholder="Tài khoản">
-    <input type="password" id="password" placeholder="Mật khẩu">
-    <button onclick="login()">Đăng nhập</button>
-    <div id="updateSection" style="display: none;">
-        <h2>Cập nhật thông tin</h2>
-        <input type="text" id="id" placeholder="ID">
-        <input type="text" id="name" placeholder="Name">
-        <input type="text" id="phone" placeholder="Phone">
-        <input type="email" id="email" placeholder="Email">
-        <input type="text" id="note" placeholder="Note">
-        <button onclick="addRecord()">Thêm</button>
-        <button onclick="clearData()">Xóa tất cả</button>
-        <input type="file" id="fileInput" accept=".xlsx, .xls" onchange="importExcel()">
-        <table>
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Note</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="dataTable"></tbody>
-        </table>
+    <div class="container">
+        <h1>Đăng nhập để cập nhật thông tin</h1>
+        <input type="text" id="username" placeholder="Tài khoản">
+        <input type="password" id="password" placeholder="Mật khẩu">
+        <button onclick="login()">Đăng nhập</button>
+        <div id="updateSection" style="display: none;">
+            <h2>Cập nhật thông tin</h2>
+            <input type="text" id="id" placeholder="ID">
+            <select id="status">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+            <input type="text" id="gen" placeholder="Gen">
+            <input type="text" id="ban" placeholder="Ban">
+            <input type="text" id="name" placeholder="Name">
+            <input type="date" id="dob" placeholder="DOB">
+            <input type="text" id="phone" placeholder="Phone">
+            <input type="email" id="email" placeholder="Email">
+            <input type="text" id="note" placeholder="Note">
+            <button onclick="addRecord()">Thêm</button>
+            <button onclick="clearData()">Xóa tất cả</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Status</th>
+                        <th>Gen</th>
+                        <th>Ban</th>
+                        <th>Name</th>
+                        <th>DOB</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Note</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTable"></tbody>
+            </table>
+        </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script>
         function login() {
             let username = document.getElementById('username').value;
@@ -58,12 +71,16 @@
 
         function addRecord() {
             let id = document.getElementById('id').value;
+            let status = document.getElementById('status').value;
+            let gen = document.getElementById('gen').value;
+            let ban = document.getElementById('ban').value;
             let name = document.getElementById('name').value;
+            let dob = document.getElementById('dob').value;
             let phone = document.getElementById('phone').value;
             let email = document.getElementById('email').value;
             let note = document.getElementById('note').value;
             let data = JSON.parse(localStorage.getItem('data')) || [];
-            data.push({ id, name, phone, email, note });
+            data.push({ id, status, gen, ban, name, dob, phone, email, note });
             localStorage.setItem('data', JSON.stringify(data));
             loadTable();
         }
@@ -73,10 +90,14 @@
             let tableBody = document.getElementById('dataTable');
             tableBody.innerHTML = '';
             data.forEach((row, index) => {
+                let statusClass = row.status === 'Active' ? 'status-active' : 'status-inactive';
                 let tr = `<tr>
-                    <td>${index + 1}</td>
                     <td>${row.id}</td>
+                    <td><span class="${statusClass}">${row.status}</span></td>
+                    <td>${row.gen}</td>
+                    <td>${row.ban}</td>
                     <td>${row.name}</td>
+                    <td>${row.dob}</td>
                     <td>${row.phone}</td>
                     <td>${row.email}</td>
                     <td>${row.note}</td>
@@ -97,21 +118,6 @@
             localStorage.removeItem('data');
             loadTable();
             alert('Đã xóa toàn bộ dữ liệu!');
-        }
-
-        function importExcel() {
-            let fileInput = document.getElementById('fileInput');
-            let file = fileInput.files[0];
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                let data = new Uint8Array(e.target.result);
-                let workbook = XLSX.read(data, { type: 'array' });
-                let sheet = workbook.Sheets[workbook.SheetNames[0]];
-                let json = XLSX.utils.sheet_to_json(sheet);
-                localStorage.setItem('data', JSON.stringify(json));
-                loadTable();
-            };
-            reader.readAsArrayBuffer(file);
         }
     </script>
 </body>
