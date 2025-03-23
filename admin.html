@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cập nhật thông tin</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input, button { margin: 5px; padding: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Đăng nhập để cập nhật thông tin</h1>
+    <input type="text" id="username" placeholder="Tài khoản">
+    <input type="password" id="password" placeholder="Mật khẩu">
+    <button onclick="login()">Đăng nhập</button>
+    <div id="updateSection" style="display: none;">
+        <h2>Cập nhật thông tin</h2>
+        <input type="text" id="key" placeholder="Từ khóa">
+        <input type="text" id="value" placeholder="Nội dung">
+        <button onclick="updateInfo()">Lưu</button>
+        <button onclick="clearData()">Xóa tất cả</button>
+    </div>
+    <script>
+        function login() {
+            let username = document.getElementById('username').value;
+            let password = document.getElementById('password').value;
+            if (username === 'tuhm' && password === '1234') {
+                document.getElementById('updateSection').style.display = 'block';
+                alert('Đăng nhập thành công!');
+            } else {
+                alert('Sai tài khoản hoặc mật khẩu!');
+            }
+        }
+
+        function updateInfo() {
+            let key = document.getElementById('key').value;
+            let value = document.getElementById('value').value;
+            let data = JSON.parse(localStorage.getItem('data')) || {};
+            data[key] = value;
+            localStorage.setItem('data', JSON.stringify(data));
+            alert('Lưu thành công!');
+        }
+
+        function clearData() {
+            localStorage.removeItem('data');
+            alert('Đã xóa toàn bộ dữ liệu!');
+        }
+    </script>
+</body>
+</html>
