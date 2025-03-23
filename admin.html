@@ -5,14 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cập nhật thông tin</title>
     <style>
-        body { font-family: Montserrat, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); }
-        input, button { margin: 5px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid black; padding: 10px; text-align: left; }
-        th { background-color: #007bff; color: white; }
+        body { font-family: Montserrat, sans-serif; margin: 0; background-color: #f4f4f4; }
+        .container { max-width: 900px; margin: 50px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); }
+        h1, h2 { color: #ffcc00; text-align: center; }
+        input, select, button { width: 100%; margin: 5px 0; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        button { background-color: #ffcc00; color: black; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #e6b800; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid black; padding: 10px; text-align: center; }
+        th { background-color: #ffcc00; color: black; }
         .status-active { color: white; background-color: green; padding: 5px; border-radius: 5px; }
         .status-inactive { color: white; background-color: red; padding: 5px; border-radius: 5px; }
+        .actions button { margin: 2px; padding: 5px 10px; }
+        .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #ffcc00; }
+        .detail-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); }
+        .close-btn { background-color: red; color: white; padding: 5px 10px; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -21,22 +28,29 @@
         <input type="text" id="username" placeholder="Tài khoản">
         <input type="password" id="password" placeholder="Mật khẩu">
         <button onclick="login()">Đăng nhập</button>
+        
         <div id="updateSection" style="display: none;">
             <h2>Cập nhật thông tin</h2>
-            <input type="text" id="id" placeholder="ID">
-            <select id="status">
+            <input type="file" id="uploadExcel" accept=".xlsx">
+            <button onclick="uploadExcel()">Tải lên Excel</button>
+            <a href="mau.xlsx" download>📥 Tải file mẫu</a>
+            
+            <h2>Thêm mới thông tin</h2>
+            <input type="text" id="newID" placeholder="ID">
+            <select id="newStatus">
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
             </select>
-            <input type="text" id="gen" placeholder="Gen">
-            <input type="text" id="ban" placeholder="Ban">
-            <input type="text" id="name" placeholder="Name">
-            <input type="date" id="dob" placeholder="DOB">
-            <input type="text" id="phone" placeholder="Phone">
-            <input type="email" id="email" placeholder="Email">
-            <input type="text" id="note" placeholder="Note">
-            <button onclick="addRecord()">Thêm</button>
-            <button onclick="clearData()">Xóa tất cả</button>
+            <input type="text" id="newGen" placeholder="Gen">
+            <input type="text" id="newBan" placeholder="Ban">
+            <input type="text" id="newName" placeholder="Name">
+            <input type="date" id="newDOB">
+            <input type="text" id="newPhone" placeholder="Phone">
+            <input type="email" id="newEmail" placeholder="Email">
+            <input type="text" id="newNote" placeholder="Note">
+            <input type="file" id="newImage" accept="image/*">
+            <button onclick="addEntry()">Thêm</button>
+            
             <table>
                 <thead>
                     <tr>
@@ -56,6 +70,7 @@
             </table>
         </div>
     </div>
+    
     <script>
         function login() {
             let username = document.getElementById('username').value;
@@ -69,31 +84,14 @@
             }
         }
 
-        function addRecord() {
-            let id = document.getElementById('id').value;
-            let status = document.getElementById('status').value;
-            let gen = document.getElementById('gen').value;
-            let ban = document.getElementById('ban').value;
-            let name = document.getElementById('name').value;
-            let dob = document.getElementById('dob').value;
-            let phone = document.getElementById('phone').value;
-            let email = document.getElementById('email').value;
-            let note = document.getElementById('note').value;
-            let data = JSON.parse(localStorage.getItem('data')) || [];
-            data.push({ id, status, gen, ban, name, dob, phone, email, note });
-            localStorage.setItem('data', JSON.stringify(data));
-            loadTable();
-        }
-
         function loadTable() {
             let data = JSON.parse(localStorage.getItem('data')) || [];
             let tableBody = document.getElementById('dataTable');
             tableBody.innerHTML = '';
             data.forEach((row, index) => {
-                let statusClass = row.status === 'Active' ? 'status-active' : 'status-inactive';
                 let tr = `<tr>
                     <td>${row.id}</td>
-                    <td><span class="${statusClass}">${row.status}</span></td>
+                    <td class="${row.status === 'Active' ? 'status-active' : 'status-inactive'}">${row.status}</td>
                     <td>${row.gen}</td>
                     <td>${row.ban}</td>
                     <td>${row.name}</td>
@@ -101,23 +99,31 @@
                     <td>${row.phone}</td>
                     <td>${row.email}</td>
                     <td>${row.note}</td>
-                    <td><button onclick="deleteRecord(${index})">Xóa</button></td>
+                    <td>
+                        <button onclick="editEntry(${index})">Chỉnh sửa</button>
+                        <button onclick="deleteEntry(${index})">Xóa</button>
+                    </td>
                 </tr>`;
                 tableBody.innerHTML += tr;
             });
         }
 
-        function deleteRecord(index) {
+        function addEntry() {
             let data = JSON.parse(localStorage.getItem('data')) || [];
-            data.splice(index, 1);
+            let newEntry = {
+                id: document.getElementById('newID').value,
+                status: document.getElementById('newStatus').value,
+                gen: document.getElementById('newGen').value,
+                ban: document.getElementById('newBan').value,
+                name: document.getElementById('newName').value,
+                dob: document.getElementById('newDOB').value,
+                phone: document.getElementById('newPhone').value,
+                email: document.getElementById('newEmail').value,
+                note: document.getElementById('newNote').value
+            };
+            data.push(newEntry);
             localStorage.setItem('data', JSON.stringify(data));
             loadTable();
-        }
-
-        function clearData() {
-            localStorage.removeItem('data');
-            loadTable();
-            alert('Đã xóa toàn bộ dữ liệu!');
         }
     </script>
 </body>
