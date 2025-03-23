@@ -5,70 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tra cứu thông tin</title>
     <style>
-        body {
-            font-family: Montserrat, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            text-align: center;
-        }
-        .container {
-            width: 50%;
-            margin: 100px auto;
-            padding: 20px;
-            background: white;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        input {
-            width: 80%;
-            padding: 10px;
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .result {
-            margin-top: 20px;
-            font-size: 18px;
-        }
+        body { font-family: Montserrat, sans-serif; margin: 0; background-color: #f4f4f4; text-align: center; }
+        .container { max-width: 600px; margin: 100px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); }
+        h2 { color: #ffcc00; }
+        input, button { width: 100%; margin: 10px 0; padding: 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
+        button { background-color: #ffcc00; color: black; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #e6b800; }
+        .result { margin-top: 20px; padding: 15px; background: #e0ffe0; border-radius: 5px; display: none; }
+        .not-found { color: red; display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Tra cứu thông tin</h1>
-        <input type="text" id="searchId" placeholder="Nhập ID để tra cứu">
-        <button onclick="searchInfo()">Tìm kiếm</button>
+        <h2>Tra cứu thông tin</h2>
+        <input type="text" id="searchId" placeholder="Nhập ID cần tra cứu">
+        <button onclick="lookupRecord()">Tra cứu</button>
         <div class="result" id="result"></div>
+        <p class="not-found" id="notFound">Không tìm thấy thông tin!</p>
     </div>
+
     <script>
-        function searchInfo() {
-            let searchValue = document.getElementById('searchId').value.trim();
+        function lookupRecord() {
+            let searchId = document.getElementById('searchId').value.trim();
             let data = JSON.parse(localStorage.getItem('data')) || [];
-            let record = data.find(row => row.id === searchValue);
+            let record = data.find(item => item.id === searchId);
             
-            let resultDiv = document.getElementById('result');
             if (record) {
-                resultDiv.innerHTML = `<p><strong>ID:</strong> ${record.id}</p>
-                                      <p><strong>Name:</strong> ${record.name}</p>
-                                      <p><strong>Phone:</strong> ${record.phone}</p>
-                                      <p><strong>Email:</strong> ${record.email}</p>
-                                      <p><strong>Note:</strong> ${record.note}</p>`;
+                document.getElementById('result').innerHTML = `
+                    <p><strong>ID:</strong> ${record.id}</p>
+                    <p><strong>Status:</strong> ${record.status}</p>
+                    <p><strong>Gen:</strong> ${record.gen}</p>
+                    <p><strong>Ban:</strong> ${record.ban}</p>
+                    <p><strong>Name:</strong> ${record.name}</p>
+                    <p><strong>DOB:</strong> ${record.dob}</p>
+                    <p><strong>Phone:</strong> ${record.phone}</p>
+                    <p><strong>Email:</strong> ${record.email}</p>
+                    <p><strong>Note:</strong> ${record.note}</p>
+                `;
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('notFound').style.display = 'none';
             } else {
-                resultDiv.innerHTML = '<p style="color: red;">Không tìm thấy thông tin!</p>';
+                document.getElementById('result').style.display = 'none';
+                document.getElementById('notFound').style.display = 'block';
             }
         }
     </script>
