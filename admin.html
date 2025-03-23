@@ -7,81 +7,73 @@
     <style>
         body { font-family: Montserrat, sans-serif; margin: 0; background-color: #f4f4f4; }
         .container { max-width: 900px; margin: 50px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); }
-        h1, h2 { color: #ffcc00; text-align: center; }
+        h2 { color: #ffcc00; text-align: center; }
         input, select, button { width: 100%; margin: 5px 0; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
         button { background-color: #ffcc00; color: black; font-weight: bold; cursor: pointer; }
         button:hover { background-color: #e6b800; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid black; padding: 10px; text-align: center; }
         th { background-color: #ffcc00; color: black; }
-        .status-active { color: white; background-color: green; padding: 5px; border-radius: 5px; }
-        .status-inactive { color: white; background-color: red; padding: 5px; border-radius: 5px; }
-        .file-section { text-align: center; margin-top: 10px; }
+        .detail-form { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3); width: 450px; }
+        .detail-form h2 { text-align: center; color: #333; }
+        .detail-form .content { padding: 10px; line-height: 1.5; }
+        .close-btn { background: red; color: white; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
+        .close-btn:hover { background: darkred; }
+        .alert { display: none; text-align: center; background: green; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Đăng nhập để cập nhật thông tin</h1>
-        <input type="text" id="username" placeholder="Tài khoản">
-        <input type="password" id="password" placeholder="Mật khẩu">
-        <button onclick="login()">Đăng nhập</button>
-        <div id="updateSection" style="display: none;">
-            <h2>Cập nhật thông tin</h2>
-            <input type="text" id="id" placeholder="ID">
-            <select id="status">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-            </select>
-            <input type="text" id="gen" placeholder="Gen">
-            <input type="text" id="ban" placeholder="Ban">
-            <input type="text" id="name" placeholder="Name">
-            <input type="date" id="dob" placeholder="DOB">
-            <input type="text" id="phone" placeholder="Phone">
-            <input type="email" id="email" placeholder="Email">
-            <input type="text" id="note" placeholder="Note">
-            <button onclick="addRecord()">Thêm</button>
-            <button onclick="clearData()">Xóa tất cả</button>
-            <div class="file-section">
-                <input type="file" id="fileInput" accept=".xlsx, .xls" onchange="importExcel()">
-                <a href="template.xlsx" download><button>Tải file mẫu</button></a>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Status</th>
-                        <th>Gen</th>
-                        <th>Ban</th>
-                        <th>Name</th>
-                        <th>DOB</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Note</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTable"></tbody>
-            </table>
-        </div>
+        <h2>Cập nhật thông tin</h2>
+        <div class="alert" id="successMessage">Thêm thành công!</div>
+        <input type="text" id="id" placeholder="ID">
+        <select id="status">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+        <input type="text" id="gen" placeholder="Gen">
+        <input type="text" id="ban" placeholder="Ban">
+        <input type="text" id="name" placeholder="Name">
+        <input type="date" id="dob">
+        <input type="text" id="phone" placeholder="Phone">
+        <input type="email" id="email" placeholder="Email">
+        <input type="text" id="note" placeholder="Note">
+        <button onclick="addRecord()">Thêm</button>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Gen</th>
+                    <th>Ban</th>
+                    <th>Name</th>
+                    <th>DOB</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Note</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable"></tbody>
+        </table>
     </div>
-    <script>
-        function login() {
-            let username = document.getElementById('username').value;
-            let password = document.getElementById('password').value;
-            if (username === 'tuhm' && password === '1234') {
-                document.getElementById('updateSection').style.display = 'block';
-                loadTable();
-                alert('Đăng nhập thành công!');
-            } else {
-                alert('Sai tài khoản hoặc mật khẩu!');
-            }
-        }
 
+    <div class="detail-form" id="detailForm">
+        <h2>Chi tiết thông tin</h2>
+        <div class="content" id="detailContent"></div>
+        <button class="close-btn" onclick="closeDetailForm()">Đóng</button>
+    </div>
+    
+    <script>
         function addRecord() {
             let data = JSON.parse(localStorage.getItem('data')) || [];
             data.push(getFormData());
             localStorage.setItem('data', JSON.stringify(data));
             loadTable();
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 2000);
+            resetForm();
         }
 
         function getFormData() {
@@ -98,15 +90,18 @@
             };
         }
 
+        function resetForm() {
+            document.querySelectorAll('input, select').forEach(input => input.value = '');
+        }
+
         function loadTable() {
             let data = JSON.parse(localStorage.getItem('data')) || [];
             let tableBody = document.getElementById('dataTable');
             tableBody.innerHTML = '';
             data.forEach((row, index) => {
-                let statusClass = row.status === 'Active' ? 'status-active' : 'status-inactive';
                 tableBody.innerHTML += `<tr>
                     <td>${row.id}</td>
-                    <td><span class="${statusClass}">${row.status}</span></td>
+                    <td>${row.status}</td>
                     <td>${row.gen}</td>
                     <td>${row.ban}</td>
                     <td>${row.name}</td>
@@ -115,30 +110,31 @@
                     <td>${row.email}</td>
                     <td>${row.note}</td>
                     <td>
-                        <button onclick="editRecord(${index})">Chỉnh sửa</button>
-                        <button onclick="viewDetails(${index})">Chi tiết</button>
+                        <button onclick="showDetail(${index})">Chi tiết</button>
                         <button onclick="deleteRecord(${index})">Xóa</button>
                     </td>
                 </tr>`;
             });
         }
 
-        function editRecord(index) {
+        function showDetail(index) {
             let data = JSON.parse(localStorage.getItem('data')) || [];
-            let record = data[index];
-            Object.keys(record).forEach(key => {
-                document.getElementById(key).value = record[key];
-            });
-            document.getElementById('updateButton').onclick = function() {
-                data[index] = getFormData();
-                localStorage.setItem('data', JSON.stringify(data));
-                loadTable();
-            };
+            let detail = data[index];
+            document.getElementById('detailContent').innerHTML = `
+                <p><strong>ID:</strong> ${detail.id}</p>
+                <p><strong>Status:</strong> ${detail.status}</p>
+                <p><strong>Gen:</strong> ${detail.gen}</p>
+                <p><strong>Ban:</strong> ${detail.ban}</p>
+                <p><strong>Name:</strong> ${detail.name}</p>
+                <p><strong>DOB:</strong> ${detail.dob}</p>
+                <p><strong>Phone:</strong> ${detail.phone}</p>
+                <p><strong>Email:</strong> ${detail.email}</p>
+                <p><strong>Note:</strong> ${detail.note}</p>`;
+            document.getElementById('detailForm').style.display = 'block';
         }
 
-        function viewDetails(index) {
-            let record = JSON.parse(localStorage.getItem('data'))[index];
-            alert(JSON.stringify(record, null, 4));
+        function closeDetailForm() {
+            document.getElementById('detailForm').style.display = 'none';
         }
 
         function deleteRecord(index) {
