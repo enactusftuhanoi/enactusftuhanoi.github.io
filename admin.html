@@ -3,139 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Enactus FTU Hanoi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Montserrat', sans-serif; background-color: #f9fafb; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { width: 90%; max-width: 900px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1); }
-        .login-container { text-align: center; }
-        h2 { text-align: center; color: #f7b500; font-weight: 600; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        button { width: 100%; padding: 12px; background: #f7b500; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        button:hover { background: #e6a200; }
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
-        th { background: #f7b500; color: white; font-weight: 600; }
-        .facebook-icon { color: #1877f2; text-decoration: none; font-weight: 600; }
-        .actions button { margin: 4px; padding: 8px; font-size: 12px; }
-        .delete-btn { background: #ff4d4d; }
-        .delete-btn:hover { background: #cc0000; }
-        #adminPanel { display: none; }
-    </style>
+    <title>Quản Lý Dữ Liệu</title>
+    <script src="script.js" defer></script>
 </head>
 <body>
-    <div class="container" id="loginPanel">
-        <h2>Đăng nhập Admin</h2>
-        <input type="text" id="username" placeholder="Tên đăng nhập">
-        <input type="password" id="password" placeholder="Mật khẩu">
-        <button onclick="login()">Đăng nhập</button>
-    </div>
-    
-    <div class="container" id="adminPanel">
-        <h2>Quản lý Thành viên - Enactus FTU Hanoi</h2>
-        <input type="file" id="photo" accept="image/*">
-        <input type="text" id="id" placeholder="ID">
-        <select id="status">
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-        </select>
-        <input type="text" id="ban" placeholder="Ban">
-        <input type="text" id="gen" placeholder="Gen">
-        <input type="text" id="name" placeholder="Họ và Tên">
-        <input type="date" id="dob">
-        <input type="text" id="phone" placeholder="Số điện thoại">
-        <input type="email" id="email" placeholder="Email">
-        <input type="text" id="facebook" placeholder="Link Facebook">
-        <button onclick="addMember()">Thêm Thành viên</button>
-        <table>
-            <thead>
-                <tr>
-                    <th>Ảnh</th>
-                    <th>ID</th>
-                    <th>Status</th>
-                    <th>Ban</th>
-                    <th>Gen</th>
-                    <th>Tên</th>
-                    <th>DOB</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Facebook</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody id="memberTable"></tbody>
-        </table>
-    </div>
-    <script>
-        let members = [];
-        function login() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-            if (username === "tuhm" && password === "1234") {
-                document.getElementById("loginPanel").style.display = "none";
-                document.getElementById("adminPanel").style.display = "block";
-            } else {
-                alert("Sai tài khoản hoặc mật khẩu!");
-            }
-        }
-
-        function addMember() {
-            const photo = document.getElementById("photo").files[0];
-            const id = document.getElementById("id").value.trim();
-            const status = document.getElementById("status").value;
-            const ban = document.getElementById("ban").value.trim();
-            const gen = document.getElementById("gen").value.trim();
-            const name = document.getElementById("name").value.trim();
-            const dob = document.getElementById("dob").value;
-            const phone = document.getElementById("phone").value.trim();
-            const email = document.getElementById("email").value.trim();
-            const facebook = document.getElementById("facebook").value.trim();
-            
-            if (!id || !name || !email) {
-                alert("ID, Tên và Email không được để trống!");
-                return;
-            }
-            
-            const formattedDOB = dob ? dob.split("-").reverse().join("/") : "";
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                members.push({ photo: e.target.result, id, status, ban, gen, name, dob: formattedDOB, phone, email, facebook });
-                renderTable();
-                alert("Thêm thành viên thành công!");
-            };
-            if (photo) {
-                reader.readAsDataURL(photo);
-            } else {
-                members.push({ photo: "", id, status, ban, gen, name, dob: formattedDOB, phone, email, facebook });
-                renderTable();
-                alert("Thêm thành viên thành công!");
-            }
-        }
-        
-        function renderTable() {
-            const table = document.getElementById("memberTable");
-            table.innerHTML = "";
-            members.forEach((member, index) => {
-                table.innerHTML += `
-                    <tr>
-                        <td><img src="${member.photo}" width="50" height="50" style="border-radius:50%;"></td>
-                        <td>${member.id}</td>
-                        <td>${member.status}</td>
-                        <td>${member.ban}</td>
-                        <td>${member.gen}</td>
-                        <td>${member.name}</td>
-                        <td>${member.dob}</td>
-                        <td>${member.phone}</td>
-                        <td>${member.email}</td>
-                        <td><a href="${member.facebook}" class="facebook-icon" target="_blank">Facebook</a></td>
-                        <td class="actions">
-                            <button onclick="editMember(${index})">Sửa</button>
-                            <button onclick="deleteMember(${index})" class="delete-btn">Xóa</button>
-                        </td>
-                    </tr>`;
-            });
-        }
-    </script>
+    <h1>Quản Lý Dữ Liệu</h1>
+    <input type="text" id="idInput" placeholder="Nhập ID..."><br>
+    <input type="text" id="nameInput" placeholder="Nhập Tên..."><br>
+    <select id="statusInput">
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+    </select><br>
+    <button onclick="addOrUpdateData()">Thêm/Cập Nhật</button>
+    <button onclick="deleteData()">Xóa</button>
+    <h2>Dữ Liệu Hiện Tại</h2>
+    <pre id="dataDisplay"></pre>
 </body>
 </html>
+
+<!-- script.js -->
+<script>
+const DATA_URL = 'data.json';
+
+async function fetchData() {
+    let response = await fetch(DATA_URL);
+    return response.json();
+}
+
+async function searchData() {
+    let query = document.getElementById('search').value.trim();
+    let data = await fetchData();
+    
+    if (data[query]) {
+        let { Name, Status } = data[query];
+        let statusClass = Status === 'Active' ? 'active' : 'inactive';
+        document.getElementById('result').innerHTML = `<p>ID: ${query}</p><p>Name: ${Name}</p><p class="${statusClass}">Status: ${Status}</p>`;
+    } else {
+        document.getElementById('result').innerHTML = "Không tìm thấy kết quả.";
+    }
+}
+
+async function addOrUpdateData() {
+    let id = document.getElementById('idInput').value.trim();
+    let name = document.getElementById('nameInput').value.trim();
+    let status = document.getElementById('statusInput').value;
+    
+    if (!id || !name) {
+        alert("ID và Tên không được để trống.");
+        return;
+    }
+    
+    let data = await fetchData();
+    data[id] = { "Name": name, "Status": status };
+    saveData(data);
+}
+
+async function deleteData() {
+    let id = document.getElementById('idInput').value.trim();
+    
+    if (!id) {
+        alert("Vui lòng nhập ID để xóa.");
+        return;
+    }
+    
+    let data = await fetchData();
+    if (data[id]) {
+        delete data[id];
+        saveData(data);
+    } else {
+        alert("ID không tồn tại.");
+    }
+}
+
+async function saveData(data) {
+    await fetch(DATA_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data, null, 4)
+    });
+    alert("Dữ liệu đã được cập nhật.");
+    document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 4);
+}
+
+(async () => {
+    document.getElementById('dataDisplay').textContent = JSON.stringify(await fetchData(), null, 4);
+})();
+</script>
+
+<!-- data.json (Lưu trên GitHub) -->
+{
+    "123": { "Name": "Nguyễn Văn A", "Status": "Active" },
+    "456": { "Name": "Trần Thị B", "Status": "Inactive" }
+}
