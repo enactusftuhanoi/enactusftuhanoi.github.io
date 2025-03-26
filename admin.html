@@ -3,145 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cập nhật thông tin</title>
+    <title>Dashboard | Enactus FTU Hanoi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Montserrat, sans-serif; margin: 0; background-color: #f4f4f4; }
-        .container { max-width: 900px; margin: 50px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); }
-        h2 { color: #ffcc00; text-align: center; }
-        input, select, button { width: 100%; margin: 5px 0; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
-        button { background-color: #ffcc00; color: black; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #e6b800; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid black; padding: 10px; text-align: center; }
-        th { background-color: #ffcc00; color: black; }
-        .detail-form { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3); width: 450px; }
-        .detail-form h2 { text-align: center; color: #333; }
-        .detail-form .content { padding: 10px; line-height: 1.5; }
-        .close-btn { background: red; color: white; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
-        .close-btn:hover { background: darkred; }
-        .alert { display: none; text-align: center; background: green; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; }
+        body { font-family: 'Montserrat', sans-serif; background-color: #f9fafb; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { width: 90%; max-width: 900px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1); }
+        .login-container { text-align: center; }
+        h2 { text-align: center; color: #f7b500; font-weight: 600; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        button { width: 100%; padding: 12px; background: #f7b500; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button:hover { background: #e6a200; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #ddd; }
+        th { background: #f7b500; color: white; font-weight: 600; }
+        .facebook-icon { color: #1877f2; text-decoration: none; font-weight: 600; }
+        .actions button { margin: 4px; padding: 8px; font-size: 12px; }
+        .delete-btn { background: #ff4d4d; }
+        .delete-btn:hover { background: #cc0000; }
+        #adminPanel { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Cập nhật thông tin</h2>
-        <div class="alert" id="successMessage">Thêm thành công!</div>
+    <div class="container" id="loginPanel">
+        <h2>Đăng nhập Admin</h2>
+        <input type="text" id="username" placeholder="Tên đăng nhập">
+        <input type="password" id="password" placeholder="Mật khẩu">
+        <button onclick="login()">Đăng nhập</button>
+    </div>
+    
+    <div class="container" id="adminPanel">
+        <h2>Quản lý Thành viên - Enactus FTU Hanoi</h2>
+        <input type="file" id="photo" accept="image/*">
         <input type="text" id="id" placeholder="ID">
         <select id="status">
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
         </select>
-        <input type="text" id="gen" placeholder="Gen">
         <input type="text" id="ban" placeholder="Ban">
-        <input type="text" id="name" placeholder="Name">
+        <input type="text" id="gen" placeholder="Gen">
+        <input type="text" id="name" placeholder="Họ và Tên">
         <input type="date" id="dob">
-        <input type="text" id="phone" placeholder="Phone">
+        <input type="text" id="phone" placeholder="Số điện thoại">
         <input type="email" id="email" placeholder="Email">
-        <input type="text" id="note" placeholder="Note">
-        <button onclick="addRecord()">Thêm</button>
-        
+        <input type="text" id="facebook" placeholder="Link Facebook">
+        <button onclick="addMember()">Thêm Thành viên</button>
         <table>
             <thead>
                 <tr>
+                    <th>Ảnh</th>
                     <th>ID</th>
                     <th>Status</th>
-                    <th>Gen</th>
                     <th>Ban</th>
-                    <th>Name</th>
+                    <th>Gen</th>
+                    <th>Tên</th>
                     <th>DOB</th>
                     <th>Phone</th>
                     <th>Email</th>
-                    <th>Note</th>
-                    <th>Actions</th>
+                    <th>Facebook</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
-            <tbody id="dataTable"></tbody>
+            <tbody id="memberTable"></tbody>
         </table>
     </div>
-
-    <div class="detail-form" id="detailForm">
-        <h2>Chi tiết thông tin</h2>
-        <div class="content" id="detailContent"></div>
-        <button class="close-btn" onclick="closeDetailForm()">Đóng</button>
-    </div>
-    
     <script>
-        function addRecord() {
-            let data = JSON.parse(localStorage.getItem('data')) || [];
-            data.push(getFormData());
-            localStorage.setItem('data', JSON.stringify(data));
-            loadTable();
-            document.getElementById('successMessage').style.display = 'block';
-            setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 2000);
-            resetForm();
+        let members = [];
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            if (username === "tuhm" && password === "1234") {
+                document.getElementById("loginPanel").style.display = "none";
+                document.getElementById("adminPanel").style.display = "block";
+            } else {
+                alert("Sai tài khoản hoặc mật khẩu!");
+            }
         }
 
-        function getFormData() {
-            return {
-                id: document.getElementById('id').value,
-                status: document.getElementById('status').value,
-                gen: document.getElementById('gen').value,
-                ban: document.getElementById('ban').value,
-                name: document.getElementById('name').value,
-                dob: document.getElementById('dob').value,
-                phone: document.getElementById('phone').value,
-                email: document.getElementById('email').value,
-                note: document.getElementById('note').value
+        function addMember() {
+            const photo = document.getElementById("photo").files[0];
+            const id = document.getElementById("id").value.trim();
+            const status = document.getElementById("status").value;
+            const ban = document.getElementById("ban").value.trim();
+            const gen = document.getElementById("gen").value.trim();
+            const name = document.getElementById("name").value.trim();
+            const dob = document.getElementById("dob").value;
+            const phone = document.getElementById("phone").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const facebook = document.getElementById("facebook").value.trim();
+            
+            if (!id || !name || !email) {
+                alert("ID, Tên và Email không được để trống!");
+                return;
+            }
+            
+            const formattedDOB = dob ? dob.split("-").reverse().join("/") : "";
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                members.push({ photo: e.target.result, id, status, ban, gen, name, dob: formattedDOB, phone, email, facebook });
+                renderTable();
+                alert("Thêm thành viên thành công!");
             };
+            if (photo) {
+                reader.readAsDataURL(photo);
+            } else {
+                members.push({ photo: "", id, status, ban, gen, name, dob: formattedDOB, phone, email, facebook });
+                renderTable();
+                alert("Thêm thành viên thành công!");
+            }
         }
-
-        function resetForm() {
-            document.querySelectorAll('input, select').forEach(input => input.value = '');
-        }
-
-        function loadTable() {
-            let data = JSON.parse(localStorage.getItem('data')) || [];
-            let tableBody = document.getElementById('dataTable');
-            tableBody.innerHTML = '';
-            data.forEach((row, index) => {
-                tableBody.innerHTML += `<tr>
-                    <td>${row.id}</td>
-                    <td>${row.status}</td>
-                    <td>${row.gen}</td>
-                    <td>${row.ban}</td>
-                    <td>${row.name}</td>
-                    <td>${row.dob}</td>
-                    <td>${row.phone}</td>
-                    <td>${row.email}</td>
-                    <td>${row.note}</td>
-                    <td>
-                        <button onclick="showDetail(${index})">Chi tiết</button>
-                        <button onclick="deleteRecord(${index})">Xóa</button>
-                    </td>
-                </tr>`;
+        
+        function renderTable() {
+            const table = document.getElementById("memberTable");
+            table.innerHTML = "";
+            members.forEach((member, index) => {
+                table.innerHTML += `
+                    <tr>
+                        <td><img src="${member.photo}" width="50" height="50" style="border-radius:50%;"></td>
+                        <td>${member.id}</td>
+                        <td>${member.status}</td>
+                        <td>${member.ban}</td>
+                        <td>${member.gen}</td>
+                        <td>${member.name}</td>
+                        <td>${member.dob}</td>
+                        <td>${member.phone}</td>
+                        <td>${member.email}</td>
+                        <td><a href="${member.facebook}" class="facebook-icon" target="_blank">Facebook</a></td>
+                        <td class="actions">
+                            <button onclick="editMember(${index})">Sửa</button>
+                            <button onclick="deleteMember(${index})" class="delete-btn">Xóa</button>
+                        </td>
+                    </tr>`;
             });
-        }
-
-        function showDetail(index) {
-            let data = JSON.parse(localStorage.getItem('data')) || [];
-            let detail = data[index];
-            document.getElementById('detailContent').innerHTML = `
-                <p><strong>ID:</strong> ${detail.id}</p>
-                <p><strong>Status:</strong> ${detail.status}</p>
-                <p><strong>Gen:</strong> ${detail.gen}</p>
-                <p><strong>Ban:</strong> ${detail.ban}</p>
-                <p><strong>Name:</strong> ${detail.name}</p>
-                <p><strong>DOB:</strong> ${detail.dob}</p>
-                <p><strong>Phone:</strong> ${detail.phone}</p>
-                <p><strong>Email:</strong> ${detail.email}</p>
-                <p><strong>Note:</strong> ${detail.note}</p>`;
-            document.getElementById('detailForm').style.display = 'block';
-        }
-
-        function closeDetailForm() {
-            document.getElementById('detailForm').style.display = 'none';
-        }
-
-        function deleteRecord(index) {
-            let data = JSON.parse(localStorage.getItem('data')) || [];
-            data.splice(index, 1);
-            localStorage.setItem('data', JSON.stringify(data));
-            loadTable();
         }
     </script>
 </body>
