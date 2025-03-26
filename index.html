@@ -3,52 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra cứu Thành viên | Enactus FTU Hanoi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Tra Cứu Thông Tin</title>
+    <script src="script.js" defer></script>
     <style>
-        body { font-family: 'Montserrat', sans-serif; background-color: #f9fafb; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { width: 90%; max-width: 500px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1); text-align: center; }
-        h2 { color: #f7b500; font-weight: 600; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        button { width: 100%; padding: 12px; background: #f7b500; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        button:hover { background: #e6a200; }
-        #result { margin-top: 20px; padding: 10px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 6px; display: none; }
+        .active { color: green; font-weight: bold; }
+        .inactive { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Tra cứu Thành viên</h2>
-        <input type="text" id="searchID" placeholder="Nhập ID thành viên">
-        <button onclick="searchMember()">Tra cứu</button>
-        <div id="result"></div>
-    </div>
-    <script>
-        async function searchMember() {
-            const searchID = document.getElementById("searchID").value.trim();
-            if (!searchID) {
-                alert("Vui lòng nhập ID để tra cứu!");
-                return;
-            }
-            const members = JSON.parse(localStorage.getItem("members")) || [];
-            const member = members.find(m => m.id === searchID);
-            const resultDiv = document.getElementById("result");
-            if (member) {
-                resultDiv.innerHTML = `
-                    <p><strong>Tên:</strong> ${member.name}</p>
-                    <p><strong>Ban:</strong> ${member.ban}</p>
-                    <p><strong>Gen:</strong> ${member.gen}</p>
-                    <p><strong>Trạng thái:</strong> ${member.status}</p>
-                    <p><strong>Ngày sinh:</strong> ${member.dob}</p>
-                    <p><strong>Phone:</strong> ${member.phone}</p>
-                    <p><strong>Email:</strong> ${member.email}</p>
-                    <p><a href="${member.facebook}" target="_blank" class="facebook-icon">Facebook</a></p>
-                `;
-                resultDiv.style.display = "block";
-            } else {
-                resultDiv.innerHTML = "<p>Không tìm thấy thành viên!</p>";
-                resultDiv.style.display = "block";
-            }
-        }
-    </script>
+    <h1>Tra Cứu Thông Tin</h1>
+    <input type="text" id="search" placeholder="Nhập ID...">
+    <button onclick="searchData()">Tìm Kiếm</button>
+    <div id="result"></div>
 </body>
 </html>
