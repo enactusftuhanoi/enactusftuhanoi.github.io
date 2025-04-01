@@ -7,7 +7,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Cấu hình Firebase
         const firebaseConfig = {
@@ -23,11 +23,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Tải danh sách nhân sự từ Firestore
-        async function loadEmployees() {
-            const querySnapshot = await getDocs(collection(db, "employees"));
+        // Cập nhật danh sách nhân sự và hiển thị trong bảng
+        function updateEmployeeTable(querySnapshot) {
             const tableBody = document.getElementById("employeeTableBody");
-            tableBody.innerHTML = "";
+            tableBody.innerHTML = ""; // Xóa nội dung cũ trong bảng
 
             querySnapshot.forEach((doc) => {
                 const employee = doc.data();
@@ -42,8 +41,11 @@
             });
         }
 
-        // Tải danh sách nhân sự khi trang được mở
-        loadEmployees();
+        // Lắng nghe thay đổi trong Firestore và tự động cập nhật
+        const employeesRef = collection(db, "employees");
+        onSnapshot(employeesRef, (snapshot) => {
+            updateEmployeeTable(snapshot); // Cập nhật bảng với dữ liệu mới
+        });
     </script>
 
     <style>
