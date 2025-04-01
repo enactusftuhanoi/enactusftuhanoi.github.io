@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Thêm Nhân Sự</title>
+    <title>Admin - Đăng Nhập</title>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Cấu hình Firebase
@@ -21,7 +22,26 @@
 
         // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // Hàm đăng nhập
+        window.loginAdmin = async function() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            if (email && password) {
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    alert("Đăng nhập thành công!");
+                    window.location.href = "admin_dashboard.html"; // Chuyển hướng đến trang Admin Dashboard
+                } catch (error) {
+                    alert("Đăng nhập thất bại: " + error.message);
+                }
+            } else {
+                alert("Vui lòng nhập email và mật khẩu.");
+            }
+        };
 
         // Hàm thêm nhân sự
         window.addEmployee = async function() {
@@ -56,3 +76,11 @@
     </style>
 </head>
 <body>
+    <h1>Đăng Nhập Admin</h1>
+    <form id="loginForm">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <button type="button" onclick="loginAdmin()">Đăng Nhập</button>
+    </form>
+</body>
+</html>
