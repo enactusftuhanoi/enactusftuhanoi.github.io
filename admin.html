@@ -3,95 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Dữ Liệu</title>
-    <script src="script.js" defer></script>
+    <title>Admin - Thêm Nhân Sự</title>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Cấu hình Firebase (THAY THÔNG TIN NÀY BẰNG CỦA MÀY)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Khởi tạo Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Hàm thêm nhân sự
+        window.addEmployee = async function() {
+            const ban = document.getElementById("ban").value;
+            const name = document.getElementById("name").value;
+            const dob = document.getElementById("dob").value;
+            const process = document.getElementById("process").value;
+
+            if (ban && name && dob && process) {
+                await addDoc(collection(db, "employees"), { ban, name, dob, process });
+                alert("Thêm nhân sự thành công!");
+                document.getElementById("employeeForm").reset();
+            } else {
+                alert("Vui lòng nhập đầy đủ thông tin.");
+            }
+        };
+    </script>
+
+    <style>
+        body {
+            background-color: #222;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Quản Lý Dữ Liệu</h1>
-    <input type="text" id="idInput" placeholder="Nhập ID..."><br>
-    <input type="text" id="nameInput" placeholder="Nhập Tên..."><br>
-    <select id="statusInput">
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
-    </select><br>
-    <button onclick="addOrUpdateData()">Thêm/Cập Nhật</button>
-    <button onclick="deleteData()">Xóa</button>
-    <h2>Dữ Liệu Hiện Tại</h2>
-    <pre id="dataDisplay"></pre>
+    <h1>Thêm Nhân Sự</h1>
+    <form id="employeeForm">
+        <input type="text" id="ban" placeholder="Ban (Phòng ban)">
+        <input type="text" id="name" placeholder="Tên nhân sự">
+        <input type="date" id="dob" placeholder="Ngày sinh">
+        <select id="process">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+        <button type="button" onclick="addEmployee()">Thêm</button>
+    </form>
 </body>
 </html>
-
-<!-- script.js -->
-<script>
-const DATA_URL = 'data.json';
-
-async function fetchData() {
-    let response = await fetch(DATA_URL);
-    return response.json();
-}
-
-async function searchData() {
-    let query = document.getElementById('search').value.trim();
-    let data = await fetchData();
-    
-    if (data[query]) {
-        let { Name, Status } = data[query];
-        let statusClass = Status === 'Active' ? 'active' : 'inactive';
-        document.getElementById('result').innerHTML = `<p>ID: ${query}</p><p>Name: ${Name}</p><p class="${statusClass}">Status: ${Status}</p>`;
-    } else {
-        document.getElementById('result').innerHTML = "Không tìm thấy kết quả.";
-    }
-}
-
-async function addOrUpdateData() {
-    let id = document.getElementById('idInput').value.trim();
-    let name = document.getElementById('nameInput').value.trim();
-    let status = document.getElementById('statusInput').value;
-    
-    if (!id || !name) {
-        alert("ID và Tên không được để trống.");
-        return;
-    }
-    
-    let data = await fetchData();
-    data[id] = { "Name": name, "Status": status };
-    saveData(data);
-}
-
-async function deleteData() {
-    let id = document.getElementById('idInput').value.trim();
-    
-    if (!id) {
-        alert("Vui lòng nhập ID để xóa.");
-        return;
-    }
-    
-    let data = await fetchData();
-    if (data[id]) {
-        delete data[id];
-        saveData(data);
-    } else {
-        alert("ID không tồn tại.");
-    }
-}
-
-async function saveData(data) {
-    await fetch(DATA_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data, null, 4)
-    });
-    alert("Dữ liệu đã được cập nhật.");
-    document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 4);
-}
-
-(async () => {
-    document.getElementById('dataDisplay').textContent = JSON.stringify(await fetchData(), null, 4);
-})();
-</script>
-
-<!-- data.json (Lưu trên GitHub) -->
-{
-    "123": { "Name": "Nguyễn Văn A", "Status": "Active" },
-    "456": { "Name": "Trần Thị B", "Status": "Inactive" }
-}
