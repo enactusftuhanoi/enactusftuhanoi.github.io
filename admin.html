@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Cấu hình Firebase
@@ -25,27 +25,54 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Kiểm tra nếu người dùng đã đăng nhập
+        let isAdminLoggedIn = false;
+
+        // Kiểm tra đăng nhập
         onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                window.location.href = "admin.html"; // Chuyển hướng nếu chưa đăng nhập
+            if (user) {
+                isAdminLoggedIn = true;
+                loadEmployees(); // Tải dữ liệu nhân sự khi đăng nhập
+                document.getElementById("admin-dashboard").style.display = "block";
+                document.getElementById("login-form").style.display = "none";
+                document.getElementById("logout-button").style.display = "block";
             } else {
-                loadEmployees(); // Load nhân sự nếu đã đăng nhập
+                isAdminLoggedIn = false;
+                document.getElementById("admin-dashboard").style.display = "none";
+                document.getElementById("login-form").style.display = "block";
+                document.getElementById("logout-button").style.display = "none";
             }
         });
 
-        // Đăng xuất
-        function logout() {
-            signOut(auth).then(() => {
-                window.location.href = "admin.html"; // Quay lại trang đăng nhập
-            });
-        }
+        // Đăng nhập Admin
+        window.loginAdmin = async function() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-        // Load danh sách nhân sự
+            if (email && password) {
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } catch (error) {
+                    alert("Đăng nhập thất bại: " + error.message);
+                }
+            } else {
+                alert("Vui lòng nhập email và mật khẩu.");
+            }
+        };
+
+        // Đăng xuất Admin
+        window.logout = function() {
+            signOut(auth).then(() => {
+                alert("Đăng xuất thành công.");
+            }).catch((error) => {
+                alert("Đăng xuất thất bại: " + error.message);
+            });
+        };
+
+        // Tải danh sách nhân sự từ Firestore
         async function loadEmployees() {
             const querySnapshot = await getDocs(collection(db, "employees"));
             const tableBody = document.getElementById("employeeTableBody");
-            tableBody.innerHTML = ""; // Xóa dữ liệu cũ trong bảng
+            tableBody.innerHTML = "";
 
             querySnapshot.forEach((doc) => {
                 const employee = doc.data();
@@ -64,7 +91,7 @@
             });
         }
 
-        // Thêm nhân sự
+        // Thêm nhân sự mới
         window.addEmployee = async function() {
             const ban = document.getElementById("ban").value;
             const name = document.getElementById("name").value;
@@ -74,7 +101,7 @@
             if (ban && name && dob && process) {
                 await addDoc(collection(db, "employees"), { ban, name, dob, process });
                 alert("Thêm nhân sự thành công!");
-                loadEmployees(); // Cập nhật lại bảng sau khi thêm
+                loadEmployees(); // Cập nhật lại bảng nhân sự
                 document.getElementById("employeeForm").reset();
             } else {
                 alert("Vui lòng nhập đầy đủ thông tin.");
@@ -86,14 +113,12 @@
             const docRef = doc(db, "employees", id);
             const docSnapshot = await getDocs(docRef);
             const employee = docSnapshot.data();
-            
-            // Điền dữ liệu vào form để chỉnh sửa
+
             document.getElementById("ban").value = employee.ban;
             document.getElementById("name").value = employee.name;
             document.getElementById("dob").value = employee.dob;
             document.getElementById("process").value = employee.process;
 
-            // Thêm nút lưu thay đổi
             document.getElementById("saveButton").onclick = function() {
                 updateDoc(docRef, {
                     ban: document.getElementById("ban").value,
@@ -102,7 +127,7 @@
                     process: document.getElementById("process").value
                 }).then(() => {
                     alert("Sửa nhân sự thành công!");
-                    loadEmployees(); // Cập nhật bảng sau khi sửa
+                    loadEmployees(); // Cập nhật lại bảng sau khi sửa
                     document.getElementById("employeeForm").reset();
                 });
             };
@@ -115,7 +140,6 @@
             alert("Xóa nhân sự thành công!");
             loadEmployees(); // Cập nhật lại bảng sau khi xóa
         };
-
     </script>
 
     <style>
@@ -141,38 +165,54 @@
             text-align: center;
             border: 1px solid #ddd;
         }
+        #admin-dashboard {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h1>Admin Dashboard</h1>
-    <button onclick="logout()">Đăng Xuất</button>
 
-    <h2>Thêm Nhân Sự</h2>
-    <form id="employeeForm">
-        <input type="text" id="ban" placeholder="Ban" required>
-        <input type="text" id="name" placeholder="Tên" required>
-        <input type="date" id="dob" placeholder="Ngày Sinh" required>
-        <select id="process" required>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-        </select>
-        <button type="button" onclick="addEmployee()">Thêm Nhân Sự</button>
-    </form>
+    <!-- Trang đăng nhập -->
+    <div id="login-form">
+        <h1>Đăng Nhập Admin</h1>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Mật khẩu" required>
+            <button type="button" onclick="loginAdmin()">Đăng Nhập</button>
+        </form>
+    </div>
 
-    <h2>Danh Sách Nhân Sự</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Ban</th>
-                <th>Tên</th>
-                <th>Ngày Sinh</th>
-                <th>Trạng Thái</th>
-                <th>Hành Động</th>
-            </tr>
-        </thead>
-        <tbody id="employeeTableBody">
-            <!-- Dữ liệu nhân sự sẽ được tải vào đây -->
-        </tbody>
-    </table>
+    <!-- Trang Admin Dashboard -->
+    <div id="admin-dashboard">
+        <button id="logout-button" onclick="logout()">Đăng Xuất</button>
+        <h2>Thêm Nhân Sự</h2>
+        <form id="employeeForm">
+            <input type="text" id="ban" placeholder="Ban" required>
+            <input type="text" id="name" placeholder="Tên" required>
+            <input type="date" id="dob" placeholder="Ngày Sinh" required>
+            <select id="process" required>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+            <button type="button" onclick="addEmployee()">Thêm Nhân Sự</button>
+        </form>
+
+        <h2>Danh Sách Nhân Sự</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ban</th>
+                    <th>Tên</th>
+                    <th>Ngày Sinh</th>
+                    <th>Trạng Thái</th>
+                    <th>Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="employeeTableBody">
+                <!-- Dữ liệu nhân sự sẽ được tải vào đây -->
+            </tbody>
+        </table>
+    </div>
+
 </body>
 </html>
