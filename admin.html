@@ -9,14 +9,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Cấu hình Firebase (THAY THÔNG TIN NÀY BẰNG CỦA MÀY)
+        // Cấu hình Firebase
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+            authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+            projectId: "enactusftuhanoi-tracuu",
+            storageBucket: "enactusftuhanoi-tracuu.firebasestorage.app",
+            messagingSenderId: "611356979403",
+            appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
         // Khởi tạo Firebase
@@ -56,16 +56,3 @@
     </style>
 </head>
 <body>
-    <h1>Thêm Nhân Sự</h1>
-    <form id="employeeForm">
-        <input type="text" id="ban" placeholder="Ban (Phòng ban)">
-        <input type="text" id="name" placeholder="Tên nhân sự">
-        <input type="date" id="dob" placeholder="Ngày sinh">
-        <select id="process">
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-        </select>
-        <button type="button" onclick="addEmployee()">Thêm</button>
-    </form>
-</body>
-</html>
