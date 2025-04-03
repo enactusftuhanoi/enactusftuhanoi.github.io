@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tra cứu nhân sự</title>
-
+    <link rel="icon" href="icon.png" type="image/png">
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
             authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -19,17 +18,18 @@
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
-        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const employeesRef = collection(db, "employees");
+        let employees = [];
 
-        // Cập nhật danh sách nhân sự và hiển thị trong bảng
-        function updateEmployeeTable(querySnapshot) {
+        function renderTable(data) {
+            const table = document.getElementById("resultTable");
             const tableBody = document.getElementById("employeeTableBody");
-            tableBody.innerHTML = ""; // Xóa nội dung cũ trong bảng
+            tableBody.innerHTML = "";
+            table.style.display = data.length > 0 ? "table" : "none";
 
-            querySnapshot.forEach((doc) => {
-                const employee = doc.data();
+            data.forEach(employee => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${employee.ban}</td>
@@ -41,36 +41,78 @@
             });
         }
 
-        // Lắng nghe thay đổi trong Firestore và tự động cập nhật
-        const employeesRef = collection(db, "employees");
         onSnapshot(employeesRef, (snapshot) => {
-            updateEmployeeTable(snapshot); // Cập nhật bảng với dữ liệu mới
+            employees = snapshot.docs.map(doc => doc.data());
+        });
+
+        document.getElementById("searchInput").addEventListener("input", function () {
+            const searchValue = this.value.toLowerCase();
+            const filteredEmployees = employees.filter(emp => emp.name.toLowerCase().includes(searchValue));
+            renderTable(filteredEmployees);
         });
     </script>
 
     <style>
         body {
-            background-color: #222;
-            color: white;
-            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #222;
+            font-family: 'Arial', sans-serif;
             text-align: center;
             padding: 20px;
+        }
+        .search-box {
+            margin: 20px auto;
+            width: 50%;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 25px;
+            border: 2px solid #ffcc00;
+            outline: none;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .search-box input:focus {
+            border-color: #222;
         }
         table {
             width: 80%;
             margin: 20px auto;
             border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: none;
         }
         th, td {
-            padding: 12px;
+            padding: 14px;
             text-align: center;
-            border: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #ffcc00;
+            color: #222;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #ffeb99;
+        }
+        .logo {
+            width: 120px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
+    <img src="icon.png" alt="Enactus Logo" class="logo">
     <h1>Tra cứu nhân sự</h1>
-    <table>
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Nhập tên nhân sự...">
+    </div>
+    <table id="resultTable">
         <thead>
             <tr>
                 <th>Ban</th>
@@ -80,7 +122,6 @@
             </tr>
         </thead>
         <tbody id="employeeTableBody">
-            <!-- Dữ liệu nhân sự sẽ được tải vào đây -->
         </tbody>
     </table>
 </body>
