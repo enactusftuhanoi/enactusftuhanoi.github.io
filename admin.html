@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Enactus FTU Hanoi</title>
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Montserrat, sans-serif;
             background-color: #FFD100;
             color: #333;
             text-align: center;
@@ -87,10 +87,7 @@
                 document.getElementById("loginPage").style.display = "none";
                 document.getElementById("adminPage").style.display = "block";
                 loadEmployees();
-            } else {
-                document.getElementById("loginPage").style.display = "block";
-                document.getElementById("adminPage").style.display = "none";
-            }
+            } 
         });
 
         window.login = async function() {
