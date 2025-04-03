@@ -27,7 +27,7 @@
             const table = document.getElementById("resultTable");
             const tableBody = document.getElementById("employeeTableBody");
             tableBody.innerHTML = "";
-            
+
             if (data.length > 0) {
                 table.style.display = "table";
                 data.forEach(employee => {
@@ -51,15 +51,25 @@
         });
 
         document.getElementById("searchInput").addEventListener("input", function () {
-    const searchValue = this.value.toLowerCase().trim();
-    const matchedEmployee = employees.find(emp => emp.id.toLowerCase() === searchValue);
+            const searchValue = this.value.toLowerCase().trim();
+            const matchedEmployee = employees.find(emp => emp.id.toLowerCase() === searchValue);
 
-    if (matchedEmployee) {
-        renderTable([matchedEmployee]); // Hiển thị đúng một kết quả
-    } else {
-        renderTable([]); // Không hiển thị gì nếu ID không khớp hoàn toàn
-    }
-});
+            if (matchedEmployee) {
+                document.getElementById("otpSection").style.display = "block"; // Hiển thị ô nhập OTP
+                document.getElementById("verifyOtpBtn").onclick = function () {
+                    const enteredOtp = document.getElementById("otpInput").value.trim();
+                    if (enteredOtp === matchedEmployee.otp) {
+                        renderTable([matchedEmployee]); // Hiển thị thông tin nếu OTP đúng
+                        document.getElementById("otpSection").style.display = "none"; // Ẩn ô nhập OTP
+                    } else {
+                        alert("OTP không chính xác! Vui lòng thử lại.");
+                    }
+                };
+            } else {
+                document.getElementById("otpSection").style.display = "none";
+                renderTable([]);
+            }
+        });
 
     </script>
 
@@ -71,11 +81,11 @@
             text-align: center;
             padding: 20px;
         }
-        .search-box {
+        .search-box, .otp-box {
             margin: 20px auto;
             width: 50%;
         }
-        .search-box input {
+        .search-box input, .otp-box input {
             width: 100%;
             padding: 12px;
             font-size: 16px;
@@ -85,8 +95,11 @@
             text-align: center;
             transition: 0.3s;
         }
-        .search-box input:focus {
+        .search-box input:focus, .otp-box input:focus {
             border-color: #222;
+        }
+        .otp-box {
+            display: none;
         }
         table {
             width: 80%;
@@ -115,6 +128,19 @@
             width: 80px;
             margin-bottom: 20px;
         }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #ffcc00;
+            color: #222;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 25px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #ffaa00;
+        }
     </style>
 </head>
 <body>
@@ -122,6 +148,10 @@
     <h1>Tra cứu</h1>
     <div class="search-box">
         <input type="text" id="searchInput" placeholder="Nhập ID của bạn...">
+    </div>
+    <div class="otp-box" id="otpSection">
+        <input type="text" id="otpInput" placeholder="Nhập OTP của bạn...">
+        <button id="verifyOtpBtn">Xác minh</button>
     </div>
     <table id="resultTable">
         <thead>
