@@ -54,9 +54,6 @@
             background-color: #0057B8;
             color: white;
         }
-        td {
-            text-align: center;
-        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -84,10 +81,10 @@
                     <tr>
                         <td>${employee.ban}</td>
                         <td>${employee.name}</td>
-                        <td>${employee.dob}</td>
+                        <td>${formatDate(employee.dob)}</td>
                         <td>${employee.process}</td>
                         <td>
-                            <button onclick="editEmployee('${doc.id}')">Sửa</button>
+                            <button onclick="editEmployee('${doc.id}', '${employee.ban}', '${employee.name}', '${employee.dob}', '${employee.process}')">Sửa</button>
                             <button onclick="deleteEmployee('${doc.id}')">Xóa</button>
                         </td>
                     </tr>`;
@@ -105,36 +102,33 @@
             loadEmployees();
         };
 
-        window.editEmployee = async function(id) {
-            const docRef = doc(db, "employees", id);
-            const docSnapshot = await getDocs(docRef);
-            const employee = docSnapshot.data();
-
-            document.getElementById("ban").value = employee.ban;
-            document.getElementById("name").value = employee.name;
-            document.getElementById("dob").value = employee.dob;
-            document.getElementById("process").value = employee.process;
-
-            document.getElementById("saveButton").onclick = function() {
-                updateDoc(docRef, {
+        window.editEmployee = async function(id, ban, name, dob, process) {
+            document.getElementById("ban").value = ban;
+            document.getElementById("name").value = name;
+            document.getElementById("dob").value = dob;
+            document.getElementById("process").value = process;
+            document.getElementById("saveButton").onclick = async function() {
+                await updateDoc(doc(db, "employees", id), {
                     ban: document.getElementById("ban").value,
                     name: document.getElementById("name").value,
                     dob: document.getElementById("dob").value,
                     process: document.getElementById("process").value
-                }).then(() => {
-                    alert("Sửa nhân sự thành công!");
-                    loadEmployees();
-                    document.getElementById("employeeForm").reset();
                 });
+                alert("Cập nhật thành công!");
+                loadEmployees();
             };
         };
 
         window.deleteEmployee = async function(id) {
-            const docRef = doc(db, "employees", id);
-            await deleteDoc(docRef);
+            await deleteDoc(doc(db, "employees", id));
             alert("Xóa nhân sự thành công!");
             loadEmployees();
         };
+
+        function formatDate(date) {
+            const [year, month, day] = date.split("-");
+            return `${day}/${month}/${year}`;
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             loadEmployees();
@@ -145,17 +139,15 @@
     <div class="container">
         <h1>Admin Dashboard</h1>
         <h2>Thêm Nhân Sự</h2>
-        <form id="employeeForm">
-            <input type="text" id="ban" placeholder="Ban" required>
-            <input type="text" id="name" placeholder="Tên" required>
-            <input type="date" id="dob" required>
-            <select id="process" required>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-            </select>
-            <button type="button" onclick="addEmployee()">Thêm Nhân Sự</button>
-        </form>
-
+        <input type="text" id="ban" placeholder="Ban" required>
+        <input type="text" id="name" placeholder="Tên" required>
+        <input type="date" id="dob" required>
+        <select id="process">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+        <button onclick="addEmployee()">Thêm Nhân Sự</button>
+        <button id="saveButton">Lưu</button>
         <h2>Danh Sách Nhân Sự</h2>
         <table>
             <thead>
