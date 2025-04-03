@@ -33,6 +33,7 @@
                 data.forEach(employee => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
+                        <td>${employee.id}</td>
                         <td>${employee.ban}</td>
                         <td>${employee.name}</td>
                         <td>${employee.dob}</td>
@@ -54,7 +55,7 @@
             if (searchValue === "") {
                 renderTable([]);
             } else {
-                const filteredEmployees = employees.filter(emp => emp.name.toLowerCase().includes(searchValue));
+                const filteredEmployees = employees.filter(emp => emp.id.toLowerCase().includes(searchValue));
                 renderTable(filteredEmployees);
             }
         });
@@ -116,13 +117,14 @@
 </head>
 <body>
     <img src="icon.png" alt="Enactus Logo" class="logo">
-    <h1>Tra cứu nhân sự</h1>
+    <h1>Tra cứu</h1>
     <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Nhập tên nhân sự...">
+        <input type="text" id="searchInput" placeholder="Nhập ID của bạn...">
     </div>
     <table id="resultTable">
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Ban</th>
                 <th>Tên</th>
                 <th>Ngày Sinh</th>
