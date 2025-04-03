@@ -27,18 +27,22 @@
             const table = document.getElementById("resultTable");
             const tableBody = document.getElementById("employeeTableBody");
             tableBody.innerHTML = "";
-            table.style.display = data.length > 0 ? "table" : "none";
-
-            data.forEach(employee => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${employee.ban}</td>
-                    <td>${employee.name}</td>
-                    <td>${employee.dob}</td>
-                    <td>${employee.process}</td>
-                `;
-                tableBody.appendChild(row);
-            });
+            
+            if (data.length > 0) {
+                table.style.display = "table";
+                data.forEach(employee => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${employee.ban}</td>
+                        <td>${employee.name}</td>
+                        <td>${employee.dob}</td>
+                        <td>${employee.process}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                table.style.display = "none";
+            }
         }
 
         onSnapshot(employeesRef, (snapshot) => {
@@ -46,9 +50,13 @@
         });
 
         document.getElementById("searchInput").addEventListener("input", function () {
-            const searchValue = this.value.toLowerCase();
-            const filteredEmployees = employees.filter(emp => emp.name.toLowerCase().includes(searchValue));
-            renderTable(filteredEmployees);
+            const searchValue = this.value.toLowerCase().trim();
+            if (searchValue === "") {
+                renderTable([]);
+            } else {
+                const filteredEmployees = employees.filter(emp => emp.name.toLowerCase().includes(searchValue));
+                renderTable(filteredEmployees);
+            }
         });
     </script>
 
@@ -101,7 +109,7 @@
             background-color: #ffeb99;
         }
         .logo {
-            width: 120px;
+            width: 80px;
             margin-bottom: 20px;
         }
     </style>
