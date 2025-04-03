@@ -55,7 +55,7 @@
             if (searchValue === "") {
                 renderTable([]);
             } else {
-                const filteredEmployees = employees.filter(emp => emp.id.toLowerCase().includes(searchValue));
+                const filteredEmployees = employees.filter(emp.id.toLowerCase().includes(searchValue));
                 renderTable(filteredEmployees);
             }
         });
