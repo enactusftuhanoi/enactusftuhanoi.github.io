@@ -54,10 +54,19 @@
             background-color: #0057B8;
             color: white;
         }
+        .login-container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -70,6 +79,30 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Kiểm tra trạng thái đăng nhập
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById("loginPage").style.display = "none";
+                document.getElementById("adminPage").style.display = "block";
+                loadEmployees();
+            } else {
+                document.getElementById("loginPage").style.display = "block";
+                document.getElementById("adminPage").style.display = "none";
+            }
+        });
+
+        window.login = async function() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert("Đăng nhập thành công!");
+            } catch (error) {
+                alert("Đăng nhập thất bại: " + error.message);
+            }
+        };
 
         async function loadEmployees() {
             const querySnapshot = await getDocs(collection(db, "employees"));
@@ -136,7 +169,16 @@
     </script>
 </head>
 <body>
-    <div class="container">
+    <!-- Phần đăng nhập -->
+    <div id="loginPage" class="login-container">
+        <h2>Đăng Nhập</h2>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <button onclick="login()">Đăng Nhập</button>
+    </div>
+
+    <!-- Phần admin dashboard -->
+    <div id="adminPage" class="container" style="display: none;">
         <h1>Admin Dashboard</h1>
         <h2>Thêm Nhân Sự</h2>
         <input type="text" id="ban" placeholder="Ban" required>
