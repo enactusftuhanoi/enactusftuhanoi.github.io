@@ -112,6 +112,7 @@
                 const employee = doc.data();
                 tableBody.innerHTML += `
                     <tr>
+                        <td>${employee.id}</td>
                         <td>${employee.ban}</td>
                         <td>${employee.name}</td>
                         <td>${formatDate(employee.dob)}</td>
@@ -126,6 +127,7 @@
 
         window.addEmployee = async function() {
             await addDoc(collection(db, "employees"), {
+                id: document.getElementById("id").value,
                 ban: document.getElementById("ban").value,
                 name: document.getElementById("name").value,
                 dob: document.getElementById("dob").value,
@@ -136,12 +138,14 @@
         };
 
         window.editEmployee = async function(id, ban, name, dob, process) {
+            document.getElementById("id").value = id;
             document.getElementById("ban").value = ban;
             document.getElementById("name").value = name;
             document.getElementById("dob").value = dob;
             document.getElementById("process").value = process;
             document.getElementById("saveButton").onclick = async function() {
                 await updateDoc(doc(db, "employees", id), {
+                    id: document.getElementById("id").value,
                     ban: document.getElementById("ban").value,
                     name: document.getElementById("name").value,
                     dob: document.getElementById("dob").value,
@@ -181,6 +185,7 @@
     <div id="adminPage" class="container" style="display: none;">
         <h1>Admin Dashboard</h1>
         <h2>Thêm Nhân Sự</h2>
+        <input type="text" id="id" placeholder="ID" required>
         <input type="text" id="ban" placeholder="Ban" required>
         <input type="text" id="name" placeholder="Tên" required>
         <input type="date" id="dob" required>
@@ -194,6 +199,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Ban</th>
                     <th>Tên</th>
                     <th>Ngày Sinh</th>
