@@ -54,10 +54,22 @@
             background-color: #0057B8;
             color: white;
         }
+        .login-container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .login-container input {
+            width: calc(100% - 22px);
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -70,6 +82,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         async function loadEmployees() {
             const querySnapshot = await getDocs(collection(db, "employees"));
@@ -98,13 +111,35 @@
             loadEmployees();
         };
 
+        window.login = async function() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                alert("Đăng nhập thành công!");
+                document.getElementById("loginForm").style.display = "none";
+                document.getElementById("adminDashboard").style.display = "block";
+                loadEmployees();
+            } catch (error) {
+                alert("Lỗi đăng nhập: " + error.message);
+            }
+        };
+
         document.addEventListener("DOMContentLoaded", () => {
-            loadEmployees();
+            document.getElementById("loginForm").style.display = "block";
+            document.getElementById("adminDashboard").style.display = "none";
         });
     </script>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="loginForm">
+        <h1>Đăng Nhập</h1>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <button onclick="login()">Đăng nhập</button>
+    </div>
+
+    <div class="container" id="adminDashboard" style="display:none;">
         <h1>Admin Dashboard</h1>
         <h2>Thêm Nhân Sự</h2>
         <input type="text" id="ban" placeholder="Ban" required>
@@ -115,6 +150,7 @@
             <option value="Inactive">Inactive</option>
         </select>
         <button onclick="addEmployee()">Thêm Nhân Sự</button>
+
         <h2>Danh Sách Nhân Sự</h2>
         <table>
             <thead>
