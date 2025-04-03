@@ -57,7 +57,7 @@
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -81,12 +81,8 @@
                     <tr>
                         <td>${employee.ban}</td>
                         <td>${employee.name}</td>
-                        <td>${formatDate(employee.dob)}</td>
+                        <td>${employee.dob}</td>
                         <td>${employee.process}</td>
-                        <td>
-                            <button onclick="editEmployee('${doc.id}', '${employee.ban}', '${employee.name}', '${employee.dob}', '${employee.process}')">Sửa</button>
-                            <button onclick="deleteEmployee('${doc.id}')">Xóa</button>
-                        </td>
                     </tr>`;
             });
         }
@@ -101,34 +97,6 @@
             alert("Thêm nhân sự thành công!");
             loadEmployees();
         };
-
-        window.editEmployee = async function(id, ban, name, dob, process) {
-            document.getElementById("ban").value = ban;
-            document.getElementById("name").value = name;
-            document.getElementById("dob").value = dob;
-            document.getElementById("process").value = process;
-            document.getElementById("saveButton").onclick = async function() {
-                await updateDoc(doc(db, "employees", id), {
-                    ban: document.getElementById("ban").value,
-                    name: document.getElementById("name").value,
-                    dob: document.getElementById("dob").value,
-                    process: document.getElementById("process").value
-                });
-                alert("Cập nhật thành công!");
-                loadEmployees();
-            };
-        };
-
-        window.deleteEmployee = async function(id) {
-            await deleteDoc(doc(db, "employees", id));
-            alert("Xóa nhân sự thành công!");
-            loadEmployees();
-        };
-
-        function formatDate(date) {
-            const [year, month, day] = date.split("-");
-            return `${day}/${month}/${year}`;
-        }
 
         document.addEventListener("DOMContentLoaded", () => {
             loadEmployees();
@@ -147,7 +115,6 @@
             <option value="Inactive">Inactive</option>
         </select>
         <button onclick="addEmployee()">Thêm Nhân Sự</button>
-        <button id="saveButton">Lưu</button>
         <h2>Danh Sách Nhân Sự</h2>
         <table>
             <thead>
@@ -156,7 +123,6 @@
                     <th>Tên</th>
                     <th>Ngày Sinh</th>
                     <th>Trạng Thái</th>
-                    <th>Hành Động</th>
                 </tr>
             </thead>
             <tbody id="employeeTableBody"></tbody>
