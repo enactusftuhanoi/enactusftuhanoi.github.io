@@ -4,13 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-
+    <link rel="icon" href="icon.png" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #FFD100;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #0057B8;
+        }
+        input, select, button {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #0057B8;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003A70;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #0057B8;
+            color: white;
+        }
+        td {
+            text-align: center;
+        }
+    </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
             authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -20,95 +71,40 @@
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
-        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let isAdminLoggedIn = false;
-
-        // Kiểm tra đăng nhập
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                isAdminLoggedIn = true;
-                loadEmployees(); // Tải dữ liệu nhân sự khi đăng nhập
-                document.getElementById("admin-dashboard").style.display = "block";
-                document.getElementById("login-form").style.display = "none";
-                document.getElementById("logout-button").style.display = "block";
-            } else {
-                isAdminLoggedIn = false;
-                document.getElementById("admin-dashboard").style.display = "none";
-                document.getElementById("login-form").style.display = "block";
-                document.getElementById("logout-button").style.display = "none";
-            }
-        });
-
-        // Đăng nhập Admin
-        window.loginAdmin = async function() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-
-            if (email && password) {
-                try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                } catch (error) {
-                    alert("Đăng nhập thất bại: " + error.message);
-                }
-            } else {
-                alert("Vui lòng nhập email và mật khẩu.");
-            }
-        };
-
-        // Đăng xuất Admin
-        window.logout = function() {
-            signOut(auth).then(() => {
-                alert("Đăng xuất thành công.");
-            }).catch((error) => {
-                alert("Đăng xuất thất bại: " + error.message);
-            });
-        };
-
-        // Tải danh sách nhân sự từ Firestore
         async function loadEmployees() {
             const querySnapshot = await getDocs(collection(db, "employees"));
             const tableBody = document.getElementById("employeeTableBody");
             tableBody.innerHTML = "";
-
             querySnapshot.forEach((doc) => {
                 const employee = doc.data();
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${employee.ban}</td>
-                    <td>${employee.name}</td>
-                    <td>${employee.dob}</td>
-                    <td>${employee.process}</td>
-                    <td>
-                        <button onclick="editEmployee('${doc.id}')">Sửa</button>
-                        <button onclick="deleteEmployee('${doc.id}')">Xóa</button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${employee.ban}</td>
+                        <td>${employee.name}</td>
+                        <td>${employee.dob}</td>
+                        <td>${employee.process}</td>
+                        <td>
+                            <button onclick="editEmployee('${doc.id}')">Sửa</button>
+                            <button onclick="deleteEmployee('${doc.id}')">Xóa</button>
+                        </td>
+                    </tr>`;
             });
         }
 
-        // Thêm nhân sự mới
         window.addEmployee = async function() {
-            const ban = document.getElementById("ban").value;
-            const name = document.getElementById("name").value;
-            const dob = document.getElementById("dob").value;
-            const process = document.getElementById("process").value;
-
-            if (ban && name && dob && process) {
-                await addDoc(collection(db, "employees"), { ban, name, dob, process });
-                alert("Thêm nhân sự thành công!");
-                loadEmployees(); // Cập nhật lại bảng nhân sự
-                document.getElementById("employeeForm").reset();
-            } else {
-                alert("Vui lòng nhập đầy đủ thông tin.");
-            }
+            await addDoc(collection(db, "employees"), {
+                ban: document.getElementById("ban").value,
+                name: document.getElementById("name").value,
+                dob: document.getElementById("dob").value,
+                process: document.getElementById("process").value
+            });
+            alert("Thêm nhân sự thành công!");
+            loadEmployees();
         };
 
-        // Chỉnh sửa nhân sự
         window.editEmployee = async function(id) {
             const docRef = doc(db, "employees", id);
             const docSnapshot = await getDocs(docRef);
@@ -127,69 +123,32 @@
                     process: document.getElementById("process").value
                 }).then(() => {
                     alert("Sửa nhân sự thành công!");
-                    loadEmployees(); // Cập nhật lại bảng sau khi sửa
+                    loadEmployees();
                     document.getElementById("employeeForm").reset();
                 });
             };
         };
 
-        // Xóa nhân sự
         window.deleteEmployee = async function(id) {
             const docRef = doc(db, "employees", id);
             await deleteDoc(docRef);
             alert("Xóa nhân sự thành công!");
-            loadEmployees(); // Cập nhật lại bảng sau khi xóa
+            loadEmployees();
         };
-    </script>
 
-    <style>
-        body {
-            background-color: #222;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        input, select, button {
-            padding: 10px;
-            margin: 10px;
-            font-size: 16px;
-        }
-        table {
-            width: 80%;
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-        #admin-dashboard {
-            display: none;
-        }
-    </style>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadEmployees();
+        });
+    </script>
 </head>
 <body>
-
-    <!-- Trang đăng nhập -->
-    <div id="login-form">
-        <h1>Đăng Nhập Admin</h1>
-        <form id="loginForm">
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Mật khẩu" required>
-            <button type="button" onclick="loginAdmin()">Đăng Nhập</button>
-        </form>
-    </div>
-
-    <!-- Trang Admin Dashboard -->
-    <div id="admin-dashboard">
-        <button id="logout-button" onclick="logout()">Đăng Xuất</button>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
         <h2>Thêm Nhân Sự</h2>
         <form id="employeeForm">
             <input type="text" id="ban" placeholder="Ban" required>
             <input type="text" id="name" placeholder="Tên" required>
-            <input type="date" id="dob" placeholder="Ngày Sinh" required>
+            <input type="date" id="dob" required>
             <select id="process" required>
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
@@ -208,11 +167,8 @@
                     <th>Hành Động</th>
                 </tr>
             </thead>
-            <tbody id="employeeTableBody">
-                <!-- Dữ liệu nhân sự sẽ được tải vào đây -->
-            </tbody>
+            <tbody id="employeeTableBody"></tbody>
         </table>
     </div>
-
 </body>
 </html>
