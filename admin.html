@@ -7,107 +7,57 @@
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-        }
-
-        .container {
-            width: 80%;
-            max-width: 1000px;
-            margin: 30px auto;
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
+            font-family: Arial, sans-serif;
+            background-color: #FFD100;
             color: #333;
             text-align: center;
-            margin-bottom: 30px;
+            margin: 0;
+            padding: 0;
         }
-
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            font-weight: bold;
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
-        .form-group {
-            margin-bottom: 15px;
+        h1 {
+            color: #0057B8;
         }
-
         input, select, button {
-            width: 100%;
-            padding: 12px;
-            margin: 5px 0;
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 16px;
-            box-sizing: border-box;
         }
-
         button {
-            background-color: #4CAF50;
+            background-color: #0057B8;
             color: white;
-            border: none;
             cursor: pointer;
-            transition: background-color 0.3s;
         }
-
         button:hover {
-            background-color: #45a049;
+            background-color: #003A70;
         }
-
         table {
             width: 100%;
-            margin-top: 30px;
             border-collapse: collapse;
+            margin-top: 20px;
         }
-
         th, td {
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #ddd;
+            padding: 10px;
+            border: 1px solid #ccc;
         }
-
         th {
-            background-color: #4CAF50;
+            background-color: #0057B8;
             color: white;
-        }
-
-        td {
-            background-color: #f9f9f9;
-        }
-
-        .btn-action {
-            padding: 5px 15px;
-            color: white;
-            background-color: #008CBA;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn-action:hover {
-            background-color: #006F8E;
-        }
-
-        .btn-delete {
-            background-color: #f44336;
-        }
-
-        .btn-delete:hover {
-            background-color: #c13526;
         }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -131,11 +81,11 @@
                     <tr>
                         <td>${employee.ban}</td>
                         <td>${employee.name}</td>
-                        <td>${employee.dob}</td>
+                        <td>${formatDate(employee.dob)}</td>
                         <td>${employee.process}</td>
                         <td>
-                            <button class="btn-action" onclick="editEmployee('${doc.id}')">Sửa</button>
-                            <button class="btn-delete" onclick="deleteEmployee('${doc.id}')">Xóa</button>
+                            <button onclick="editEmployee('${doc.id}', '${employee.ban}', '${employee.name}', '${employee.dob}', '${employee.process}')">Sửa</button>
+                            <button onclick="deleteEmployee('${doc.id}')">Xóa</button>
                         </td>
                     </tr>`;
             });
@@ -152,24 +102,33 @@
             loadEmployees();
         };
 
-        window.editEmployee = async function(id) {
-            const docRef = doc(db, "employees", id);
-            const docSnap = await getDocs(docRef);
-            if (docSnap.exists()) {
-                const employee = docSnap.data();
-                document.getElementById("ban").value = employee.ban;
-                document.getElementById("name").value = employee.name;
-                document.getElementById("dob").value = employee.dob;
-                document.getElementById("process").value = employee.process;
-            }
+        window.editEmployee = async function(id, ban, name, dob, process) {
+            document.getElementById("ban").value = ban;
+            document.getElementById("name").value = name;
+            document.getElementById("dob").value = dob;
+            document.getElementById("process").value = process;
+            document.getElementById("saveButton").onclick = async function() {
+                await updateDoc(doc(db, "employees", id), {
+                    ban: document.getElementById("ban").value,
+                    name: document.getElementById("name").value,
+                    dob: document.getElementById("dob").value,
+                    process: document.getElementById("process").value
+                });
+                alert("Cập nhật thành công!");
+                loadEmployees();
+            };
         };
 
         window.deleteEmployee = async function(id) {
-            const docRef = doc(db, "employees", id);
-            await deleteDoc(docRef);
+            await deleteDoc(doc(db, "employees", id));
             alert("Xóa nhân sự thành công!");
             loadEmployees();
         };
+
+        function formatDate(date) {
+            const [year, month, day] = date.split("-");
+            return `${day}/${month}/${year}`;
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             loadEmployees();
@@ -180,23 +139,15 @@
     <div class="container">
         <h1>Admin Dashboard</h1>
         <h2>Thêm Nhân Sự</h2>
-        <div class="form-group">
-            <input type="text" id="ban" placeholder="Ban" required>
-        </div>
-        <div class="form-group">
-            <input type="text" id="name" placeholder="Tên" required>
-        </div>
-        <div class="form-group">
-            <input type="date" id="dob" required>
-        </div>
-        <div class="form-group">
-            <select id="process">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-            </select>
-        </div>
+        <input type="text" id="ban" placeholder="Ban" required>
+        <input type="text" id="name" placeholder="Tên" required>
+        <input type="date" id="dob" required>
+        <select id="process">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
         <button onclick="addEmployee()">Thêm Nhân Sự</button>
-
+        <button id="saveButton">Lưu</button>
         <h2>Danh Sách Nhân Sự</h2>
         <table>
             <thead>
