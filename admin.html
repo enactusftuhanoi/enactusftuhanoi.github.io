@@ -7,69 +7,107 @@
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #FFD100;
-            color: #333;
-            text-align: center;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
+            background-color: #f0f0f0;
         }
+
         .container {
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
-            background: white;
+            width: 80%;
+            max-width: 1000px;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
+
         h1 {
-            color: #0057B8;
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
         }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
         input, select, button {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin: 10px 0;
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 16px;
+            box-sizing: border-box;
         }
+
         button {
-            background-color: #0057B8;
+            background-color: #4CAF50;
             color: white;
+            border: none;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
+
         button:hover {
-            background-color: #003A70;
+            background-color: #45a049;
         }
+
         table {
             width: 100%;
+            margin-top: 30px;
             border-collapse: collapse;
-            margin-top: 20px;
         }
+
         th, td {
-            padding: 10px;
-            border: 1px solid #ccc;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
         }
+
         th {
-            background-color: #0057B8;
+            background-color: #4CAF50;
             color: white;
         }
-        .login-container {
-            max-width: 400px;
-            margin: auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+        td {
+            background-color: #f9f9f9;
         }
-        .login-container input {
-            width: calc(100% - 22px);
+
+        .btn-action {
+            padding: 5px 15px;
+            color: white;
+            background-color: #008CBA;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-action:hover {
+            background-color: #006F8E;
+        }
+
+        .btn-delete {
+            background-color: #f44336;
+        }
+
+        .btn-delete:hover {
+            background-color: #c13526;
         }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -82,7 +120,6 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
 
         async function loadEmployees() {
             const querySnapshot = await getDocs(collection(db, "employees"));
@@ -96,6 +133,10 @@
                         <td>${employee.name}</td>
                         <td>${employee.dob}</td>
                         <td>${employee.process}</td>
+                        <td>
+                            <button class="btn-action" onclick="editEmployee('${doc.id}')">Sửa</button>
+                            <button class="btn-delete" onclick="deleteEmployee('${doc.id}')">Xóa</button>
+                        </td>
                     </tr>`;
             });
         }
@@ -111,44 +152,49 @@
             loadEmployees();
         };
 
-        window.login = async function() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                alert("Đăng nhập thành công!");
-                document.getElementById("loginForm").style.display = "none";
-                document.getElementById("adminDashboard").style.display = "block";
-                loadEmployees();
-            } catch (error) {
-                alert("Lỗi đăng nhập: " + error.message);
+        window.editEmployee = async function(id) {
+            const docRef = doc(db, "employees", id);
+            const docSnap = await getDocs(docRef);
+            if (docSnap.exists()) {
+                const employee = docSnap.data();
+                document.getElementById("ban").value = employee.ban;
+                document.getElementById("name").value = employee.name;
+                document.getElementById("dob").value = employee.dob;
+                document.getElementById("process").value = employee.process;
             }
         };
 
+        window.deleteEmployee = async function(id) {
+            const docRef = doc(db, "employees", id);
+            await deleteDoc(docRef);
+            alert("Xóa nhân sự thành công!");
+            loadEmployees();
+        };
+
         document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("loginForm").style.display = "block";
-            document.getElementById("adminDashboard").style.display = "none";
+            loadEmployees();
         });
     </script>
 </head>
 <body>
-    <div class="container" id="loginForm">
-        <h1>Đăng Nhập</h1>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Mật khẩu" required>
-        <button onclick="login()">Đăng nhập</button>
-    </div>
-
-    <div class="container" id="adminDashboard" style="display:none;">
+    <div class="container">
         <h1>Admin Dashboard</h1>
         <h2>Thêm Nhân Sự</h2>
-        <input type="text" id="ban" placeholder="Ban" required>
-        <input type="text" id="name" placeholder="Tên" required>
-        <input type="date" id="dob" required>
-        <select id="process">
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-        </select>
+        <div class="form-group">
+            <input type="text" id="ban" placeholder="Ban" required>
+        </div>
+        <div class="form-group">
+            <input type="text" id="name" placeholder="Tên" required>
+        </div>
+        <div class="form-group">
+            <input type="date" id="dob" required>
+        </div>
+        <div class="form-group">
+            <select id="process">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+        </div>
         <button onclick="addEmployee()">Thêm Nhân Sự</button>
 
         <h2>Danh Sách Nhân Sự</h2>
@@ -159,6 +205,7 @@
                     <th>Tên</th>
                     <th>Ngày Sinh</th>
                     <th>Trạng Thái</th>
+                    <th>Hành Động</th>
                 </tr>
             </thead>
             <tbody id="employeeTableBody"></tbody>
