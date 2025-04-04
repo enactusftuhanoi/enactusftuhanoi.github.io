@@ -3,10 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông tin nhân sự</title>
+    <title>Enactus FTU Hanoi</title>
+    <link rel="icon" href="icon.png" type="image/png">
+    <style>
+        body {
+            font-family: Montserrat, sans-serif;
+            background-color: #FFD100;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #0057B8;
+        }
+        input, select, button {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #0057B8;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003A70;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #0057B8;
+            color: white;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -19,31 +79,131 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        const userID = localStorage.getItem("userID");
+        // Kiểm tra trạng thái đăng nhập
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById("loginPage").style.display = "none";
+                document.getElementById("adminPage").style.display = "block";
+                loadEmployees();
+            } 
+        });
 
-        async function loadEmployeeInfo() {
-            const employeesRef = collection(db, "employees");
-            const q = query(employeesRef, where("id", "==", userID));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const employee = querySnapshot.docs[0].data();
-                document.getElementById("info").innerHTML = `
-                    <p><strong>Tên:</strong> ${employee.name}</p>
-                    <p><strong>Ban:</strong> ${employee.ban}</p>
-                    <p><strong>Email:</strong> ${employee.email}</p>
-                    <p><strong>Trạng thái:</strong> ${employee.process}</p>`;
-            } else {
-                document.getElementById("info").innerText = "Không tìm thấy thông tin!";
+        window.login = async function() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert("Đăng nhập thành công!");
+            } catch (error) {
+                alert("Đăng nhập thất bại: " + error.message);
             }
+        };
+
+        async function loadEmployees() {
+            const querySnapshot = await getDocs(collection(db, "employees"));
+            const tableBody = document.getElementById("employeeTableBody");
+            tableBody.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                const employee = doc.data();
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${employee.id}</td>
+                        <td>${employee.ban}</td>
+                        <td>${employee.name}</td>
+                        <td>${formatDate(employee.dob)}</td>
+                        <td>${employee.process}</td>
+                        <td>${employee.otp}</td> <!-- Hiển thị OTP -->
+                        <td>
+                            <button onclick="editEmployee('${doc.id}', '${employee.ban}', '${employee.name}', '${employee.dob}', '${employee.process}', '${employee.otp}')">Sửa</button>
+                            <button onclick="deleteEmployee('${doc.id}')">Xóa</button>
+                        </td>
+                    </tr>`;
+            });
         }
 
-        loadEmployeeInfo();
+        window.addEmployee = async function() {
+            const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Tạo OTP 6 chữ số dạng string
+            await addDoc(collection(db, "employees"), {
+                id: document.getElementById("id").value,
+                ban: document.getElementById("ban").value,
+                name: document.getElementById("name").value,
+                dob: document.getElementById("dob").value,
+                process: document.getElementById("process").value,
+                otp: otp // Lưu OTP vào Firestore
+            });
+            alert(`Thêm nhân sự thành công! OTP của nhân sự là: ${otp}`);
+            loadEmployees();
+        };
+
+        window.editEmployee = async function(id, ban, name, dob, process, otp) {
+            document.getElementById("id").value = id;
+            document.getElementById("ban").value = ban;
+            document.getElementById("name").value = name;
+            document.getElementById("dob").value = dob;
+            document.getElementById("process").value = process;
+            
+            document.getElementById("saveButton").onclick = async function() {
+                await updateDoc(doc(db, "employees", id), {
+                    id: document.getElementById("id").value,
+                    ban: document.getElementById("ban").value,
+                    name: document.getElementById("name").value,
+                    dob: document.getElementById("dob").value,
+                    process: document.getElementById("process").value,
+                    otp: otp // Giữ nguyên OTP khi chỉnh sửa
+                });
+                alert("Cập nhật thành công!");
+                loadEmployees();
+            };
+        };
+
+        window.deleteEmployee = async function(id) {
+            await deleteDoc(doc(db, "employees", id));
+            alert("Xóa nhân sự thành công!");
+            loadEmployees();
+        };
+
+        function formatDate(date) {
+            const [year, month, day] = date.split("-");
+            return `${day}/${month}/${year}`;
+        }
     </script>
 </head>
 <body>
-    <h1>Thông tin cá nhân</h1>
-    <div id="info"></div>
+    <div id="loginPage" class="login-container">
+        <h2>Đăng Nhập</h2>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <button onclick="login()">Đăng Nhập</button>
+    </div>
+
+    <div id="adminPage" class="container" style="display: none;">
+        <h1>Admin Dashboard</h1>
+        <input type="text" id="id" placeholder="ID">
+        <input type="text" id="ban" placeholder="Ban">
+        <input type="text" id="name" placeholder="Tên">
+        <input type="date" id="dob">
+        <select id="process">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+        <button onclick="addEmployee()">Thêm Nhân Sự</button>
+        <button id="saveButton">Lưu</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ban</th>
+                    <th>Tên</th>
+                    <th>Ngày Sinh</th>
+                    <th>Trạng Thái</th>
+                    <th>OTP</th>
+                    <th>Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="employeeTableBody"></tbody>
+        </table>
+    </div>
 </body>
 </html>
