@@ -119,15 +119,16 @@
                 .then((userCredential) => {
                     const user = userCredential.user;
 
-                    db.collection("usersData")
-                        .where("email", "==", email)
+                    // 🔹 Tìm user theo email trong collection "employees"
+                    db.collection("employees")
+                        .where("Email", "==", email)  // 🔹 Chú ý: "Email" viết hoa theo Firestore
                         .get()
                         .then((querySnapshot) => {
                             if (!querySnapshot.empty) {
                                 querySnapshot.forEach((doc) => {
-                                    const role = doc.data().role;
+                                    const role = doc.data().Role;  // 🔹 "Role" phải đúng theo Firestore
 
-                                    if (role === "admin") {
+                                    if (role === "Admin") {
                                         window.location.href = "admin.html";
                                     } else {
                                         window.location.href = "member.html";
