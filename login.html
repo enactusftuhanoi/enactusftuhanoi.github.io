@@ -71,7 +71,7 @@
                 alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
 
                 // Kiểm tra email và role trong Firestore
-                checkUserInFirestore(user.email);
+                await checkUserInFirestore(user.email);
             } catch (error) {
                 alert("Lỗi đăng nhập: " + error.message);
             }
@@ -79,22 +79,33 @@
 
         // Kiểm tra email và role trong Firestore
         async function checkUserInFirestore(email) {
-            const docRef = doc(getFirestore(), "employees", email);  // Lấy thông tin nhân viên từ Firestore theo email
-            const docSnap = await getDoc(docRef);
+            const db = getFirestore();
+            const userDocRef = doc(db, "employees", email);  // Truy cập tài liệu của user trong Firestore
 
-            if (docSnap.exists()) {
-                const userData = docSnap.data();
-                const role = userData.role;
+            try {
+                const docSnap = await getDoc(userDocRef);
                 
-                if (role) {
-                    alert(`Đăng nhập thành công! Chào mừng ${email} với vai trò ${role}`);
-                    // Bạn có thể điều hướng đến trang admin hoặc trang khác tùy theo role
-                    window.location.href = "admin.html";  // Ví dụ: Chuyển đến trang quản lý
+                if (docSnap.exists()) {
+                    const userData = docSnap.data();
+                    const role = userData.role;
+                    
+                    if (role) {
+                        alert(`Đăng nhập thành công! Chào mừng ${email} với vai trò ${role}`);
+                        // Bạn có thể chuyển hướng người dùng tùy thuộc vào role
+                        if (role === "admin") {
+                            window.location.href = "admin.html";  // Ví dụ: Chuyển đến trang quản lý
+                        } else {
+                            window.location.href = "user.html";  // Ví dụ: Chuyển đến trang người dùng
+                        }
+                    } else {
+                        alert("Không có quyền truy cập! Vui lòng kiểm tra lại.");
+                    }
                 } else {
-                    alert("Không có quyền truy cập! Vui lòng kiểm tra lại.");
+                    alert("Email không tồn tại trong hệ thống.");
                 }
-            } else {
-                alert("Email không tồn tại trong hệ thống.");
+            } catch (error) {
+                console.error("Lỗi khi kiểm tra email trong Firestore:", error);
+                alert("Lỗi hệ thống, vui lòng thử lại.");
             }
         }
 
