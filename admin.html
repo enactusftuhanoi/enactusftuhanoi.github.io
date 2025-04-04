@@ -114,7 +114,7 @@
                         <td>${employee.name}</td>
                         <td>${formatDate(employee.dob)}</td>
                         <td>${employee.process}</td>
-                        <td>${employee.otp}</td> <!-- Hiển thị OTP -->
+                        <td>${employee.otp}</td>
                         <td>
                             <button onclick="editEmployee('${doc.id}', '${employee.ban}', '${employee.name}', '${employee.dob}', '${employee.process}', '${employee.otp}')">Sửa</button>
                             <button onclick="deleteEmployee('${doc.id}')">Xóa</button>
@@ -138,14 +138,18 @@
         };
 
         window.editEmployee = async function(id, ban, name, dob, process, otp) {
-            document.getElementById("id").value = id;
+            document.getElementById("id").value = id;  // Hiển thị ID nhưng không cho sửa
             document.getElementById("ban").value = ban;
             document.getElementById("name").value = name;
             document.getElementById("dob").value = dob;
             document.getElementById("process").value = process;
-            
+
+            // Khóa trường ID không cho phép chỉnh sửa
+            document.getElementById("id").disabled = true;  // Không cho phép thay đổi ID
+
             document.getElementById("saveButton").onclick = async function() {
                 await updateDoc(doc(db, "employees", id), {
+                    // Cập nhật các trường còn lại, không thay đổi ID
                     ban: document.getElementById("ban").value,
                     name: document.getElementById("name").value,
                     dob: document.getElementById("dob").value,
@@ -179,7 +183,7 @@
 
     <div id="adminPage" class="container" style="display: none;">
         <h1>Admin Dashboard</h1>
-        <input type="text" id="id" placeholder="ID">
+        <input type="text" id="id" placeholder="ID" disabled>
         <input type="text" id="ban" placeholder="Ban">
         <input type="text" id="name" placeholder="Tên">
         <input type="date" id="dob">
