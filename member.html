@@ -109,13 +109,6 @@
             const table = document.getElementById("userTable");
 
             // Duyệt qua các thông tin và thêm vào bảng
-                    <td>${userData.id}</td>
-                    <td>${userData.ban}</td>
-                    <td>${userData.name || 'Chưa cập nhật'}</td>
-                    <td>${userData.email}</td>
-                    <td>${userData.dob || 'Chưa cập nhật'}</td>
-                    <td>${userData.otp}</td>
-                    <td>${userData.phone || 'Chưa cập nhật'}</td>
             
             const data = `
                 <tr>
@@ -128,7 +121,6 @@
                     <td>${userData.phone || 'Chưa cập nhật'}</td>
                 </tr>
             `;
-            table.innerHTML = data;
         }
     </script>
 </head>
