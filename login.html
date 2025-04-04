@@ -3,10 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập</title>
+    <title>Login - Enactus FTU Hanoi</title>
+    <link rel="icon" href="icon.png" type="image/png">
+    <style>
+        body {
+            font-family: Montserrat, sans-serif;
+            background-color: #FFD100;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #0057B8;
+        }
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #0057B8;
+            color: white;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #003A70;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+        .otp-container {
+            display: none;
+        }
+    </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -19,47 +70,72 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        window.login = async function () {
+        // Gửi OTP qua email
+        async function sendOTPToEmail(email) {
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const userRef = doc(db, "users", email);
+            await setDoc(userRef, {
+                email: email,
+                otp: otp,
+                role: "user"
+            });
+
+            // Gửi OTP qua email (Firebase Functions hoặc dịch vụ email như SendGrid)
+            alert(`Mã OTP đã được gửi tới email của bạn: ${otp}`);
+        }
+
+        // Kiểm tra OTP
+        window.checkOTP = async function() {
+            const email = document.getElementById("email").value;
+            const otp = document.getElementById("otp").value;
+
+            const userRef = doc(db, "users", email);
+            const docSnap = await getDoc(userRef);
+
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                if (userData.otp === otp) {
+                    alert("Đăng nhập thành công!");
+                    // Chuyển hướng đến trang admin
+                    window.location.href = "admin.html";
+                } else {
+                    alert("Mã OTP không đúng.");
+                }
+            } else {
+                alert("Email không tồn tại.");
+            }
+        };
+
+        window.login = async function() {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
+            const errorMessage = document.getElementById("errorMessage");
 
-            // Tìm user trong Firestore (users collection)
-            const usersRef = collection(db, "users");
-            const q = query(usersRef, where("Email", "==", email));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                alert("Email không tồn tại!");
-                return;
-            }
-
-            const userDoc = querySnapshot.docs[0];  // Lấy document đầu tiên
-            const userData = userDoc.data();
-
-            if (userData.Password !== password) {
-                alert("Mật khẩu không đúng!");
-                return;
-            }
-
-            alert("Đăng nhập thành công!");
-
-            // Lưu thông tin vào localStorage để sử dụng trên admin.html
-            localStorage.setItem("userID", userData.ID);
-            localStorage.setItem("userRole", userData.Role);
-
-            if (userData.Role === "Admin") {
-                window.location.href = "admin.html";  // Chuyển sang trang quản trị
-            } else {
-                window.location.href = "employee.html";  // Chuyển sang trang nhân viên
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                sendOTPToEmail(email);
+                document.getElementById("otpContainer").style.display = "block"; // Hiển thị phần nhập OTP
+            } catch (error) {
+                errorMessage.innerText = "Đăng nhập thất bại: " + error.message;
             }
         };
     </script>
 </head>
 <body>
-    <h2>Đăng Nhập</h2>
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="password" id="password" placeholder="Mật khẩu" required>
-    <button onclick="login()">Đăng Nhập</button>
+    <div class="login-container">
+        <h2>Đăng Nhập</h2>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <button onclick="login()">Đăng Nhập</button>
+
+        <div id="otpContainer" class="otp-container">
+            <input type="text" id="otp" placeholder="Nhập mã OTP" required>
+            <button onclick="checkOTP()">Xác nhận OTP</button>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+    </div>
 </body>
 </html>
