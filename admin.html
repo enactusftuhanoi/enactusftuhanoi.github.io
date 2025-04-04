@@ -81,6 +81,26 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // Kiểm tra trạng thái đăng nhập
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById("loginPage").style.display = "none";
+                document.getElementById("adminPage").style.display = "block";
+                loadEmployees();
+            } 
+        });
+
+        window.login = async function() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert("Đăng nhập thành công!");
+            } catch (error) {
+                alert("Đăng nhập thất bại: " + error.message);
+            }
+        };
+
         async function loadEmployees() {
             const querySnapshot = await getDocs(collection(db, "employees"));
             const tableBody = document.getElementById("employeeTableBody");
@@ -159,6 +179,12 @@
     </script>
 </head>
 <body>
+    <div id="loginPage" class="login-container">
+        <h2>Đăng Nhập</h2>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <button onclick="login()">Đăng Nhập</button>
+    </div>
 
     <div id="adminPage" class="container" style="display: none;">
         <h1>ưDashboard</h1>
