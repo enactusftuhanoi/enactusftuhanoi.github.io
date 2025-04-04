@@ -111,7 +111,6 @@
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
-                    localStorage.setItem('userEmail', user.email);
                     // Nếu email tồn tại trong Firestore, chuyển hướng đến member.html
                     window.location.href = "member.html";
                 } else {
@@ -123,7 +122,7 @@
                 alert("Lỗi hệ thống, vui lòng thử lại.");
             }
         }
-
+        localStorage.setItem('userEmail', user.email);
         // Kiểm tra trạng thái đăng nhập
         onAuthStateChanged(auth, (user) => {
             if (user) {
