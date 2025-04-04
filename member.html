@@ -137,6 +137,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -150,6 +151,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         // Kiểm tra người dùng đã đăng nhập
         onAuthStateChanged(auth, (user) => {
@@ -160,10 +162,12 @@
             }
         });
 
+        // Load thông tin người dùng từ Firestore
         async function loadUserProfile(user) {
             const email = user.email;
             const docRef = doc(db, "employees", email);
             const docSnap = await getDoc(docRef);
+
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 document.getElementById("email").value = email;
@@ -180,6 +184,7 @@
             }
         }
 
+        // Lưu các thay đổi của người dùng
         async function saveChanges() {
             const user = auth.currentUser;
             if (!user) return;
@@ -195,6 +200,7 @@
                 return;
             }
 
+            // Cập nhật thông tin vào Firestore
             const docRef = doc(db, "employees", email);
             await updateDoc(docRef, {
                 name: name,
@@ -204,8 +210,8 @@
 
             if (profilePic) {
                 // Upload ảnh đại diện nếu có
-                const storageRef = firebase.storage().ref().child("profile_pictures/" + email);
-                await storageRef.put(profilePic);
+                const storageRef = ref(storage, `profile_pictures/${email}`);
+                await uploadBytes(storageRef, profilePic);
             }
 
             alert("Thay đổi thông tin thành công!");
