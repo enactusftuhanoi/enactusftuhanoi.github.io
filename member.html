@@ -95,7 +95,6 @@
     <div class="container">
         <h2>Thông Tin Thành Viên</h2>
 
-        <!-- Profile Info -->
         <table class="profile-info">
             <thead>
                 <tr>
@@ -114,7 +113,6 @@
             </tbody>
         </table>
 
-        <!-- Edit Form -->
         <form id="edit-form" style="display: none;">
             <div class="form-group">
                 <label for="name">Họ và Tên</label>
@@ -156,30 +154,28 @@
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
-        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Kiểm tra trạng thái người dùng đã đăng nhập chưa
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const email = user.email; // Lấy email người dùng
-                const userRef = doc(db, "employees", email); // Lấy thông tin người dùng từ Firestore theo email
+            const email = localStorage.getItem('userEmail');  // Lấy email từ localStorage
+
+            if (!email) {
+                window.location.href = "login.html"; // Nếu không có email trong localStorage, chuyển hướng về login
+            } else {
+                const userRef = doc(db, "employees", email); // Truy vấn thông tin người dùng từ Firestore
                 const docSnap = await getDoc(userRef);
 
                 if (docSnap.exists()) {
                     const userData = docSnap.data();
-                    displayUserProfile(userData); // Hiển thị thông tin người dùng
+                    displayUserProfile(userData);
                 } else {
                     alert("Không tìm thấy thông tin người dùng!");
                 }
-            } else {
-                window.location.href = "login.html"; // Nếu không có người dùng, chuyển hướng tới trang login
             }
         });
 
-        // Hàm hiển thị thông tin người dùng lên bảng
         function displayUserProfile(userData) {
             const tableBody = document.getElementById("profile-table-body");
 
@@ -197,10 +193,9 @@
             tableBody.appendChild(row);
         }
 
-        // Chỉnh sửa thông tin
         function editProfile() {
             const table = document.querySelector(".profile-info");
-            const row = table.rows[1]; // Lấy hàng đầu tiên trong bảng
+            const row = table.rows[1]; // Lấy hàng đầu tiên
             const cells = row.getElementsByTagName("td");
 
             document.getElementById("name").value = cells[2].innerText;
@@ -212,9 +207,8 @@
             document.getElementById("edit-form").style.display = 'block';
         }
 
-        // Lưu thông tin sau khi sửa
         function saveProfile() {
-            // Lấy thông tin từ form sửa và lưu lại vào Firestore
+            // Lấy thông tin từ form sửa và lưu lại
             alert("Thông tin đã được cập nhật!");
             // Cập nhật lại Firestore nếu cần
         }
