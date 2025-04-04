@@ -45,7 +45,8 @@
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Firebase Config
         const firebaseConfig = {
@@ -61,14 +62,40 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
+        const db = getFirestore(app);
 
         // Đăng nhập qua Google
         window.loginWithGoogle = async function() {
             try {
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
-                alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
-                window.location.href = "admin.html";  // Redirect to admin page
+
+                // Kiểm tra xem email đã được xác minh chưa
+                if (!user.emailVerified) {
+                    alert("Email của bạn chưa được xác minh. Vui lòng kiểm tra hộp thư.");
+                    await sendEmailVerification(user);  // Gửi lại email xác minh
+                    return;
+                }
+
+                // Kiểm tra email và role trong collection 'employees'
+                const employeeDocRef = doc(db, "employees", user.uid);
+                const employeeDoc = await getDoc(employeeDocRef);
+
+                if (employeeDoc.exists()) {
+                    const employeeData = employeeDoc.data();
+                    const role = employeeData.role;
+                    const email = employeeData.email;
+
+                    // Kiểm tra email
+                    if (email === user.email) {
+                        alert(`Đăng nhập thành công! Chào mừng ${user.displayName}. Role của bạn là: ${role}`);
+                        window.location.href = "admin.html";  // Redirect to admin page
+                    } else {
+                        alert("Email không khớp. Vui lòng kiểm tra lại.");
+                    }
+                } else {
+                    alert("Email không tồn tại trong hệ thống nhân sự.");
+                }
             } catch (error) {
                 alert("Lỗi đăng nhập: " + error.message);
             }
