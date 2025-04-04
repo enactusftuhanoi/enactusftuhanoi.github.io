@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Nhập - Enactus FTU Hanoi</title>
+    <title>Đăng Nhập - Google</title>
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         body {
@@ -25,18 +25,10 @@
         h2 {
             color: #0057B8;
         }
-        input {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
         button {
             width: 100%;
             padding: 10px;
-            background-color: #0057B8;
+            background-color: #4285F4;
             color: white;
             cursor: pointer;
             border: none;
@@ -44,21 +36,18 @@
             font-size: 16px;
         }
         button:hover {
-            background-color: #003A70;
+            background-color: #357AE8;
         }
         .error-message {
             color: red;
             margin-top: 10px;
         }
-        .otp-container {
-            display: none;
-        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
             authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -68,58 +57,37 @@
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
+        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-        // Gửi email OTP (email link)
-        window.sendOTP = async function() {
-            const email = document.getElementById("email").value;
-            const actionCodeSettings = {
-                // Tùy chỉnh URL sau khi xác thực thành công
-                url: window.location.href,
-                handleCodeInApp: true,
-            };
-
+        // Đăng nhập qua Google
+        window.loginWithGoogle = async function() {
             try {
-                await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-                window.localStorage.setItem('emailForSignIn', email); // Lưu email tạm thời
-                alert("Một mã OTP đã được gửi đến email của bạn!");
-                document.getElementById("otpContainer").style.display = "block"; // Hiển thị form OTP
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
+                window.location.href = "admin.html";  // Redirect to admin page
             } catch (error) {
-                alert("Lỗi: " + error.message);
+                alert("Lỗi đăng nhập: " + error.message);
             }
         };
 
-        // Kiểm tra link xác thực và đăng nhập
-        window.checkOTP = async function() {
-            const email = window.localStorage.getItem('emailForSignIn');
-            const link = window.location.href;
-
-            if (isSignInWithEmailLink(auth, link)) {
-                try {
-                    await signInWithEmailLink(auth, email, link);
-                    alert("Đăng nhập thành công!");
-                    window.location.href = "admin.html"; // Chuyển hướng tới trang admin
-                } catch (error) {
-                    alert("Lỗi khi đăng nhập: " + error.message);
-                }
+        // Kiểm tra trạng thái đăng nhập
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("User logged in: ", user);
             } else {
-                alert("Link không hợp lệ!");
+                console.log("No user is logged in.");
             }
-        };
+        });
     </script>
 </head>
 <body>
     <div class="login-container">
-        <h2>Đăng Nhập</h2>
-        <input type="email" id="email" placeholder="Email" required>
-        <button onclick="sendOTP()">Gửi OTP</button>
-
-        <div id="otpContainer" class="otp-container">
-            <button onclick="checkOTP()">Xác nhận OTP</button>
-        </div>
-
+        <h2>Đăng Nhập Bằng Google</h2>
+        <button onclick="loginWithGoogle()">Đăng Nhập với Google</button>
         <div id="errorMessage" class="error-message"></div>
     </div>
 </body>
