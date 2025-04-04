@@ -53,11 +53,61 @@
       color: #555;
     }
 
+    .edit-button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+
+    .edit-button:hover {
+      background-color: #45a049;
+    }
+
     .footer-text {
       position: absolute;
       bottom: 20px;
       font-size: 14px;
       color: #aaa;
+    }
+
+    .edit-form {
+      display: none;
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 800px;
+      margin-top: 20px;
+    }
+
+    .edit-form input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+    }
+
+    .edit-form button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    .edit-form button:hover {
+      background-color: #45a049;
     }
 
     @media (max-width: 600px) {
@@ -72,10 +122,9 @@
       }
     }
   </style>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -119,7 +168,7 @@
     function displayUserData(userData) {
       const container = document.getElementById("profileContainer");
 
-      const photoURL = userData.photoURL || "https://via.placeholder.com/150"; // Placeholder nếu không có ảnh
+      const photoURL = userData.photoURL || "https://via.placeholder.com/150";
 
       container.innerHTML = `
         <div class="profile-card">
@@ -132,9 +181,40 @@
             <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
             <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
             <p><strong>OTP:</strong> ${userData.otp}</p>
+            <button class="edit-button" onclick="editProfile()">Sửa</button>
           </div>
         </div>
+        <div class="edit-form" id="editForm">
+          <h3>Chỉnh sửa thông tin</h3>
+          <input type="text" id="editName" value="${userData.name || ''}" placeholder="Tên"/>
+          <input type="email" id="editEmail" value="${userData.email}" placeholder="Email"/>
+          <input type="text" id="editPhone" value="${userData.phone || ''}" placeholder="SĐT"/>
+          <input type="date" id="editDob" value="${userData.dob || ''}" placeholder="Ngày sinh"/>
+          <button onclick="saveChanges('${userData.id}')">Lưu thay đổi</button>
+        </div>
       `;
+    }
+
+    function editProfile() {
+      document.getElementById('editForm').style.display = 'block';
+    }
+
+    async function saveChanges(userId) {
+      const name = document.getElementById('editName').value;
+      const email = document.getElementById('editEmail').value;
+      const phone = document.getElementById('editPhone').value;
+      const dob = document.getElementById('editDob').value;
+
+      const userRef = doc(db, "employees", userId);
+      await updateDoc(userRef, {
+        name,
+        email,
+        phone,
+        dob
+      });
+
+      alert('Thông tin đã được cập nhật!');
+      location.reload();
     }
   </script>
 </head>
