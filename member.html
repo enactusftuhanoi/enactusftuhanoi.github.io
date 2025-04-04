@@ -3,148 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang Thông Tin Thành Viên</title>
+    <title>Thông Tin Thành Viên</title>
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+            background: #f2f2f2;
+            color: #333;
             margin: 0;
             padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        .container {
+        .member-container {
             width: 80%;
-            margin: 50px auto;
-            background-color: #ffffff;
+            max-width: 1000px;
             padding: 30px;
+            background-color: white;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         h2 {
-            color: #0057b8;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .profile-info {
-            width: 100%;
-            border-collapse: collapse;
+            color: #333;
+            font-size: 24px;
             margin-bottom: 20px;
         }
-        .profile-info th, .profile-info td {
-            padding: 15px;
-            text-align: left;
-            border: 1px solid #d9d9d9;
-        }
-        .profile-info th {
-            background-color: #ffc222;
-            color: white;
-        }
-        .profile-info td {
-            background-color: #d9d9d9;
-        }
-        .profile-info img {
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-        }
-        .btn-edit {
-            background-color: #0057b8;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .btn-edit:hover {
-            background-color: #357ae8;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group input {
+        table {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f8f9fa;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-        .form-group input:disabled {
-            background-color: #e9ecef;
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
-        .form-group button {
-            background-color: #ffc222;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        th {
+            background-color: #f1f1f1;
         }
-        .form-group button:hover {
-            background-color: #ffb020;
+        td {
+            background-color: #fafafa;
         }
-        .btn-save {
-            background-color: #28a745;
-        }
-        .btn-save:hover {
-            background-color: #218838;
+        .footer-text {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Thông Tin Thành Viên</h2>
-
-        <table class="profile-info">
-            <thead>
-                <tr>
-                    <th>Ảnh đại diện</th>
-                    <th>Email</th>
-                    <th>Họ và Tên</th>
-                    <th>Ngày Sinh</th>
-                    <th>Số điện thoại</th>
-                    <th>Ban</th>
-                    <th>Quy trình</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody id="profile-table-body">
-                <!-- Thông tin sẽ được hiển thị ở đây -->
-            </tbody>
-        </table>
-
-        <form id="edit-form" style="display: none;">
-            <div class="form-group">
-                <label for="name">Họ và Tên</label>
-                <input type="text" id="name" disabled>
-            </div>
-            <div class="form-group">
-                <label for="dob">Ngày Sinh</label>
-                <input type="date" id="dob" disabled>
-            </div>
-            <div class="form-group">
-                <label for="phone">Số Điện Thoại</label>
-                <input type="text" id="phone" disabled>
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" disabled>
-            </div>
-            <div class="form-group">
-                <label for="profile-picture">Ảnh Đại Diện</label>
-                <input type="file" id="profile-picture" disabled>
-            </div>
-            <div class="form-group">
-                <button type="button" class="btn-save" onclick="saveProfile()">Lưu</button>
-            </div>
-        </form>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
             authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -154,64 +66,80 @@
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
+        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        onAuthStateChanged(auth, async (user) => {
-            const email = localStorage.getItem('userEmail');  // Lấy email từ localStorage
-
-            if (!email) {
-                window.location.href = "login.html"; // Nếu không có email trong localStorage, chuyển hướng về login
+        window.onload = async function() {
+            // Lấy email từ localStorage
+            const userEmail = localStorage.getItem('userEmail');
+            if (!userEmail) {
+                // Nếu chưa đăng nhập, chuyển hướng về login.html
+                window.location.href = "login.html";
             } else {
-                const userRef = doc(db, "employees", email); // Truy vấn thông tin người dùng từ Firestore
-                const docSnap = await getDoc(userRef);
-
-                if (docSnap.exists()) {
-                    const userData = docSnap.data();
-                    displayUserProfile(userData);
-                } else {
-                    alert("Không tìm thấy thông tin người dùng!");
-                }
+                // Nếu đã đăng nhập, truy vấn thông tin người dùng từ Firestore
+                await getUserData(userEmail);
             }
-        });
+        };
 
-        function displayUserProfile(userData) {
-            const tableBody = document.getElementById("profile-table-body");
+        // Lấy thông tin người dùng từ Firestore
+        async function getUserData(email) {
+            const employeesRef = collection(db, "employees");
+            const q = query(employeesRef, where("email", "==", email));  // Truy vấn theo email
 
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td><img src="${userData.profilePicture || 'https://via.placeholder.com/150'}" alt="Profile Picture"></td>
-                <td>${userData.email}</td>
-                <td contenteditable="true">${userData.name || 'Chưa cập nhật'}</td>
-                <td contenteditable="true">${userData.dob || 'Chưa cập nhật'}</td>
-                <td contenteditable="true">${userData.phone || 'Chưa cập nhật'}</td>
-                <td>${userData.ban || 'Chưa cập nhật'}</td>
-                <td>${userData.process || 'Chưa cập nhật'}</td>
-                <td><button class="btn-edit" onclick="editProfile()">Sửa</button></td>
+            try {
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // Nếu tìm thấy thông tin người dùng
+                    const userData = querySnapshot.docs[0].data();
+                    displayUserData(userData);
+                } else {
+                    // Nếu không tìm thấy dữ liệu
+                    alert("Không tìm thấy thông tin người dùng trong hệ thống!");
+                }
+            } catch (error) {
+                console.error("Lỗi khi truy vấn dữ liệu:", error);
+                alert("Lỗi hệ thống, vui lòng thử lại.");
+            }
+        }
+
+        // Hiển thị thông tin người dùng lên bảng
+        function displayUserData(userData) {
+            const table = document.getElementById("userTable");
+
+            // Duyệt qua các thông tin và thêm vào bảng
+            const data = `
+                <tr>
+                    <td>${userData.name || 'Chưa cập nhật'}</td>
+                    <td>${userData.email}</td>
+                    <td>${userData.position || 'Chưa cập nhật'}</td>
+                    <td>${userData.department || 'Chưa cập nhật'}</td>
+                    <td>${userData.phone || 'Chưa cập nhật'}</td>
+                </tr>
             `;
-            tableBody.appendChild(row);
-        }
-
-        function editProfile() {
-            const table = document.querySelector(".profile-info");
-            const row = table.rows[1]; // Lấy hàng đầu tiên
-            const cells = row.getElementsByTagName("td");
-
-            document.getElementById("name").value = cells[2].innerText;
-            document.getElementById("dob").value = cells[3].innerText;
-            document.getElementById("phone").value = cells[4].innerText;
-            document.getElementById("email").value = cells[1].innerText;
-            document.getElementById("profile-picture").value = cells[0].getElementsByTagName("img")[0].src;
-
-            document.getElementById("edit-form").style.display = 'block';
-        }
-
-        function saveProfile() {
-            // Lấy thông tin từ form sửa và lưu lại
-            alert("Thông tin đã được cập nhật!");
-            // Cập nhật lại Firestore nếu cần
+            table.innerHTML = data;
         }
     </script>
+</head>
+<body>
+    <div class="member-container">
+        <h2>Thông Tin Thành Viên</h2>
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>Tên</th>
+                    <th>Email</th>
+                    <th>Chức vụ</th>
+                    <th>Khoa/Bộ môn</th>
+                    <th>Số điện thoại</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Thông tin người dùng sẽ được hiển thị tại đây -->
+            </tbody>
+        </table>
+        <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
+    </div>
 </body>
 </html>
