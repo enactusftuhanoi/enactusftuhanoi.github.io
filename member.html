@@ -163,15 +163,17 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                console.log("User logged in: ", user);
                 const email = user.email;
                 const userRef = doc(db, "employees", email); // Lấy thông tin người dùng từ Firestore
                 const docSnap = await getDoc(userRef);
 
                 if (docSnap.exists()) {
                     const userData = docSnap.data();
+                    console.log("User data from Firestore: ", userData);
                     displayUserProfile(userData);
                 } else {
-                    alert("Không tìm thấy thông tin người dùng!");
+                    alert("Không tìm thấy thông tin người dùng trong Firestore!");
                 }
             } else {
                 window.location.href = "login.html"; // Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
