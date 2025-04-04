@@ -3,98 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chào Mừng Thành Viên</title>
+    <title>Thông Tin Thành Viên</title>
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #d9d9d9;
+            font-family: Montserrat, sans-serif;
+            background-color: #f5f5f5;
             color: #333;
             margin: 0;
             padding: 0;
-            text-align: center;
         }
         .container {
-            padding: 30px;
-            background-color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            max-width: 650px;
-            margin: 50px auto;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         h1 {
-            color: #ffc222;
-            font-size: 32px;
-            margin-bottom: 20px;
+            color: #0057B8;
         }
-        .user-info {
-            background-color: #f4f4f4;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            color: #444;
-            text-align: left;
-        }
-        .user-info strong {
-            color: #ffc222;
-        }
-        .logout-btn {
-            padding: 12px 24px;
-            background-color: #ffc222;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 18px;
-            transition: background-color 0.3s;
-        }
-        .logout-btn:hover {
-            background-color: #e6a800;
-        }
-        .profile-img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin-bottom: 20px;
-            border: 3px solid #ffc222;
-        }
-        .edit-form {
-            background-color: #fff9e6;
-            padding: 30px;
-            border-radius: 10px;
-            margin-top: 20px;
-            display: none;
-        }
-        .edit-form h3 {
-            color: #ffc222;
-            margin-bottom: 20px;
-        }
-        .edit-form input, .edit-form button {
+        input, select, button {
             width: 100%;
-            padding: 12px;
-            margin: 12px 0;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             font-size: 16px;
         }
-        .edit-form input {
-            background-color: #f2f2f2;
-        }
-        .edit-form button {
-            background-color: #ffc222;
+        button {
+            background-color: #4285F4;
             color: white;
-            border: none;
             cursor: pointer;
-            font-size: 18px;
         }
-        .edit-form button:hover {
-            background-color: #e6a800;
+        button:hover {
+            background-color: #357AE8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #0057B8;
+            color: white;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
         }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Firebase Config
         const firebaseConfig = {
@@ -106,113 +73,75 @@
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
+        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Kiểm tra người dùng đã đăng nhập
+        // Kiểm tra trạng thái đăng nhập
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                document.getElementById("welcomeMessage").innerHTML = `Chào mừng, ${user.displayName}`;
                 const email = user.email;
+                console.log("User logged in: ", user);
 
-                // Kiểm tra người dùng trong Firestore
-                await checkUserInFirestore(email);
+                // Lấy thông tin người dùng từ Firestore
+                await loadUserData(email);
             } else {
-                // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
-                window.location.href = "login.html";
+                window.location.href = "index.html"; // Chuyển hướng về trang login nếu chưa đăng nhập
             }
         });
 
-        // Kiểm tra người dùng trong Firestore
-        async function checkUserInFirestore(email) {
-            const docRef = doc(db, "employees", email);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const userData = docSnap.data();
-                document.getElementById("userInfo").innerHTML = `
-                    <div><strong>Email:</strong> ${userData.email}</div>
-                    <div><strong>Ban:</strong> ${userData.ban}</div>
-                    <div><strong>Gen:</strong> ${userData.gen}</div>
-                    <div><strong>Ngày Sinh:</strong> ${userData.dob}</div>
-                    <div><strong>Tên:</strong> ${userData.name}</div>
-                    <div><strong>Trạng Thái:</strong> ${userData.process}</div>
-                    <div><strong>ID:</strong> ${userData.id}</div>
-                    <div><strong>OTP:</strong> ${userData.otp}</div>
-                    <div><strong>Phone:</strong> ${userData.phone}</div>
-                `;
-
-                // Hiển thị ảnh profile
-                if (userData.profile_picture) {
-                    document.getElementById("profileImage").src = userData.profile_picture;
-                } else {
-                    document.getElementById("profileImage").src = "default-profile.png"; // Default profile image nếu không có
+        async function loadUserData(email) {
+            const querySnapshot = await getDocs(collection(db, "employees"));
+            querySnapshot.forEach((doc) => {
+                const employee = doc.data();
+                if (employee.email === email) {
+                    displayUserInfo(employee);
                 }
-
-                // Hiển thị form sửa thông tin
-                document.getElementById("editForm").style.display = 'block';
-
-                // Cập nhật thông tin khi nhấn nút "Lưu"
-                document.getElementById("saveChanges").onclick = async function() {
-                    const updatedData = {
-                        email: document.getElementById("editEmail").value,
-                        name: document.getElementById("editName").value,
-                        dob: document.getElementById("editDob").value,
-                        phone: document.getElementById("editPhone").value,
-                        profile_picture: document.getElementById("editProfilePicture").value || userData.profile_picture
-                    };
-
-                    // Kiểm tra email có phải là Gmail
-                    if (!updatedData.email.endsWith("@gmail.com")) {
-                        alert("Email phải là Gmail.");
-                        return;
-                    }
-
-                    await updateDoc(doc(db, "employees", email), updatedData);
-                    alert("Cập nhật thông tin thành công!");
-                    window.location.reload(); // Reload the page to show updated data
-                };
-
-            } else {
-                alert("Email không có quyền truy cập. Vui lòng liên hệ quản trị viên.");
-                window.location.href = "login.html"; // Redirect back to login page
-            }
+            });
         }
 
-        // Đăng xuất
-        function logout() {
-            signOut(auth).then(() => {
-                window.location.href = "login.html"; // Redirect to login page
-            }).catch((error) => {
-                alert("Lỗi đăng xuất: " + error.message);
-            });
+        function displayUserInfo(employee) {
+            document.getElementById("email").value = employee.email;
+            document.getElementById("ban").value = employee.ban;
+            document.getElementById("name").value = employee.name;
+            document.getElementById("dob").value = employee.dob;
+            document.getElementById("process").value = employee.process;
+            document.getElementById("phone").value = employee.phone;
+            document.getElementById("profilePicture").src = employee.profilePicture;
         }
     </script>
 </head>
 <body>
     <div class="container">
-        <h1 id="welcomeMessage">Chào Mừng Thành Viên</h1>
-        
-        <!-- Hiển thị ảnh profile -->
-        <img id="profileImage" class="profile-img" alt="Profile Picture">
+        <h1>Thông Tin Thành Viên</h1>
+        <form>
+            <label>Email:</label>
+            <input type="email" id="email" disabled><br>
 
-        <div id="userInfo" class="user-info">
-            <!-- Dữ liệu người dùng sẽ được hiển thị ở đây -->
-        </div>
+            <label>Ban:</label>
+            <input type="text" id="ban" disabled><br>
 
-        <!-- Form chỉnh sửa thông tin -->
-        <div id="editForm" class="edit-form">
-            <h3>Chỉnh sửa thông tin cá nhân</h3>
-            <input type="text" id="editName" placeholder="Tên" required>
-            <input type="date" id="editDob" required>
-            <input type="email" id="editEmail" placeholder="Email" required disabled>
-            <input type="text" id="editPhone" placeholder="Số điện thoại" required>
-            <input type="text" id="editProfilePicture" placeholder="URL ảnh profile">
-            <button id="saveChanges">Lưu Thay Đổi</button>
-        </div>
+            <label>Tên:</label>
+            <input type="text" id="name" disabled><br>
 
-        <button class="logout-btn" onclick="logout()">Đăng Xuất</button>
+            <label>Ngày Sinh:</label>
+            <input type="date" id="dob" disabled><br>
+
+            <label>Trạng Thái:</label>
+            <select id="process" disabled>
+                <option>Active</option>
+                <option>Inactive</option>
+            </select><br>
+
+            <label>Số Điện Thoại:</label>
+            <input type="text" id="phone" disabled><br>
+
+            <label>Ảnh Hồ Sơ:</label>
+            <img id="profilePicture" src="" alt="Profile Picture" style="width: 100px; height: 100px;" /><br>
+
+            <button type="button" onclick="saveChanges()">Lưu Thay Đổi</button>
+        </form>
     </div>
 </body>
 </html>
