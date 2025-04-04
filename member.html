@@ -1,116 +1,218 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Đăng Nhập</title>
-  <link rel="icon" href="icon.png" type="image/png" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #FFD100;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chào Mừng Thành Viên</title>
+    <link rel="icon" href="icon.png" type="image/png">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #d9d9d9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            max-width: 650px;
+            margin: 50px auto;
+        }
+        h1 {
+            color: #ffc222;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .user-info {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #444;
+            text-align: left;
+        }
+        .user-info strong {
+            color: #ffc222;
+        }
+        .logout-btn {
+            padding: 12px 24px;
+            background-color: #ffc222;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #e6a800;
+        }
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            border: 3px solid #ffc222;
+        }
+        .edit-form {
+            background-color: #fff9e6;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        .edit-form h3 {
+            color: #ffc222;
+            margin-bottom: 20px;
+        }
+        .edit-form input, .edit-form button {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        .edit-form input {
+            background-color: #f2f2f2;
+        }
+        .edit-form button {
+            background-color: #ffc222;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .edit-form button:hover {
+            background-color: #e6a800;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    .login-box {
-      background-color: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      width: 360px;
-    }
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+            authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+            projectId: "enactusftuhanoi-tracuu",
+            storageBucket: "enactusftuhanoi-tracuu.firebasestorage.app",
+            messagingSenderId: "611356979403",
+            appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+        };
 
-    .login-box img {
-      width: 80px;
-      margin-bottom: 10px;
-    }
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    .login-box h2 {
-      color: #0057B8;
-      margin-bottom: 20px;
-    }
+        // Kiểm tra người dùng đã đăng nhập
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                document.getElementById("welcomeMessage").innerHTML = `Chào mừng, ${user.displayName}`;
+                const email = user.email;
 
-    .login-box input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-    }
+                // Kiểm tra người dùng trong Firestore
+                await checkUserInFirestore(email);
+            } else {
+                // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
+                window.location.href = "login.html";
+            }
+        });
 
-    .login-box button {
-      width: 100%;
-      padding: 12px;
-      background-color: #0057B8;
-      color: white;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
+        // Kiểm tra người dùng trong Firestore
+        async function checkUserInFirestore(email) {
+            const docRef = doc(db, "employees", email);
+            const docSnap = await getDoc(docRef);
 
-    .login-box button:hover {
-      background-color: #003A70;
-    }
-  </style>
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                document.getElementById("userInfo").innerHTML = `
+                    <div><strong>Email:</strong> ${userData.email}</div>
+                    <div><strong>Ban:</strong> ${userData.ban}</div>
+                    <div><strong>Gen:</strong> ${userData.gen}</div>
+                    <div><strong>Ngày Sinh:</strong> ${userData.dob}</div>
+                    <div><strong>Tên:</strong> ${userData.name}</div>
+                    <div><strong>Trạng Thái:</strong> ${userData.process}</div>
+                    <div><strong>ID:</strong> ${userData.id}</div>
+                    <div><strong>OTP:</strong> ${userData.otp}</div>
+                    <div><strong>Phone:</strong> ${userData.phone}</div>
+                `;
+
+                // Hiển thị ảnh profile
+                if (userData.profile_picture) {
+                    document.getElementById("profileImage").src = userData.profile_picture;
+                } else {
+                    document.getElementById("profileImage").src = "default-profile.png"; // Default profile image nếu không có
+                }
+
+                // Hiển thị form sửa thông tin
+                document.getElementById("editForm").style.display = 'block';
+
+                // Cập nhật thông tin khi nhấn nút "Lưu"
+                document.getElementById("saveChanges").onclick = async function() {
+                    const updatedData = {
+                        email: document.getElementById("editEmail").value,
+                        name: document.getElementById("editName").value,
+                        dob: document.getElementById("editDob").value,
+                        phone: document.getElementById("editPhone").value,
+                        profile_picture: document.getElementById("editProfilePicture").value || userData.profile_picture
+                    };
+
+                    // Kiểm tra email có phải là Gmail
+                    if (!updatedData.email.endsWith("@gmail.com")) {
+                        alert("Email phải là Gmail.");
+                        return;
+                    }
+
+                    await updateDoc(doc(db, "employees", email), updatedData);
+                    alert("Cập nhật thông tin thành công!");
+                    window.location.reload(); // Reload the page to show updated data
+                };
+
+            } else {
+                alert("Email không có quyền truy cập. Vui lòng liên hệ quản trị viên.");
+                window.location.href = "login.html"; // Redirect back to login page
+            }
+        }
+
+        // Đăng xuất
+        function logout() {
+            signOut(auth).then(() => {
+                window.location.href = "login.html"; // Redirect to login page
+            }).catch((error) => {
+                alert("Lỗi đăng xuất: " + error.message);
+            });
+        }
+    </script>
 </head>
 <body>
-  <div class="login-box">
-    <img src="icon.png" alt="Logo" />
-    <h2>Đăng Nhập Hệ Thống</h2>
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mật khẩu" required />
-    <button onclick="login()">Đăng Nhập</button>
-  </div>
+    <div class="container">
+        <h1 id="welcomeMessage">Chào Mừng Thành Viên</h1>
+        
+        <!-- Hiển thị ảnh profile -->
+        <img id="profileImage" class="profile-img" alt="Profile Picture">
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        <div id="userInfo" class="user-info">
+            <!-- Dữ liệu người dùng sẽ được hiển thị ở đây -->
+        </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-      projectId: "enactusftuhanoi-tracuu",
-      storageBucket: "enactusftuhanoi-tracuu.firebasestorage.app",
-      messagingSenderId: "611356979403",
-      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
-    };
+        <!-- Form chỉnh sửa thông tin -->
+        <div id="editForm" class="edit-form">
+            <h3>Chỉnh sửa thông tin cá nhân</h3>
+            <input type="text" id="editName" placeholder="Tên" required>
+            <input type="date" id="editDob" required>
+            <input type="email" id="editEmail" placeholder="Email" required disabled>
+            <input type="text" id="editPhone" placeholder="Số điện thoại" required>
+            <input type="text" id="editProfilePicture" placeholder="URL ảnh profile">
+            <button id="saveChanges">Lưu Thay Đổi</button>
+        </div>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    window.login = async function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      try {
-        // Đăng nhập bằng Firebase Authentication
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        // Kiểm tra người dùng có tồn tại trong bảng "employees"
-        const q = query(collection(db, "employees"), where("email", "==", email));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          window.location.href = "member.html";  // Chuyển đến trang member nếu người dùng là thành viên
-        } else {
-          window.location.href = "admin.html";  // Nếu là admin, chuyển đến admin page
-        }
-      } catch (error) {
-        alert("Đăng nhập thất bại: " + error.message);  // Hiển thị lỗi nếu đăng nhập thất bại
-      }
-    };
-  </script>
+        <button class="logout-btn" onclick="logout()">Đăng Xuất</button>
+    </div>
 </body>
 </html>
