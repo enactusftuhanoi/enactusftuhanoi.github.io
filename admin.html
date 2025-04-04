@@ -113,10 +113,12 @@
                         <td>${employee.ban}</td>
                         <td>${employee.name}</td>
                         <td>${formatDate(employee.dob)}</td>
+                        <td>${employee.email}</td>
                         <td>${employee.process}</td>
                         <td>${employee.otp}</td> <!-- Hiển thị OTP -->
+                        <td>${employee.role}</td>
                         <td>
-                            <button onclick="editEmployee('${doc.id}', '${employee.ban}', '${employee.name}', '${employee.dob}', '${employee.process}', '${employee.otp}')">Sửa</button>
+                            <button onclick="editEmployee('${doc.id}', '${employee.ban}', '${employee.name}', '${employee.dob}','${employee.email}', '${employee.process}', '${employee.otp}', '${employee.role}')">Sửa</button>
                             <button onclick="deleteEmployee('${doc.id}')">Xóa</button>
                         </td>
                     </tr>`;
@@ -130,8 +132,10 @@
                 ban: document.getElementById("ban").value,
                 name: document.getElementById("name").value,
                 dob: document.getElementById("dob").value,
+                email: document.getElementById("email").value,
                 process: document.getElementById("process").value,
-                otp: otp // Lưu OTP vào Firestore
+                otp: otp
+                role: document.getElementById("role").value,// Lưu OTP vào Firestore
             });
             alert(`Thêm nhân sự thành công! OTP của nhân sự là: ${otp}`);
             loadEmployees();
@@ -142,7 +146,9 @@
             document.getElementById("ban").value = ban;
             document.getElementById("name").value = name;
             document.getElementById("dob").value = dob;
+            document.getElementById("email").value = email;
             document.getElementById("process").value = process;
+            document.getElementById("role").value = role;
             
             document.getElementById("saveButton").onclick = async function() {
                 await updateDoc(doc(db, "employees", id), {
@@ -150,8 +156,10 @@
                     ban: document.getElementById("ban").value,
                     name: document.getElementById("name").value,
                     dob: document.getElementById("dob").value,
+                    email: document.getElementById("email").value,
                     process: document.getElementById("process").value,
-                    otp: otp // Giữ nguyên OTP khi chỉnh sửa
+                    otp: otp
+                    role: document.getElementById("role").value,// Giữ nguyên OTP khi chỉnh sửa
                 });
                 alert("Cập nhật thành công!");
                 loadEmployees();
@@ -184,9 +192,14 @@
         <input type="text" id="ban" placeholder="Ban">
         <input type="text" id="name" placeholder="Tên">
         <input type="date" id="dob">
+        <input type="text" id="email" placeholder="Email">
         <select id="process">
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
+        </select>
+        <select id="role">
+            <option value="Admin">Admin</option>
+            <option value="Member">Member</option>
         </select>
         <button onclick="addEmployee()">Thêm Nhân Sự</button>
         <button id="saveButton">Lưu</button>
@@ -197,8 +210,10 @@
                     <th>Ban</th>
                     <th>Tên</th>
                     <th>Ngày Sinh</th>
+                    <th>Email</th>
                     <th>Trạng Thái</th>
                     <th>OTP</th>
+                    <th>Role</th>
                     <th>Hành Động</th>
                 </tr>
             </thead>
