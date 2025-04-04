@@ -31,7 +31,7 @@
             font-size: 24px;
             margin-bottom: 20px;
         }
-        button {
+        .google-btn {
             width: 100%;
             padding: 12px;
             background-color: #4285F4;
@@ -40,14 +40,22 @@
             border: none;
             border-radius: 5px;
             font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: background-color 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        button:hover {
+        .google-btn:hover {
             background-color: #357AE8;
         }
         .google-logo {
             width: 20px;
             margin-right: 10px;
+        }
+        .google-btn-text {
+            font-weight: bold;
+            font-size: 16px;
         }
         .error-message {
             color: red;
@@ -128,9 +136,9 @@
 <body>
     <div class="login-container">
         <h2>Đăng Nhập Bằng Google</h2>
-        <button onclick="loginWithGoogle()">
+        <button class="google-btn" onclick="loginWithGoogle()">
             <img class="google-logo" src="logogoogle.png" alt="Google logo"> 
-            Đăng Nhập với Google
+            <span class="google-btn-text">Đăng Nhập với Google</span>
         </button>
         <div id="errorMessage" class="error-message"></div>
         <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
