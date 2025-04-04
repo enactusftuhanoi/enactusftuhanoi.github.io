@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Nhập - Google</title>
+    <title>Đăng Nhập - Email</title>
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         body {
@@ -25,15 +25,18 @@
         h2 {
             color: #0057B8;
         }
-        button {
+        input, button {
             width: 100%;
             padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
             background-color: #4285F4;
             color: white;
             cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
         }
         button:hover {
             background-color: #357AE8;
@@ -45,7 +48,7 @@
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Firebase Config
@@ -61,45 +64,45 @@
         // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
         const db = getFirestore(app);
 
-        // Đăng nhập qua Google
-        window.loginWithGoogle = async function() {
+        // Đăng nhập qua Email và Mật khẩu
+        window.login = async function() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
             try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                alert("Đăng nhập thành công!");
 
-                // Kiểm tra xem email đã được xác minh chưa
-                if (!user.emailVerified) {
-                    alert("Email của bạn chưa được xác minh. Vui lòng kiểm tra hộp thư.");
-                    await sendEmailVerification(user);  // Gửi lại email xác minh
-                    return;
-                }
-
-                // Kiểm tra email và role trong collection 'employees'
-                const employeeDocRef = doc(db, "employees", user.uid);
-                const employeeDoc = await getDoc(employeeDocRef);
-
-                if (employeeDoc.exists()) {
-                    const employeeData = employeeDoc.data();
-                    const role = employeeData.role;
-                    const email = employeeData.email;
-
-                    // Kiểm tra email
-                    if (email === user.email) {
-                        alert(`Đăng nhập thành công! Chào mừng ${user.displayName}. Role của bạn là: ${role}`);
-                        window.location.href = "admin.html";  // Redirect to admin page
-                    } else {
-                        alert("Email không khớp. Vui lòng kiểm tra lại.");
-                    }
-                } else {
-                    alert("Email không tồn tại trong hệ thống nhân sự.");
-                }
+                // Kiểm tra email và role trong Firestore
+                checkUserInFirestore(user.email);
             } catch (error) {
                 alert("Lỗi đăng nhập: " + error.message);
             }
         };
+
+        // Kiểm tra email và role trong Firestore
+        async function checkUserInFirestore(email) {
+            const docRef = doc(db, "employees", email);  // Lấy thông tin nhân viên từ Firestore theo email
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                const role = userData.role;
+                
+                if (role) {
+                    alert(`Đăng nhập thành công! Chào mừng ${email} với vai trò ${role}`);
+                    // Bạn có thể điều hướng đến trang admin hoặc trang khác tùy theo role
+                    window.location.href = "admin.html";  // Ví dụ: Chuyển đến trang quản lý
+                } else {
+                    alert("Không có quyền truy cập! Vui lòng kiểm tra lại.");
+                }
+            } else {
+                alert("Email không tồn tại trong hệ thống.");
+            }
+        }
 
         // Kiểm tra trạng thái đăng nhập
         onAuthStateChanged(auth, (user) => {
@@ -113,8 +116,10 @@
 </head>
 <body>
     <div class="login-container">
-        <h2>Đăng Nhập Bằng Google</h2>
-        <button onclick="loginWithGoogle()">Đăng Nhập với Google</button>
+        <h2>Đăng Nhập</h2>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <button onclick="login()">Đăng Nhập</button>
         <div id="errorMessage" class="error-message"></div>
     </div>
 </body>
