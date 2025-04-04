@@ -7,40 +7,56 @@
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         body {
-            font-family: Montserrat, sans-serif;
-            background-color: #FFD100;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
             color: #333;
-            text-align: center;
             margin: 0;
             padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .login-container {
+            width: 100%;
             max-width: 400px;
-            margin: auto;
-            padding: 20px;
-            background: white;
+            padding: 30px;
+            background-color: white;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
         h2 {
-            color: #0057B8;
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
         }
         button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background-color: #4285F4;
             color: white;
             cursor: pointer;
             border: none;
             border-radius: 5px;
             font-size: 16px;
+            transition: background-color 0.3s ease;
         }
         button:hover {
             background-color: #357AE8;
         }
+        .google-logo {
+            width: 20px;
+            margin-right: 10px;
+        }
         .error-message {
             color: red;
-            margin-top: 10px;
+            margin-top: 15px;
+        }
+        .footer-text {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
         }
     </style>
     <script type="module">
@@ -112,8 +128,12 @@
 <body>
     <div class="login-container">
         <h2>Đăng Nhập Bằng Google</h2>
-        <button onclick="loginWithGoogle()">Đăng Nhập với Google</button>
+        <button onclick="loginWithGoogle()">
+            <img class="google-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Google_2015_logo.svg/1024px-Google_2015_logo.svg.png" alt="Google logo"> 
+            Đăng Nhập với Google
+        </button>
         <div id="errorMessage" class="error-message"></div>
+        <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
     </div>
 </body>
 </html>
