@@ -94,6 +94,9 @@
                 const user = result.user;
                 alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
 
+                // Lưu email vào localStorage
+                localStorage.setItem('userEmail', user.email);
+
                 // Kiểm tra email trong Firestore
                 await checkUserInFirestore(user.email);
             } catch (error) {
@@ -122,7 +125,7 @@
                 alert("Lỗi hệ thống, vui lòng thử lại.");
             }
         }
-        localStorage.setItem('userEmail', user.email);
+
         // Kiểm tra trạng thái đăng nhập
         onAuthStateChanged(auth, (user) => {
             if (user) {
