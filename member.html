@@ -1,236 +1,149 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Thông Tin Thành Viên</title>
-  <link rel="icon" href="icon.png" type="image/png" />
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background: #f2f2f2;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      animation: fadeIn 1s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .profile-card {
-      background-color: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      width: 90%;
-      max-width: 800px;
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      margin-bottom: 20px;
-      animation: fadeIn 0.8s ease-in;
-    }
-
-    .profile-image {
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #ddd;
-    }
-
-    .profile-info {
-      flex: 1;
-    }
-
-    .profile-info h2 {
-      margin: 0 0 10px;
-      font-size: 28px;
-      color: #222;
-    }
-
-    .profile-info p {
-      margin: 6px 0;
-      font-size: 16px;
-      color: #555;
-    }
-
-    .upload-form, .edit-form {
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    .upload-form input[type="file"], .edit-form input {
-      padding: 6px;
-      margin: 5px;
-    }
-
-    button {
-      padding: 8px 16px;
-      border: none;
-      background-color: #007BFF;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-      margin: 5px;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    .footer-text {
-      font-size: 14px;
-      color: #aaa;
-      margin-top: 20px;
-    }
-
-    @media (max-width: 600px) {
-      .profile-card {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .profile-image {
-        width: 120px;
-        height: 120px;
-      }
-    }
-  </style>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import {
-      getFirestore, collection, query, where, getDocs, updateDoc, doc
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import {
-      getStorage, ref, uploadBytes, getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-      projectId: "enactusftuhanoi-tracuu",
-      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
-      messagingSenderId: "611356979403",
-      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
-    let currentDocId = "";
-    let userEmail = "";
-
-    // ⚠️ Auto logout on refresh
-    window.onload = async function () {
-      userEmail = localStorage.getItem('userEmail');
-      if (!userEmail) {
-        window.location.href = "login.html";
-      } else {
-        await getUserData(userEmail);
-        localStorage.removeItem('userEmail'); // Xóa luôn token sau khi load
-      }
-
-      document.getElementById("uploadBtn").onclick = uploadAvatar;
-      document.getElementById("saveEditBtn").onclick = saveEditInfo;
-    };
-
-    async function getUserData(email) {
-      const employeesRef = collection(db, "employees");
-      const q = query(employeesRef, where("email", "==", email));
-
-      try {
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          const docSnap = querySnapshot.docs[0];
-          const userData = docSnap.data();
-          currentDocId = docSnap.id;
-          displayUserData(userData);
-        } else {
-          alert("Không tìm thấy thông tin người dùng!");
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Tin Thành Viên</title>
+    <link rel="icon" href="icon.png" type="image/png">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f2f2f2;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-      } catch (error) {
-        console.error("Lỗi khi truy vấn dữ liệu:", error);
-        alert("Lỗi hệ thống!");
-      }
-    }
-
-    function displayUserData(userData) {
-      const container = document.getElementById("profileContainer");
-      const photoURL = userData.photoURL || "https://via.placeholder.com/150";
-
-      container.innerHTML = `
-        <div class="profile-card">
-          <img class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
-          <div class="profile-info">
-            <h2><input id="editName" type="text" value="${userData.name || ""}" /></h2>
-            <p><strong>Email:</strong> ${userData.email}</p>
-            <p><strong>ID:</strong> ${userData.id}</p>
-            <p><strong>Ban:</strong> ${userData.ban}</p>
-            <p><strong>Ngày sinh:</strong> <input id="editDob" type="date" value="${userData.dob || ""}" /></p>
-            <p><strong>SĐT:</strong> <input id="editPhone" type="text" value="${userData.phone || ""}" /></p>
-            <p><strong>OTP:</strong> ${userData.otp}</p>
-            <button id="saveEditBtn">💾 Lưu thông tin</button>
-          </div>
-        </div>
-
-        <div class="upload-form">
-          <input type="file" id="photoInput" accept="image/*" />
-          <button id="uploadBtn">🖼️ Cập nhật ảnh đại diện</button>
-        </div>
-      `;
-    }
-
-    async function uploadAvatar() {
-      const fileInput = document.getElementById("photoInput");
-      const file = fileInput.files[0];
-      if (file && currentDocId) {
-        const storageRef = ref(storage, `profile_pictures/${currentDocId}_${file.name}`);
-        try {
-          await uploadBytes(storageRef, file);
-          const downloadURL = await getDownloadURL(storageRef);
-          const userDoc = doc(db, "employees", currentDocId);
-          await updateDoc(userDoc, { photoURL: downloadURL });
-          alert("✅ Ảnh đã được cập nhật!");
-          location.reload();
-        } catch (error) {
-          console.error("Lỗi upload ảnh:", error);
-          alert("❌ Upload thất bại!");
+        .member-container {
+            width: 80%;
+            max-width: 1000px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-      } else {
-        alert("Vui lòng chọn ảnh trước!");
-      }
-    }
+        h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f1f1f1;
+        }
+        td {
+            background-color: #fafafa;
+        }
+        .footer-text {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    async function saveEditInfo() {
-      const name = document.getElementById("editName").value;
-      const dob = document.getElementById("editDob").value;
-      const phone = document.getElementById("editPhone").value;
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+            authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+            projectId: "enactusftuhanoi-tracuu",
+            storageBucket: "enactusftuhanoi-tracuu.firebasestorage.app",
+            messagingSenderId: "611356979403",
+            appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+        };
 
-      const userDoc = doc(db, "employees", currentDocId);
-      try {
-        await updateDoc(userDoc, { name, dob, phone });
-        alert("✅ Thông tin đã được cập nhật!");
-        location.reload();
-      } catch (err) {
-        console.error("Lỗi khi cập nhật:", err);
-        alert("❌ Lỗi khi cập nhật thông tin.");
-      }
-    }
-  </script>
+        // Khởi tạo Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.onload = async function() {
+            // Lấy email từ localStorage
+            const userEmail = localStorage.getItem('userEmail');
+            if (!userEmail) {
+                // Nếu chưa đăng nhập, chuyển hướng về login.html
+                window.location.href = "login.html";
+            } else {
+                // Nếu đã đăng nhập, truy vấn thông tin người dùng từ Firestore
+                await getUserData(userEmail);
+            }
+        };
+
+        // Lấy thông tin người dùng từ Firestore
+        async function getUserData(email) {
+            const employeesRef = collection(db, "employees");
+            const q = query(employeesRef, where("email", "==", email));  // Truy vấn theo email
+
+            try {
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // Nếu tìm thấy thông tin người dùng
+                    const userData = querySnapshot.docs[0].data();
+                    displayUserData(userData);
+                } else {
+                    // Nếu không tìm thấy dữ liệu
+                    alert("Không tìm thấy thông tin người dùng trong hệ thống!");
+                }
+            } catch (error) {
+                console.error("Lỗi khi truy vấn dữ liệu:", error);
+                alert("Lỗi hệ thống, vui lòng thử lại.");
+            }
+        }
+
+        // Hiển thị thông tin người dùng lên bảng
+        function displayUserData(userData) {
+            const table = document.getElementById("userTable");
+
+            // Duyệt qua các thông tin và thêm vào bảng
+            
+            const data = `
+                <tr>
+                    <td>${userData.id}</td>
+                    <td>${userData.ban}</td>
+                    <td>${userData.name || 'Chưa cập nhật'}</td>
+                    <td>${userData.email}</td>
+                    <td>${userData.dob || 'Chưa cập nhật'}</td>
+                    <td>${userData.otp}</td>
+                    <td>${userData.phone || 'Chưa cập nhật'}</td>
+                </tr>
+            `;
+        }
+    </script>
 </head>
-
 <body>
-  <div id="profileContainer"></div>
-  <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
+    <div class="member-container">
+        <h2>Thông Tin Thành Viên</h2>
+        <table id="userTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ban</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>DOB</th>
+                    <th>OTP</th>
+                    <th>Phone</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Thông tin người dùng sẽ được hiển thị tại đây -->
+            </tbody>
+        </table>
+        <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
+    </div>
 </body>
 </html>
