@@ -107,8 +107,8 @@
             tableBody.innerHTML = "";
             querySnapshot.forEach((doc) => {
                 const employee = doc.data();
-                tableBody.innerHTML += 
-                    `<tr>
+                tableBody.innerHTML += `
+                    <tr>
                         <td>${employee.id}</td>
                         <td>${employee.ban}</td>
                         <td>${employee.name}</td>
@@ -138,21 +138,15 @@
         };
 
         window.editEmployee = async function(id, ban, name, dob, process, otp) {
-            // Đặt các giá trị vào các trường input
             document.getElementById("id").value = id;
             document.getElementById("ban").value = ban;
             document.getElementById("name").value = name;
             document.getElementById("dob").value = dob;
             document.getElementById("process").value = process;
-
-            // Đặt ID là readonly để không thể thay đổi
-            document.getElementById("id").readOnly = true;
-
-            // Cập nhật hành động khi nhấn nút Lưu
+            
             document.getElementById("saveButton").onclick = async function() {
-                // Kiểm tra và cập nhật các giá trị mà không thay đổi ID
                 await updateDoc(doc(db, "employees", id), {
-                    id: document.getElementById("id").value, // Giữ ID không đổi
+                    id: document.getElementById("id").value,
                     ban: document.getElementById("ban").value,
                     name: document.getElementById("name").value,
                     dob: document.getElementById("dob").value,
