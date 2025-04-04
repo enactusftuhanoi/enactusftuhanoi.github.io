@@ -161,25 +161,25 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Kiểm tra trạng thái người dùng đã đăng nhập chưa
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                console.log("User logged in: ", user);
-                const email = user.email;
-                const userRef = doc(db, "employees", email); // Lấy thông tin người dùng từ Firestore
+                const email = user.email; // Lấy email người dùng
+                const userRef = doc(db, "employees", email); // Lấy thông tin người dùng từ Firestore theo email
                 const docSnap = await getDoc(userRef);
 
                 if (docSnap.exists()) {
                     const userData = docSnap.data();
-                    console.log("User data from Firestore: ", userData);
-                    displayUserProfile(userData);
+                    displayUserProfile(userData); // Hiển thị thông tin người dùng
                 } else {
-                    alert("Không tìm thấy thông tin người dùng trong Firestore!");
+                    alert("Không tìm thấy thông tin người dùng!");
                 }
             } else {
-                window.location.href = "login.html"; // Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
+                window.location.href = "login.html"; // Nếu không có người dùng, chuyển hướng tới trang login
             }
         });
 
+        // Hàm hiển thị thông tin người dùng lên bảng
         function displayUserProfile(userData) {
             const tableBody = document.getElementById("profile-table-body");
 
@@ -197,9 +197,10 @@
             tableBody.appendChild(row);
         }
 
+        // Chỉnh sửa thông tin
         function editProfile() {
             const table = document.querySelector(".profile-info");
-            const row = table.rows[1]; // Lấy hàng đầu tiên
+            const row = table.rows[1]; // Lấy hàng đầu tiên trong bảng
             const cells = row.getElementsByTagName("td");
 
             document.getElementById("name").value = cells[2].innerText;
@@ -211,8 +212,9 @@
             document.getElementById("edit-form").style.display = 'block';
         }
 
+        // Lưu thông tin sau khi sửa
         function saveProfile() {
-            // Lấy thông tin từ form sửa và lưu lại
+            // Lấy thông tin từ form sửa và lưu lại vào Firestore
             alert("Thông tin đã được cập nhật!");
             // Cập nhật lại Firestore nếu cần
         }
