@@ -3,95 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Đăng nhập</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-        }
-
-        .login-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            width: 350px;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        input:focus {
-            border-color: #667eea;
-            box-shadow: 0px 0px 5px rgba(102, 126, 234, 0.5);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 10px;
-            margin-top: 15px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: 0.3s;
-        }
-
-        .btn:hover {
-            background: #5648c3;
-        }
-
-        .error-message {
-            color: red;
-            margin-top: 10px;
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h2>Đăng nhập</h2>
-        <form id="loginForm">
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Mật khẩu" required>
-            <button type="submit" class="btn">Đăng nhập</button>
-            <p class="error-message" id="errorMessage"></p>
-        </form>
-    </div>
-
-    <script>
-        // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
             authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -101,55 +17,49 @@
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
-        // Khởi tạo Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        document.getElementById("loginForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-
+        window.login = async function () {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
-            const errorMessage = document.getElementById("errorMessage");
 
-            errorMessage.style.display = "none";
+            // Tìm user trong Firestore (users collection)
+            const usersRef = collection(db, "users");
+            const q = query(usersRef, where("Email", "==", email));
+            const querySnapshot = await getDocs(q);
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
+            if (querySnapshot.empty) {
+                alert("Email không tồn tại!");
+                return;
+            }
 
-                    // 🔹 Tìm user theo email trong collection "employees"
-                    db.collection("employees")
-                        .where("Email", "==", email)  // 🔹 Chú ý: "Email" viết hoa theo Firestore
-                        .get()
-                        .then((querySnapshot) => {
-                            if (!querySnapshot.empty) {
-                                querySnapshot.forEach((doc) => {
-                                    const role = doc.data().Role;  // 🔹 "Role" phải đúng theo Firestore
+            const userDoc = querySnapshot.docs[0];  // Lấy document đầu tiên
+            const userData = userDoc.data();
 
-                                    if (role === "Admin") {
-                                        window.location.href = "admin.html";
-                                    } else {
-                                        window.location.href = "member.html";
-                                    }
-                                });
-                            } else {
-                                errorMessage.textContent = "Tài khoản không tồn tại trong Firestore!";
-                                errorMessage.style.display = "block";
-                            }
-                        })
-                        .catch((error) => {
-                            console.error("Lỗi Firestore:", error);
-                            errorMessage.textContent = "Lỗi khi truy vấn dữ liệu!";
-                            errorMessage.style.display = "block";
-                        });
-                })
-                .catch((error) => {
-                    errorMessage.textContent = "Lỗi đăng nhập: " + error.message;
-                    errorMessage.style.display = "block";
-                });
-        });
+            if (userData.Password !== password) {
+                alert("Mật khẩu không đúng!");
+                return;
+            }
+
+            alert("Đăng nhập thành công!");
+
+            // Lưu thông tin vào localStorage để sử dụng trên admin.html
+            localStorage.setItem("userID", userData.ID);
+            localStorage.setItem("userRole", userData.Role);
+
+            if (userData.Role === "Admin") {
+                window.location.href = "admin.html";  // Chuyển sang trang quản trị
+            } else {
+                window.location.href = "employee.html";  // Chuyển sang trang nhân viên
+            }
+        };
     </script>
+</head>
+<body>
+    <h2>Đăng Nhập</h2>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Mật khẩu" required>
+    <button onclick="login()">Đăng Nhập</button>
 </body>
 </html>
