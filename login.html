@@ -70,14 +70,14 @@
                 const user = result.user;
                 alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
 
-                // Kiểm tra email và role trong Firestore
+                // Kiểm tra email trong Firestore
                 await checkUserInFirestore(user.email);
             } catch (error) {
                 alert("Lỗi đăng nhập: " + error.message);
             }
         };
 
-        // Kiểm tra email và role trong Firestore
+        // Kiểm tra email trong Firestore
         async function checkUserInFirestore(email) {
             const db = getFirestore();
             const userDocRef = doc(db, "employees", email);  // Truy cập tài liệu của user trong Firestore
@@ -86,22 +86,11 @@
                 const docSnap = await getDoc(userDocRef);
                 
                 if (docSnap.exists()) {
-                    const userData = docSnap.data();
-                    const role = userData.role;
-                    
-                    if (role) {
-                        alert(`Đăng nhập thành công! Chào mừng ${email} với vai trò ${role}`);
-                        // Bạn có thể chuyển hướng người dùng tùy thuộc vào role
-                        if (role === "admin") {
-                            window.location.href = "admin.html";  // Ví dụ: Chuyển đến trang quản lý
-                        } else {
-                            window.location.href = "user.html";  // Ví dụ: Chuyển đến trang người dùng
-                        }
-                    } else {
-                        alert("Không có quyền truy cập! Vui lòng kiểm tra lại.");
-                    }
+                    // Nếu email tồn tại trong Firestore, chuyển hướng đến member.html
+                    window.location.href = "member.html";
                 } else {
-                    alert("Email không tồn tại trong hệ thống.");
+                    // Nếu không tồn tại, thông báo lỗi
+                    alert("Email không có quyền truy cập! Vui lòng liên hệ quản trị viên.");
                 }
             } catch (error) {
                 console.error("Lỗi khi kiểm tra email trong Firestore:", error);
