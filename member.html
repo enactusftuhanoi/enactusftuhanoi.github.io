@@ -1,149 +1,146 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thông Tin Thành Viên</title>
-    <link rel="icon" href="icon.png" type="image/png">
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background: #f2f2f2;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .member-container {
-            width: 80%;
-            max-width: 1000px;
-            padding: 30px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f1f1f1;
-        }
-        td {
-            background-color: #fafafa;
-        }
-        .footer-text {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #888;
-        }
-    </style>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thông Tin Thành Viên</title>
+  <link rel="icon" href="icon.png" type="image/png" />
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-        // Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-            authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-            projectId: "enactusftuhanoi-tracuu",
-            storageBucket: "enactusftuhanoi-tracuu.firebasestorage.app",
-            messagingSenderId: "611356979403",
-            appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
-        };
+    .profile-card {
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 800px;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
 
-        // Khởi tạo Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    .profile-image {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #ddd;
+    }
 
-        window.onload = async function() {
-            // Lấy email từ localStorage
-            const userEmail = localStorage.getItem('userEmail');
-            if (!userEmail) {
-                // Nếu chưa đăng nhập, chuyển hướng về login.html
-                window.location.href = "login.html";
-            } else {
-                // Nếu đã đăng nhập, truy vấn thông tin người dùng từ Firestore
-                await getUserData(userEmail);
-            }
-        };
+    .profile-info {
+      flex: 1;
+    }
 
-        // Lấy thông tin người dùng từ Firestore
-        async function getUserData(email) {
-            const employeesRef = collection(db, "employees");
-            const q = query(employeesRef, where("email", "==", email));  // Truy vấn theo email
+    .profile-info h2 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      color: #222;
+    }
 
-            try {
-                const querySnapshot = await getDocs(q);
+    .profile-info p {
+      margin: 6px 0;
+      font-size: 16px;
+      color: #555;
+    }
 
-                if (!querySnapshot.empty) {
-                    // Nếu tìm thấy thông tin người dùng
-                    const userData = querySnapshot.docs[0].data();
-                    displayUserData(userData);
-                } else {
-                    // Nếu không tìm thấy dữ liệu
-                    alert("Không tìm thấy thông tin người dùng trong hệ thống!");
-                }
-            } catch (error) {
-                console.error("Lỗi khi truy vấn dữ liệu:", error);
-                alert("Lỗi hệ thống, vui lòng thử lại.");
-            }
+    .footer-text {
+      position: absolute;
+      bottom: 20px;
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    @media (max-width: 600px) {
+      .profile-card {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .profile-image {
+        width: 120px;
+        height: 120px;
+      }
+    }
+  </style>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.onload = async function () {
+      const userEmail = localStorage.getItem('userEmail');
+      if (!userEmail) {
+        window.location.href = "login.html";
+      } else {
+        await getUserData(userEmail);
+      }
+    };
+
+    async function getUserData(email) {
+      const employeesRef = collection(db, "employees");
+      const q = query(employeesRef, where("email", "==", email));
+
+      try {
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
+          displayUserData(userData);
+        } else {
+          alert("Không tìm thấy thông tin người dùng trong hệ thống!");
         }
+      } catch (error) {
+        console.error("Lỗi khi truy vấn dữ liệu:", error);
+        alert("Lỗi hệ thống, vui lòng thử lại.");
+      }
+    }
 
-        // Hiển thị thông tin người dùng lên bảng
-        function displayUserData(userData) {
-            const table = document.getElementById("userTable");
+    function displayUserData(userData) {
+      const container = document.getElementById("profileContainer");
 
-            // Duyệt qua các thông tin và thêm vào bảng
-            
-            const data = `
-                <tr>
-                    <td>${userData.id}</td>
-                    <td>${userData.ban}</td>
-                    <td>${userData.name || 'Chưa cập nhật'}</td>
-                    <td>${userData.email}</td>
-                    <td>${userData.dob || 'Chưa cập nhật'}</td>
-                    <td>${userData.otp}</td>
-                    <td>${userData.phone || 'Chưa cập nhật'}</td>
-                </tr>
-            `;
-        }
-    </script>
+      const photoURL = userData.photoURL || "https://via.placeholder.com/150"; // Placeholder nếu không có ảnh
+
+      container.innerHTML = `
+        <div class="profile-card">
+          <img class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
+          <div class="profile-info">
+            <h2>${userData.name || "Chưa cập nhật"}</h2>
+            <p><strong>Email:</strong> ${userData.email}</p>
+            <p><strong>ID:</strong> ${userData.id}</p>
+            <p><strong>Ban:</strong> ${userData.ban}</p>
+            <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
+            <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
+            <p><strong>OTP:</strong> ${userData.otp}</p>
+          </div>
+        </div>
+      `;
+    }
+  </script>
 </head>
+
 <body>
-    <div class="member-container">
-        <h2>Thông Tin Thành Viên</h2>
-        <table id="userTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Ban</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>DOB</th>
-                    <th>OTP</th>
-                    <th>Phone</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Thông tin người dùng sẽ được hiển thị tại đây -->
-            </tbody>
-        </table>
-        <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
-    </div>
+  <div id="profileContainer"></div>
+  <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
 </body>
 </html>
