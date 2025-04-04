@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Tin Thành Viên</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #FFEAA7;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 350px;
+        }
+        h1 {
+            color: #2d3436;
+        }
+        p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        #logoutBtn {
+            margin-top: 20px;
+            background-color: #d63031;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #logoutBtn:hover {
+            background-color: #b71c1c;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Thông Tin Thành Viên</h1>
+        <p><strong>Tên:</strong> <span id="name">Đang tải...</span></p>
+        <p><strong>Ban:</strong> <span id="ban">Đang tải...</span></p>
+        <p><strong>Ngày sinh:</strong> <span id="dob">Đang tải...</span></p>
+        <p><strong>Trạng thái:</strong> <span id="process">Đang tải...</span></p>
+        <button id="logoutBtn">Đăng Xuất</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+            authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+            projectId: "enactusftuhanoi-tracuu",
+            storageBucket: "enactusftuhanoi-tracuu.firebasestorage.app",
+            messagingSenderId: "611356979403",
+            appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const nameEl = document.getElementById("name");
+        const banEl = document.getElementById("ban");
+        const dobEl = document.getElementById("dob");
+        const processEl = document.getElementById("process");
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Giả sử email là định danh thành viên
+                const q = query(collection(db, "employees"), where("email", "==", user.email));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const data = querySnapshot.docs[0].data();
+                    nameEl.textContent = data.name;
+                    banEl.textContent = data.ban;
+                    dobEl.textContent = formatDate(data.dob);
+                    processEl.textContent = data.process;
+                } else {
+                    nameEl.textContent = "Không tìm thấy thành viên!";
+                }
+            } else {
+                window.location.href = "admin.html"; // hoặc login.html
+            }
+        });
+
+        function formatDate(date) {
+            const [year, month, day] = date.split("-");
+            return `${day}/${month}/${year}`;
+        }
+
+        document.getElementById("logoutBtn").onclick = async () => {
+            await signOut(auth);
+            window.location.href = "admin.html";
+        };
+    </script>
+</body>
+</html>
