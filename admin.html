@@ -146,7 +146,6 @@
             
             document.getElementById("saveButton").onclick = async function() {
                 await updateDoc(doc(db, "employees", id), {
-                    id: document.getElementById("id").value,
                     ban: document.getElementById("ban").value,
                     name: document.getElementById("name").value,
                     dob: document.getElementById("dob").value,
