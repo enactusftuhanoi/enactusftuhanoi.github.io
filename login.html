@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Nhập - Email</title>
+    <title>Đăng Nhập - Google</title>
     <link rel="icon" href="icon.png" type="image/png">
     <style>
         body {
@@ -25,18 +25,15 @@
         h2 {
             color: #0057B8;
         }
-        input, button {
+        button {
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
             background-color: #4285F4;
             color: white;
             cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
         }
         button:hover {
             background-color: #357AE8;
@@ -48,7 +45,7 @@
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Firebase Config
@@ -64,17 +61,14 @@
         // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-        // Đăng nhập qua Email và Mật khẩu
-        window.login = async function() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-
+        // Đăng nhập qua Google
+        window.loginWithGoogle = async function() {
             try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                alert("Đăng nhập thành công!");
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
 
                 // Kiểm tra email và role trong Firestore
                 checkUserInFirestore(user.email);
@@ -85,7 +79,7 @@
 
         // Kiểm tra email và role trong Firestore
         async function checkUserInFirestore(email) {
-            const docRef = doc(db, "employees", email);  // Lấy thông tin nhân viên từ Firestore theo email
+            const docRef = doc(getFirestore(), "employees", email);  // Lấy thông tin nhân viên từ Firestore theo email
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
@@ -116,10 +110,8 @@
 </head>
 <body>
     <div class="login-container">
-        <h2>Đăng Nhập</h2>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Mật khẩu" required>
-        <button onclick="login()">Đăng Nhập</button>
+        <h2>Đăng Nhập Bằng Google</h2>
+        <button onclick="loginWithGoogle()">Đăng Nhập với Google</button>
         <div id="errorMessage" class="error-message"></div>
     </div>
 </body>
