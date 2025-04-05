@@ -80,11 +80,15 @@
 
     let confirmationResult = null;
 
+    // Kiểm tra trạng thái người dùng ngay khi trang tải
     onAuthStateChanged(auth, (user) => {
       if (user) {
         document.getElementById("loginPage").classList.add("hidden");
         document.getElementById("adminPage").classList.remove("hidden");
         loadEmployees();
+      } else {
+        document.getElementById("loginPage").classList.remove("hidden");
+        document.getElementById("adminPage").classList.add("hidden");
       }
     });
 
@@ -196,7 +200,7 @@
   </div>
 
   <div id="adminPage" class="container hidden">
-    <h1>DASHBOARD</h1>
+    <h1>Dashboard</h1>
     <input type="text" id="id" placeholder="ID">
     <input type="text" id="ban" placeholder="Ban">
     <input type="text" id="name" placeholder="Tên">
