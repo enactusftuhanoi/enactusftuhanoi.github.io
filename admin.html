@@ -1,243 +1,228 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enactus FTU Hanoi</title>
-    <link rel="icon" href="icon.png" type="image/png">
-    <style>
-        body {
-            font-family: Montserrat, sans-serif;
-            background-color: #FFD100;
-            color: #333;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        .container, .login-container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-        h1, h2 {
-            color: #0057B8;
-            margin-bottom: 20px;
-        }
-        input, select, button {
-            width: calc(100% - 22px);
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.2s ease;
-        }
-        input:focus, select:focus {
-            border-color: #0057B8;
-            outline: none;
-            box-shadow: 0 0 5px rgba(0,87,184,0.5);
-        }
-        button {
-            background-color: #0057B8;
-            color: white;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #003A70;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 30px;
-        }
-        th, td {
-            padding: 12px;
-            border: 1px solid #ccc;
-        }
-        th {
-            background-color: #0057B8;
-            color: white;
-        }
-        .form-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .form-group > div {
-            flex: 1 1 48%;
-        }
-        #saveButton {
-            background-color: #28a745;
-        }
-        #saveButton:hover {
-            background-color: #1e7e34;
-        }
-    </style>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enactus Admin</title>
+  <link rel="icon" href="icon.png" type="image/png"/>
+  <style>
+    body {
+      font-family: Montserrat, sans-serif;
+      background-color: #FFD100;
+      margin: 0;
+      padding: 0;
+    }
+    .container, .login-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.15);
+    }
+    h1, h2 {
+      color: #0057B8;
+      text-align: center;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #0057B8;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #003A70;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    th {
+      background-color: #0057B8;
+      color: white;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-            authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-            projectId: "enactusftuhanoi-tracuu",
-            storageBucket: "enactusftuhanoi-tracuu.appspot.com",
-            messagingSenderId: "611356979403",
-            appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
-        };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        // Kiểm tra đăng nhập
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById("loginPage").style.display = "none";
-                document.getElementById("adminPage").style.display = "block";
-                loadEmployees();
-            }
+    let confirmationResult = null;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("adminPage").classList.remove("hidden");
+        loadEmployees();
+      }
+    });
+
+    window.sendOTP = async function () {
+      const phone = document.getElementById("phoneLogin").value;
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible'
+      });
+      try {
+        confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+        alert("Đã gửi OTP tới số điện thoại.");
+      } catch (err) {
+        alert("Lỗi gửi OTP: " + err.message);
+      }
+    };
+
+    window.verifyOTP = async function () {
+      const code = document.getElementById("otp").value;
+      try {
+        await confirmationResult.confirm(code);
+        alert("Đăng nhập thành công!");
+      } catch (err) {
+        alert("Xác minh OTP thất bại: " + err.message);
+      }
+    };
+
+    async function loadEmployees() {
+      const querySnapshot = await getDocs(collection(db, "employees"));
+      const tableBody = document.getElementById("employeeTableBody");
+      tableBody.innerHTML = "";
+      querySnapshot.forEach((docSnap) => {
+        const emp = docSnap.data();
+        tableBody.innerHTML += `
+          <tr>
+            <td>${emp.id}</td>
+            <td>${emp.ban}</td>
+            <td>${emp.name}</td>
+            <td>${formatDate(emp.dob)}</td>
+            <td>${emp.process}</td>
+            <td>${emp.otp}</td>
+            <td>
+              <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}')">Sửa</button>
+              <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    function formatDate(date) {
+      const [y, m, d] = date.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    window.addEmployee = async function () {
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      await addDoc(collection(db, "employees"), {
+        id: document.getElementById("id").value,
+        ban: document.getElementById("ban").value,
+        name: document.getElementById("name").value,
+        dob: document.getElementById("dob").value,
+        process: document.getElementById("process").value,
+        otp,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value
+      });
+      alert("Thêm nhân sự thành công!");
+      loadEmployees();
+    };
+
+    window.editEmployee = async function (docId, id, ban, name, dob, process, otp, email, phone) {
+      document.getElementById("id").value = id;
+      document.getElementById("ban").value = ban;
+      document.getElementById("name").value = name;
+      document.getElementById("dob").value = dob;
+      document.getElementById("process").value = process;
+      document.getElementById("email").value = email;
+      document.getElementById("phone").value = phone;
+      document.getElementById("saveButton").onclick = async function () {
+        await updateDoc(doc(db, "employees", docId), {
+          id: document.getElementById("id").value,
+          ban: document.getElementById("ban").value,
+          name: document.getElementById("name").value,
+          dob: document.getElementById("dob").value,
+          process: document.getElementById("process").value,
+          otp,
+          email: document.getElementById("email").value,
+          phone: document.getElementById("phone").value
         });
+        alert("Cập nhật thành công!");
+        loadEmployees();
+      };
+    };
 
-        window.login = async function () {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                alert("Đăng nhập thành công!");
-            } catch (error) {
-                alert("Đăng nhập thất bại: " + error.message);
-            }
-        };
-
-        async function loadEmployees() {
-            const querySnapshot = await getDocs(collection(db, "employees"));
-            const tableBody = document.getElementById("employeeTableBody");
-            tableBody.innerHTML = "";
-            querySnapshot.forEach((docSnap) => {
-                const employee = docSnap.data();
-                tableBody.innerHTML += `
-                    <tr>
-                        <td>${employee.id}</td>
-                        <td>${employee.ban}</td>
-                        <td>${employee.name}</td>
-                        <td>${formatDate(employee.dob)}</td>
-                        <td>${employee.process}</td>
-                        <td>${employee.otp}</td>
-                        <td>
-                            <button onclick="editEmployee('${docSnap.id}')">Sửa</button>
-                            <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        window.addEmployee = async function () {
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            await addDoc(collection(db, "employees"), {
-                id: document.getElementById("id").value,
-                ban: document.getElementById("ban").value,
-                name: document.getElementById("name").value,
-                dob: document.getElementById("dob").value,
-                process: document.getElementById("process").value,
-                email: document.getElementById("emailInput").value,
-                phone: document.getElementById("phone").value,
-                otp: otp
-            });
-            alert(`Thêm nhân sự thành công! OTP là: ${otp}`);
-            loadEmployees();
-        };
-
-        window.editEmployee = async function (docId) {
-            const docRef = doc(db, "employees", docId);
-            const snapshot = await getDocs(collection(db, "employees"));
-            const foundDoc = snapshot.docs.find(d => d.id === docId);
-            if (!foundDoc) return;
-
-            const emp = foundDoc.data();
-
-            document.getElementById("id").value = emp.id;
-            document.getElementById("ban").value = emp.ban;
-            document.getElementById("name").value = emp.name;
-            document.getElementById("dob").value = emp.dob;
-            document.getElementById("process").value = emp.process;
-            document.getElementById("emailInput").value = emp.email || "";
-            document.getElementById("phone").value = emp.phone || "";
-
-            document.getElementById("saveButton").onclick = async function () {
-                await updateDoc(docRef, {
-                    id: document.getElementById("id").value,
-                    ban: document.getElementById("ban").value,
-                    name: document.getElementById("name").value,
-                    dob: document.getElementById("dob").value,
-                    process: document.getElementById("process").value,
-                    email: document.getElementById("emailInput").value,
-                    phone: document.getElementById("phone").value,
-                    otp: emp.otp
-                });
-                alert("Cập nhật thành công!");
-                loadEmployees();
-            };
-        };
-
-        window.deleteEmployee = async function (id) {
-            await deleteDoc(doc(db, "employees", id));
-            alert("Xóa nhân sự thành công!");
-            loadEmployees();
-        };
-
-        function formatDate(date) {
-            const [year, month, day] = date.split("-");
-            return `${day}/${month}/${year}`;
-        }
-    </script>
+    window.deleteEmployee = async function (id) {
+      await deleteDoc(doc(db, "employees", id));
+      alert("Đã xóa nhân sự.");
+      loadEmployees();
+    };
+  </script>
 </head>
 <body>
-    <div id="loginPage" class="login-container">
-        <h2>Đăng Nhập</h2>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Mật khẩu" required>
-        <button onclick="login()">Đăng Nhập</button>
-    </div>
+  <div id="loginPage" class="login-container">
+    <h2>Đăng Nhập bằng SĐT</h2>
+    <input type="tel" id="phoneLogin" placeholder="Số điện thoại (+84...)">
+    <div id="recaptcha-container"></div>
+    <button onclick="sendOTP()">Gửi OTP</button>
+    <input type="text" id="otp" placeholder="Nhập mã OTP">
+    <button onclick="verifyOTP()">Xác minh</button>
+  </div>
 
-    <div id="adminPage" class="container" style="display: none;">
-        <h1>Admin Dashboard</h1>
-        <div class="form-group">
-            <div><input type="text" id="id" placeholder="ID"></div>
-            <div><input type="text" id="ban" placeholder="Ban"></div>
-            <div><input type="text" id="name" placeholder="Tên"></div>
-            <div><input type="date" id="dob"></div>
-            <div>
-                <select id="process">
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                </select>
-            </div>
-            <div><input type="email" id="emailInput" placeholder="Email"></div>
-            <div><input type="text" id="phone" placeholder="Số điện thoại"></div>
-        </div>
-        <button onclick="addEmployee()">Thêm Nhân Sự</button>
-        <button id="saveButton">Lưu</button>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Ban</th>
-                    <th>Tên</th>
-                    <th>Ngày Sinh</th>
-                    <th>Trạng Thái</th>
-                    <th>OTP</th>
-                    <th>Hành Động</th>
-                </tr>
-            </thead>
-            <tbody id="employeeTableBody"></tbody>
-        </table>
-    </div>
+  <div id="adminPage" class="container hidden">
+    <h1>Quản lý Nhân sự</h1>
+    <input type="text" id="id" placeholder="ID">
+    <input type="text" id="ban" placeholder="Ban">
+    <input type="text" id="name" placeholder="Tên">
+    <input type="date" id="dob">
+    <select id="process">
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+    </select>
+    <input type="email" id="email" placeholder="Email">
+    <input type="tel" id="phone" placeholder="SĐT (+84...)">
+    <button onclick="addEmployee()">Thêm nhân sự</button>
+    <button id="saveButton">Lưu chỉnh sửa</button>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Ban</th>
+          <th>Tên</th>
+          <th>Ngày Sinh</th>
+          <th>Trạng Thái</th>
+          <th>OTP</th>
+          <th>Hành Động</th>
+        </tr>
+      </thead>
+      <tbody id="employeeTableBody"></tbody>
+    </table>
+  </div>
 </body>
 </html>
