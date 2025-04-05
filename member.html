@@ -119,16 +119,16 @@
     function displayUserData(userData) {
       const container = document.getElementById("profileContainer");
 
-      const photoURL = userData.photoURL || "https://via.placeholder.com/150"; // Placeholder nếu không có ảnh
+      const photoURL = userData.photoURL || "https://i.imgur.com/HeIi0wU.png"; // Placeholder nếu không có ảnh
 
       container.innerHTML = `
         <div class="profile-card">
           <img class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
           <div class="profile-info">
-            <h2>${userData.name || "Chưa cập nhật"}</h2>
-            <p><strong>Email:</strong> ${userData.email}</p>
             <p><strong>ID:</strong> ${userData.id}</p>
             <p><strong>Ban:</strong> ${userData.ban}</p>
+            <h2>${userData.name || "Chưa cập nhật"}</h2>
+            <p><strong>Email:</strong> ${userData.email}</p>
             <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
             <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
             <p><strong>OTP:</strong> ${userData.otp}</p>
