@@ -119,7 +119,7 @@
     function displayUserData(userData) {
       const container = document.getElementById("profileContainer");
 
-      const photoURL = userData.photoURL || "https://www.google.com/url?sa=i&url=https%3A%2F%2Fcellphones.com.vn%2Fsforum%2Favatar-trang&psig=AOvVaw0LdJOySCCynsVvQsMyUgqw&ust=1743882777950000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCMDKkN6Tv4wDFQAAAAAdAAAAABAo"; // Placeholder nếu không có ảnh
+      const photoURL = userData.photoURL || "https://via.placeholder.com/150"; // Placeholder nếu không có ảnh
 
       container.innerHTML = `
         <div class="profile-card">
@@ -134,7 +134,7 @@
             <p><strong>OTP:</strong> ${userData.otp}</p>
           </div>
         </div>
-      ;
+      `;
     }
   </script>
 </head>
