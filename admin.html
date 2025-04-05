@@ -14,29 +14,36 @@
             margin: 0;
             padding: 0;
         }
-        .container {
+        .container, .login-container {
             max-width: 800px;
-            margin: auto;
-            padding: 20px;
+            margin: 40px auto;
+            padding: 30px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
-        h1 {
+        h1, h2 {
             color: #0057B8;
+            margin-bottom: 20px;
         }
         input, select, button {
             width: calc(100% - 22px);
-            padding: 10px;
+            padding: 12px;
             margin: 10px 0;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 16px;
+            transition: all 0.2s ease;
+        }
+        input:focus, select:focus {
+            border-color: #0057B8;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0,87,184,0.5);
         }
         button {
             background-color: #0057B8;
             color: white;
-            cursor: pointer;
+            font-weight: bold;
         }
         button:hover {
             background-color: #003A70;
@@ -44,23 +51,29 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 30px;
         }
         th, td {
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ccc;
         }
         th {
             background-color: #0057B8;
             color: white;
         }
-        .login-container {
-            max-width: 400px;
-            margin: auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        .form-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .form-group > div {
+            flex: 1 1 48%;
+        }
+        #saveButton {
+            background-color: #28a745;
+        }
+        #saveButton:hover {
+            background-color: #1e7e34;
         }
     </style>
     <script type="module">
@@ -72,7 +85,7 @@
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
             authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
             projectId: "enactusftuhanoi-tracuu",
-            storageBucket: "enactusftuhanoi-tracuu.firebasestorage.app",
+            storageBucket: "enactusftuhanoi-tracuu.appspot.com",
             messagingSenderId: "611356979403",
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
@@ -81,16 +94,16 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Kiểm tra trạng thái đăng nhập
+        // Kiểm tra đăng nhập
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById("loginPage").style.display = "none";
                 document.getElementById("adminPage").style.display = "block";
                 loadEmployees();
-            } 
+            }
         });
 
-        window.login = async function() {
+        window.login = async function () {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
             try {
@@ -105,8 +118,8 @@
             const querySnapshot = await getDocs(collection(db, "employees"));
             const tableBody = document.getElementById("employeeTableBody");
             tableBody.innerHTML = "";
-            querySnapshot.forEach((doc) => {
-                const employee = doc.data();
+            querySnapshot.forEach((docSnap) => {
+                const employee = docSnap.data();
                 tableBody.innerHTML += `
                     <tr>
                         <td>${employee.id}</td>
@@ -114,51 +127,65 @@
                         <td>${employee.name}</td>
                         <td>${formatDate(employee.dob)}</td>
                         <td>${employee.process}</td>
-                        <td>${employee.otp}</td> <!-- Hiển thị OTP -->
+                        <td>${employee.otp}</td>
                         <td>
-                            <button onclick="editEmployee('${doc.id}', '${employee.ban}', '${employee.name}', '${employee.dob}', '${employee.process}', '${employee.otp}')">Sửa</button>
-                            <button onclick="deleteEmployee('${doc.id}')">Xóa</button>
+                            <button onclick="editEmployee('${docSnap.id}')">Sửa</button>
+                            <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
                         </td>
-                    </tr>`;
+                    </tr>
+                `;
             });
         }
 
-        window.addEmployee = async function() {
-            const otp = Math.floor(100000 + Math.random() * 900000).toString(); // Tạo OTP 6 chữ số dạng string
+        window.addEmployee = async function () {
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
             await addDoc(collection(db, "employees"), {
                 id: document.getElementById("id").value,
                 ban: document.getElementById("ban").value,
                 name: document.getElementById("name").value,
                 dob: document.getElementById("dob").value,
                 process: document.getElementById("process").value,
-                otp: otp // Lưu OTP vào Firestore
+                email: document.getElementById("emailInput").value,
+                phone: document.getElementById("phone").value,
+                otp: otp
             });
-            alert(`Thêm nhân sự thành công! OTP của nhân sự là: ${otp}`);
+            alert(`Thêm nhân sự thành công! OTP là: ${otp}`);
             loadEmployees();
         };
 
-        window.editEmployee = async function(id, ban, name, dob, process, otp) {
-            document.getElementById("id").value = id;
-            document.getElementById("ban").value = ban;
-            document.getElementById("name").value = name;
-            document.getElementById("dob").value = dob;
-            document.getElementById("process").value = process;
-            
-            document.getElementById("saveButton").onclick = async function() {
-                await updateDoc(doc(db, "employees", id), {
+        window.editEmployee = async function (docId) {
+            const docRef = doc(db, "employees", docId);
+            const snapshot = await getDocs(collection(db, "employees"));
+            const foundDoc = snapshot.docs.find(d => d.id === docId);
+            if (!foundDoc) return;
+
+            const emp = foundDoc.data();
+
+            document.getElementById("id").value = emp.id;
+            document.getElementById("ban").value = emp.ban;
+            document.getElementById("name").value = emp.name;
+            document.getElementById("dob").value = emp.dob;
+            document.getElementById("process").value = emp.process;
+            document.getElementById("emailInput").value = emp.email || "";
+            document.getElementById("phone").value = emp.phone || "";
+
+            document.getElementById("saveButton").onclick = async function () {
+                await updateDoc(docRef, {
                     id: document.getElementById("id").value,
                     ban: document.getElementById("ban").value,
                     name: document.getElementById("name").value,
                     dob: document.getElementById("dob").value,
                     process: document.getElementById("process").value,
-                    otp: otp // Giữ nguyên OTP khi chỉnh sửa
+                    email: document.getElementById("emailInput").value,
+                    phone: document.getElementById("phone").value,
+                    otp: emp.otp
                 });
                 alert("Cập nhật thành công!");
                 loadEmployees();
             };
         };
 
-        window.deleteEmployee = async function(id) {
+        window.deleteEmployee = async function (id) {
             await deleteDoc(doc(db, "employees", id));
             alert("Xóa nhân sự thành công!");
             loadEmployees();
@@ -180,16 +207,23 @@
 
     <div id="adminPage" class="container" style="display: none;">
         <h1>Admin Dashboard</h1>
-        <input type="text" id="id" placeholder="ID">
-        <input type="text" id="ban" placeholder="Ban">
-        <input type="text" id="name" placeholder="Tên">
-        <input type="date" id="dob">
-        <select id="process">
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-        </select>
+        <div class="form-group">
+            <div><input type="text" id="id" placeholder="ID"></div>
+            <div><input type="text" id="ban" placeholder="Ban"></div>
+            <div><input type="text" id="name" placeholder="Tên"></div>
+            <div><input type="date" id="dob"></div>
+            <div>
+                <select id="process">
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+            <div><input type="email" id="emailInput" placeholder="Email"></div>
+            <div><input type="text" id="phone" placeholder="Số điện thoại"></div>
+        </div>
         <button onclick="addEmployee()">Thêm Nhân Sự</button>
         <button id="saveButton">Lưu</button>
+
         <table>
             <thead>
                 <tr>
