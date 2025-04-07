@@ -117,29 +117,41 @@
     }
 
     function displayUserData(userData) {
-      const container = document.getElementById("profileContainer");
+  const container = document.getElementById("profileContainer");
 
-      const photoURL = userData.photoURL || "https://i.imgur.com/GZwfGjd.png"; // Placeholder nếu không có ảnh
+  const photoURL = userData.photoURL || "https://i.imgur.com/GZwfGjd.png"; // Placeholder nếu không có ảnh
 
-      container.innerHTML = `
-        <div class="profile-card">
-          <img class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
-          <div class="profile-info">
-            <h2>${userData.name || "Chưa cập nhật"}</h2>
-            <p><strong>ID:</strong> ${userData.id}</p>
-            <p><strong>Ban:</strong> ${userData.ban}</p>
-            <p><strong>Email:</strong> ${userData.email}</p>
-            <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
-            <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
-            <p><strong>OTP:</strong> ${userData.otp}</p>
-          </div>
-        </div>
-      `;
-    }
+  container.innerHTML = `
+    <div class="profile-card">
+      <img class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
+      <div class="profile-info">
+        <h2>${userData.name || "Chưa cập nhật"}</h2>
+        <p><strong>ID:</strong> ${userData.id}</p>
+        <p><strong>Ban:</strong> ${userData.ban}</p>
+        <p><strong>Email:</strong> ${userData.email}</p>
+        <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
+        <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
+        <p><strong>OTP:</strong> ${userData.otp}</p>
+      </div>
+    </div>
+  `;
+
+  // Nếu role là Admin thì hiện nút Admin
+  if (userData.role && userData.role.toLowerCase() === "admin") {
+    document.getElementById("adminButton").style.display = "block";
+  }
+}
   </script>
 </head>
 
 <body>
+  <!-- Thêm vào trong <body> ngay sau thẻ mở <body> -->
+  <div id="adminButton" style="position: absolute; top: 20px; right: 20px; display: none;">
+    <button onclick="window.location.href='admin.html'" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+    🔒 Admin
+  </button>
+</div>
+
   <div id="profileContainer"></div>
   <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
 </body>
