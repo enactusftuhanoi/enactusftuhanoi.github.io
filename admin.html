@@ -81,19 +81,27 @@
     // Kiểm tra người dùng đã đăng nhập và có quyền admin
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Nếu đã đăng nhập, kiểm tra email xem có phải là admin không
-        const adminEmails = ["tuhm.enactusftu@gmail.com"]; // Email admin
-        if (adminEmails.includes(user.email)) {
-          // Nếu là admin, hiển thị trang quản trị
-          document.getElementById("adminPage").classList.remove("hidden");
-          loadEmployees();
+        // Kiểm tra nếu người dùng đã đăng nhập
+        const q = query(collection(db, "employees"), where("email", "==", user.email));
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+          const userData = snapshot.docs[0].data();
+          if (userData.role === "Admin") {
+            // Nếu role là Admin, giữ người dùng ở trang Admin
+            document.getElementById("adminPage").classList.remove("hidden");
+            loadEmployees();
+          } else {
+            // Nếu không phải Admin, chuyển hướng về trang login
+            window.location.href = "login.html";
+          }
         } else {
-          // Nếu không phải admin, chuyển hướng về trang đăng nhập
-          window.location.href = "login.html"; // Đổi link nếu cần
+          // Nếu không tìm thấy người dùng trong Firestore, chuyển hướng về login
+          window.location.href = "login.html";
         }
       } else {
-        // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
-        window.location.href = "login.html"; // Đổi link nếu cần
+        // Nếu chưa đăng nhập, chuyển hướng về trang login
+        window.location.href = "login.html";
       }
     });
 
