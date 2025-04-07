@@ -12,7 +12,7 @@
       margin: 0;
       padding: 0;
     }
-    .container, .login-container {
+    .container {
       max-width: 800px;
       margin: 40px auto;
       padding: 20px;
@@ -63,7 +63,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -78,21 +78,22 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Khi người dùng đăng nhập
+    // Kiểm tra người dùng đã đăng nhập và có quyền admin
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const adminEmails = ["admin@example.com"]; // Danh sách các email admin
+        const adminEmails = ["admin@example.com"]; // Email admin
         if (adminEmails.includes(user.email)) {
+          // Nếu là admin, hiển thị trang quản trị
           document.getElementById("adminPage").classList.remove("hidden");
-          document.getElementById("unauthorizedPage").classList.add("hidden");
           loadEmployees();
-          return;
+        } else {
+          // Nếu không phải admin, chuyển hướng về trang đăng nhập
+          window.location.href = "login.html"; // Đổi link nếu cần
         }
+      } else {
+        // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
+        window.location.href = "login.html"; // Đổi link nếu cần
       }
-
-      // Nếu không phải admin
-      document.getElementById("adminPage").classList.add("hidden");
-      document.getElementById("unauthorizedPage").classList.remove("hidden");
     });
 
     async function loadEmployees() {
@@ -174,12 +175,6 @@
   </script>
 </head>
 <body>
-  <div id="loginPage" class="login-container">
-    <h2>Đăng Nhập bằng Email</h2>
-    <input type="email" id="emailLogin" placeholder="Nhập email của bạn">
-    <button onclick="login()">Đăng nhập</button>
-  </div>
-
   <div id="adminPage" class="container hidden">
     <h1>Dashboard</h1>
     <input type="text" id="id" placeholder="ID">
@@ -213,10 +208,6 @@
       </thead>
       <tbody id="employeeTableBody"></tbody>
     </table>
-  </div>
-
-  <div id="unauthorizedPage" class="container hidden">
-    <h2>Bạn không có quyền truy cập vào trang này.</h2>
   </div>
 </body>
 </html>
