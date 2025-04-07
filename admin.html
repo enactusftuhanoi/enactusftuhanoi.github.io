@@ -95,8 +95,11 @@
     window.sendOTP = async function () {
       const phone = document.getElementById("phoneLogin").value;
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible'
-      });
+  'size': 'invisible'
+}, auth);
+
+await recaptchaVerifier.render();
+
       try {
         confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
         alert("Đã gửi OTP tới số điện thoại.");
