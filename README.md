@@ -1,221 +1,101 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang Thông Tin Thành Viên</title>
-    <link rel="icon" href="icon.png" type="image/png">
-    <style>
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 80%;
-            margin: 50px auto;
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            color: #0057b8;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .profile-info {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        .profile-info th, .profile-info td {
-            padding: 15px;
-            text-align: left;
-            border: 1px solid #d9d9d9;
-        }
-        .profile-info th {
-            background-color: #ffc222;
-            color: white;
-        }
-        .profile-info td {
-            background-color: #d9d9d9;
-        }
-        .profile-info img {
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-        }
-        .btn-edit {
-            background-color: #0057b8;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .btn-edit:hover {
-            background-color: #357ae8;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f8f9fa;
-        }
-        .form-group input:disabled {
-            background-color: #e9ecef;
-        }
-        .form-group button {
-            background-color: #ffc222;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .form-group button:hover {
-            background-color: #ffb020;
-        }
-        .btn-save {
-            background-color: #28a745;
-        }
-        .btn-save:hover {
-            background-color: #218838;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Thông Tin Thành Viên</h2>
+# 🔍 Tra Cứu Thông Tin Thành Viên
 
-        <!-- Profile Info -->
-        <table class="profile-info">
-            <thead>
-                <tr>
-                    <th>Ảnh đại diện</th>
-                    <th>Email</th>
-                    <th>Họ và Tên</th>
-                    <th>Ngày Sinh</th>
-                    <th>Số điện thoại</th>
-                    <th>Ban</th>
-                    <th>Quy trình</th>
-                    <th>Thao tác</th>
-                </tr>
-            </thead>
-            <tbody id="profile-table-body">
-                <!-- Thông tin sẽ được hiển thị ở đây -->
-            </tbody>
-        </table>
+> Một nền tảng web đơn giản, hiện đại và dễ sử dụng để tra cứu thông tin thành viên của tổ chức, câu lạc bộ hoặc nhóm làm việc. Phù hợp cho các CLB sinh viên, nhóm dự án, hoặc quản lý nhân sự nội bộ quy mô nhỏ.
 
-        <!-- Edit Form -->
-        <form id="edit-form" style="display: none;">
-            <div class="form-group">
-                <label for="name">Họ và Tên</label>
-                <input type="text" id="name" disabled>
-            </div>
-            <div class="form-group">
-                <label for="dob">Ngày Sinh</label>
-                <input type="date" id="dob" disabled>
-            </div>
-            <div class="form-group">
-                <label for="phone">Số Điện Thoại</label>
-                <input type="text" id="phone" disabled>
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" disabled>
-            </div>
-            <div class="form-group">
-                <label for="profile-picture">Ảnh Đại Diện</label>
-                <input type="file" id="profile-picture" disabled>
-            </div>
-            <div class="form-group">
-                <button type="button" class="btn-save" onclick="saveProfile()">Lưu</button>
-            </div>
-        </form>
-    </div>
+---
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+## 📖 Mục lục
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-            authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-            projectId: "enactusftuhanoi-tracuu",
-            storageBucket: "enactusftuhanoi-tracuu.firebasestorage.app",
-            messagingSenderId: "611356979403",
-            appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
-        };
+- [📌 Giới thiệu](#-giới-thiệu)
+- [🚀 Tính năng nổi bật](#-tính-năng-nổi-bật)
+- [📁 Cấu trúc dự án](#-cấu-trúc-dự-án)
+- [⚙️ Cài đặt & Sử dụng](#️-cài-đặt--sử-dụng)
+- [🛠 Công nghệ sử dụng](#-công-nghệ-sử-dụng)
+- [📷 Giao diện mẫu](#-giao-diện-mẫu)
+- [🤝 Đóng góp & Phát triển](#-đóng-góp--phát-triển)
+- [📄 Giấy phép](#-giấy-phép)
 
-        // Khởi tạo Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+---
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                console.log("User logged in: ", user);
-                const email = user.email;
-                const userRef = doc(db, "employees", email); // Lấy thông tin người dùng từ Firestore
-                const docSnap = await getDoc(userRef);
+## 📌 Giới thiệu
 
-                if (docSnap.exists()) {
-                    const userData = docSnap.data();
-                    console.log("User data from Firestore: ", userData);
-                    displayUserProfile(userData);
-                } else {
-                    alert("Không tìm thấy thông tin người dùng trong Firestore!");
-                }
-            } else {
-                window.location.href = "login.html"; // Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
-            }
-        });
+Dự án **Tra Cứu Thông Tin Thành Viên** cung cấp một giao diện web đơn giản, thân thiện, giúp người dùng dễ dàng tra cứu thông tin thành viên bao gồm:
 
-        function displayUserProfile(userData) {
-            const tableBody = document.getElementById("profile-table-body");
+- Họ và tên
+- Ngày sinh
+- Email
+- Số điện thoại
+- Ban phụ trách
+- Trạng thái quy trình
+- Ảnh đại diện
 
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td><img src="${userData.profilePicture || 'https://via.placeholder.com/150'}" alt="Profile Picture"></td>
-                <td>${userData.email}</td>
-                <td contenteditable="true">${userData.name || 'Chưa cập nhật'}</td>
-                <td contenteditable="true">${userData.dob || 'Chưa cập nhật'}</td>
-                <td contenteditable="true">${userData.phone || 'Chưa cập nhật'}</td>
-                <td>${userData.ban || 'Chưa cập nhật'}</td>
-                <td>${userData.process || 'Chưa cập nhật'}</td>
-                <td><button class="btn-edit" onclick="editProfile()">Sửa</button></td>
-            `;
-            tableBody.appendChild(row);
-        }
+Ứng dụng phù hợp để triển khai trong môi trường tổ chức sinh viên, các nhóm tình nguyện, hoặc bộ phận nhân sự muốn có một giao diện nội bộ đơn giản, nhẹ và dễ tùy chỉnh.
 
-        function editProfile() {
-            const table = document.querySelector(".profile-info");
-            const row = table.rows[1]; // Lấy hàng đầu tiên
-            const cells = row.getElementsByTagName("td");
+---
 
-            document.getElementById("name").value = cells[2].innerText;
-            document.getElementById("dob").value = cells[3].innerText;
-            document.getElementById("phone").value = cells[4].innerText;
-            document.getElementById("email").value = cells[1].innerText;
-            document.getElementById("profile-picture").value = cells[0].getElementsByTagName("img")[0].src;
+## 🚀 Tính năng nổi bật
 
-            document.getElementById("edit-form").style.display = 'block';
-        }
+- ✅ Giao diện thân thiện, hiện đại, dễ thao tác
+- ✅ Hiển thị bảng thông tin với ảnh đại diện và thông tin cá nhân chi tiết
+- ✅ Chức năng chỉnh sửa trực tiếp thông tin thành viên
+- ✅ Responsive – hoạt động tốt trên cả máy tính và thiết bị di động
+- ✅ Có thể mở rộng tích hợp với hệ thống backend nếu cần
 
-        function saveProfile() {
-            // Lấy thông tin từ form sửa và lưu lại
-            alert("Thông tin đã được cập nhật!");
-            // Cập nhật lại Firestore nếu cần
-        }
-    </script>
-</body>
-</html>
+---
+
+## 📁 Cấu trúc dự án
+
+```bash
+tracuu-main/
+├── index.html          # Trang chính hiển thị danh sách thông tin thành viên
+├── login.html          # Trang đăng nhập (có thể sử dụng cho xác thực)
+├── admin.html          # Trang dành cho quản trị viên (nếu có)
+├── member.html         # Trang chi tiết dành cho từng thành viên
+├── icon.png            # Biểu tượng icon cho website
+├── README.md           # Tệp mô tả chi tiết dự án
+⚙️ Cài đặt & Sử dụng
+Dự án không yêu cầu backend, bạn có thể chạy trực tiếp trên trình duyệt.
+
+🔧 Bước 1: Tải xuống mã nguồn
+Tải về bằng cách:
+
+Clone qua Git:
+
+bash
+Copy
+Edit
+git clone https://github.com/yourusername/tracuu-main.git
+Hoặc tải trực tiếp file .zip và giải nén.
+
+🌐 Bước 2: Chạy dự án
+Mở file index.html bằng trình duyệt bất kỳ (Chrome, Edge, Firefox,...).
+
+Nếu bạn dùng VSCode, có thể cài tiện ích Live Server để chạy trực tiếp từ trình duyệt với tốc độ nhanh và hỗ trợ hot reload.
+
+🛠 Công nghệ sử dụng
+Công nghệ	Vai trò
+HTML5	Cấu trúc trang
+CSS3	Thiết kế, bố cục, hiệu ứng
+JavaScript (ES6)	Tương tác người dùng, xử lý dữ liệu trên giao diện
+Google Fonts	Font chữ hiện đại, đẹp mắt
+Dự án không sử dụng bất kỳ framework phức tạp nào → dễ tiếp cận, dễ chỉnh sửa.
+
+📷 Giao diện mẫu
+(Bạn có thể thêm hình ảnh chụp màn hình thật tại đây để người xem dễ hình dung)
+
+Giao diện chính	Giao diện chỉnh sửa
+🤝 Đóng góp & Phát triển
+Bạn có thể:
+
+Fork dự án và chỉnh sửa theo mục đích riêng
+
+Đóng góp code qua pull request
+
+Báo lỗi hoặc đề xuất tính năng mới qua phần Issues
+
+Đây là dự án mở, khuyến khích sinh viên, lập trình viên mới học web thử sức và đóng góp!
+
+📄 Giấy phép
+Dự án này được chia sẻ với mục đích học tập và sử dụng nội bộ, bạn có thể tùy biến lại theo nhu cầu của mình. Khi chia sẻ công khai, vui lòng ghi nguồn dự án gốc.
+
+🎉 Cảm ơn bạn đã ghé thăm dự án!
