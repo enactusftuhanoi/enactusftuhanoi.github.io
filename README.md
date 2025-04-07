@@ -54,6 +54,8 @@ tracuu-main/
 ├── icon.png            # Biểu tượng icon cho website
 ├── README.md           # Tệp mô tả chi tiết dự án
 
+---
+
 ## ⚙️ Cài đặt & Sử dụng
 Dự án không yêu cầu backend, bạn có thể chạy trực tiếp trên trình duyệt.
 
@@ -73,6 +75,8 @@ Mở file index.html bằng trình duyệt bất kỳ (Chrome, Edge, Firefox,...
 
 Nếu bạn dùng VSCode, có thể cài tiện ích Live Server để chạy trực tiếp từ trình duyệt với tốc độ nhanh và hỗ trợ hot reload.
 
+---
+
 ## 🛠 Công nghệ sử dụng
 Công nghệ	Vai trò
 HTML5	Cấu trúc trang
@@ -81,10 +85,15 @@ JavaScript (ES6)	Tương tác người dùng, xử lý dữ liệu trên giao di
 Google Fonts	Font chữ hiện đại, đẹp mắt
 Dự án không sử dụng bất kỳ framework phức tạp nào → dễ tiếp cận, dễ chỉnh sửa.
 
+---
+
 ## 📷 Giao diện mẫu
 (Bạn có thể thêm hình ảnh chụp màn hình thật tại đây để người xem dễ hình dung)
 
 Giao diện chính	Giao diện chỉnh sửa
+
+---
+
 ## 🤝 Đóng góp & Phát triển
 Bạn có thể:
 
@@ -96,7 +105,10 @@ Báo lỗi hoặc đề xuất tính năng mới qua phần Issues
 
 Đây là dự án mở, khuyến khích sinh viên, lập trình viên mới học web thử sức và đóng góp!
 
+---
+
 ## 📄 Giấy phép
+
 Dự án này được chia sẻ với mục đích học tập và sử dụng nội bộ, bạn có thể tùy biến lại theo nhu cầu của mình. Khi chia sẻ công khai, vui lòng ghi nguồn dự án gốc.
 
 🎉 Cảm ơn bạn đã ghé thăm dự án!
