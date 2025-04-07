@@ -132,8 +132,9 @@ await recaptchaVerifier.render();
             <td>${formatDate(emp.dob)}</td>
             <td>${emp.process}</td>
             <td>${emp.otp}</td>
+            <td>${emp.role}</td>
             <td>
-              <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}')">Sửa</button>
+              <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
               <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
             </td>
           </tr>`;
@@ -141,7 +142,7 @@ await recaptchaVerifier.render();
     }
 
     function formatDate(date) {
-      const [y, m, d] = date.split("-");
+      const [d, m, y] = date.split("/");
       return `${d}/${m}/${y}`;
     }
 
@@ -155,13 +156,14 @@ await recaptchaVerifier.render();
         process: document.getElementById("process").value,
         otp,
         email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value
+        phone: document.getElementById("phone").value,
+        role: document.getElementById("role").value
       });
       alert("Thêm nhân sự thành công!");
       loadEmployees();
     };
 
-    window.editEmployee = async function (docId, id, ban, name, dob, process, otp, email, phone) {
+    window.editEmployee = async function (docId, id, ban, name, dob, process, otp, email, phone, role) {
       document.getElementById("id").value = id;
       document.getElementById("ban").value = ban;
       document.getElementById("name").value = name;
@@ -169,6 +171,7 @@ await recaptchaVerifier.render();
       document.getElementById("process").value = process;
       document.getElementById("email").value = email;
       document.getElementById("phone").value = phone;
+      document.getElementById("role").value = role;
       document.getElementById("saveButton").onclick = async function () {
         await updateDoc(doc(db, "employees", docId), {
           id: document.getElementById("id").value,
@@ -178,7 +181,8 @@ await recaptchaVerifier.render();
           process: document.getElementById("process").value,
           otp,
           email: document.getElementById("email").value,
-          phone: document.getElementById("phone").value
+          phone: document.getElementById("phone").value,
+          role: document.getElementById("role").value
         });
         alert("Cập nhật thành công!");
         loadEmployees();
@@ -214,6 +218,10 @@ await recaptchaVerifier.render();
     </select>
     <input type="email" id="email" placeholder="Email">
     <input type="tel" id="phone" placeholder="SĐT (+84...)">
+    <select id="role">
+      <option value="Admin">Active</option>
+      <option value="Member">Inactive</option>
+    </select>
     <button onclick="addEmployee()">Thêm nhân sự</button>
     <button id="saveButton">Lưu chỉnh sửa</button>
     <table>
@@ -221,10 +229,11 @@ await recaptchaVerifier.render();
         <tr>
           <th>ID</th>
           <th>Ban</th>
-          <th>Tên</th>
-          <th>Ngày Sinh</th>
-          <th>Trạng Thái</th>
+          <th>Name</th>
+          <th>DOB</th>
+          <th>Process</th>
           <th>OTP</th>
+          <th>Role</th>
           <th>Hành Động</th>
         </tr>
       </thead>
