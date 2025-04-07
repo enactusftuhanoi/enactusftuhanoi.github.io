@@ -81,6 +81,7 @@
     // Kiểm tra người dùng đã đăng nhập và có quyền admin
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Nếu đã đăng nhập, kiểm tra email xem có phải là admin không
         const adminEmails = ["admin@example.com"]; // Email admin
         if (adminEmails.includes(user.email)) {
           // Nếu là admin, hiển thị trang quản trị
