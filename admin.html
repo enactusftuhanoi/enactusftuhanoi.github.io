@@ -62,8 +62,8 @@
   </style>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -78,45 +78,22 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let confirmationResult = null;
-
-    // Kiểm tra trạng thái người dùng ngay khi trang tải
-    onAuthStateChanged(auth, (user) => {
+    // Khi người dùng đăng nhập
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
-        document.getElementById("loginPage").classList.add("hidden");
-        document.getElementById("adminPage").classList.remove("hidden");
-        loadEmployees();
-      } else {
-        document.getElementById("loginPage").classList.remove("hidden");
-        document.getElementById("adminPage").classList.add("hidden");
+        const adminEmails = ["admin@example.com"]; // Danh sách các email admin
+        if (adminEmails.includes(user.email)) {
+          document.getElementById("adminPage").classList.remove("hidden");
+          document.getElementById("unauthorizedPage").classList.add("hidden");
+          loadEmployees();
+          return;
+        }
       }
+
+      // Nếu không phải admin
+      document.getElementById("adminPage").classList.add("hidden");
+      document.getElementById("unauthorizedPage").classList.remove("hidden");
     });
-
-    window.sendOTP = async function () {
-      const phone = document.getElementById("phoneLogin").value;
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-  'size': 'invisible'
-}, auth);
-
-await recaptchaVerifier.render();
-
-      try {
-        confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
-        alert("Đã gửi OTP tới số điện thoại.");
-      } catch (err) {
-        alert("Lỗi gửi OTP: " + err.message);
-      }
-    };
-
-    window.verifyOTP = async function () {
-      const code = document.getElementById("otp").value;
-      try {
-        await confirmationResult.confirm(code);
-        alert("Đăng nhập thành công!");
-      } catch (err) {
-        alert("Xác minh OTP thất bại: " + err.message);
-      }
-    };
 
     async function loadEmployees() {
       const querySnapshot = await getDocs(collection(db, "employees"));
@@ -198,12 +175,9 @@ await recaptchaVerifier.render();
 </head>
 <body>
   <div id="loginPage" class="login-container">
-    <h2>Đăng Nhập bằng SĐT</h2>
-    <input type="tel" id="phoneLogin" placeholder="Số điện thoại (+84...)">
-    <div id="recaptcha-container"></div>
-    <button onclick="sendOTP()">Gửi OTP</button>
-    <input type="text" id="otp" placeholder="Nhập mã OTP">
-    <button onclick="verifyOTP()">Xác minh</button>
+    <h2>Đăng Nhập bằng Email</h2>
+    <input type="email" id="emailLogin" placeholder="Nhập email của bạn">
+    <button onclick="login()">Đăng nhập</button>
   </div>
 
   <div id="adminPage" class="container hidden">
@@ -239,6 +213,10 @@ await recaptchaVerifier.render();
       </thead>
       <tbody id="employeeTableBody"></tbody>
     </table>
+  </div>
+
+  <div id="unauthorizedPage" class="container hidden">
+    <h2>Bạn không có quyền truy cập vào trang này.</h2>
   </div>
 </body>
 </html>
