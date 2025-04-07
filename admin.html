@@ -142,7 +142,7 @@ await recaptchaVerifier.render();
     }
 
     function formatDate(date) {
-      const [d, m, y] = date.split("/");
+      const [y, m, d] = date.split("-");
       return `${d}/${m}/${y}`;
     }
 
@@ -219,8 +219,8 @@ await recaptchaVerifier.render();
     <input type="email" id="email" placeholder="Email">
     <input type="tel" id="phone" placeholder="SĐT (+84...)">
     <select id="role">
-      <option value="Admin">Active</option>
-      <option value="Member">Inactive</option>
+      <option value="Admin">Admin</option>
+      <option value="Member">Member</option>
     </select>
     <button onclick="addEmployee()">Thêm nhân sự</button>
     <button id="saveButton">Lưu chỉnh sửa</button>
