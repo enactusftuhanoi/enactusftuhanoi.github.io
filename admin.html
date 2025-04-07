@@ -12,7 +12,7 @@
       margin: 0;
       padding: 0;
     }
-    .container, .login-container {
+    .container {
       max-width: 800px;
       margin: 40px auto;
       padding: 20px;
@@ -62,8 +62,8 @@
   </style>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -78,61 +78,32 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let confirmationResult = null;
-
-    // Kiểm tra trạng thái đăng nhập và quyền admin
+    // Kiểm tra người dùng đã đăng nhập và có quyền admin
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const phone = user.phoneNumber;
-        const querySnapshot = await getDocs(collection(db, "employees"));
-        let isAdmin = false;
+        // Kiểm tra nếu người dùng đã đăng nhập
+        const q = query(collection(db, "employees"), where("email", "==", user.email));
+        const snapshot = await getDocs(q);
 
-        querySnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          if (data.phone === phone && data.role === "Admin") {
-            isAdmin = true;
+        if (!snapshot.empty) {
+          const userData = snapshot.docs[0].data();
+          if (userData.role === "Admin") {
+            // Nếu role là Admin, giữ người dùng ở trang Admin
+            document.getElementById("adminPage").classList.remove("hidden");
+            loadEmployees();
+          } else {
+            // Nếu không phải Admin, chuyển hướng về trang login
+            window.location.href = "login.html";
           }
-        });
-
-        if (isAdmin) {
-          document.getElementById("loginPage").classList.add("hidden");
-          document.getElementById("adminPage").classList.remove("hidden");
-          loadEmployees();
         } else {
-          alert("Bạn không có quyền truy cập.");
-          await auth.signOut();
+          // Nếu không tìm thấy người dùng trong Firestore, chuyển hướng về login
+          window.location.href = "login.html";
         }
       } else {
-        document.getElementById("loginPage").classList.remove("hidden");
-        document.getElementById("adminPage").classList.add("hidden");
+        // Nếu chưa đăng nhập, chuyển hướng về trang login
+        window.location.href = "login.html";
       }
     });
-
-    window.sendOTP = async function () {
-      const phone = document.getElementById("phoneLogin").value;
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible'
-      }, auth);
-
-      await recaptchaVerifier.render();
-
-      try {
-        confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
-        alert("Đã gửi OTP tới số điện thoại.");
-      } catch (err) {
-        alert("Lỗi gửi OTP: " + err.message);
-      }
-    };
-
-    window.verifyOTP = async function () {
-      const code = document.getElementById("otp").value;
-      try {
-        await confirmationResult.confirm(code);
-        alert("Đăng nhập thành công!");
-      } catch (err) {
-        alert("Xác minh OTP thất bại: " + err.message);
-      }
-    };
 
     async function loadEmployees() {
       const querySnapshot = await getDocs(collection(db, "employees"));
@@ -213,15 +184,6 @@
   </script>
 </head>
 <body>
-  <div id="loginPage" class="login-container">
-    <h2>Đăng Nhập bằng SĐT</h2>
-    <input type="tel" id="phoneLogin" placeholder="Số điện thoại (+84...)">
-    <div id="recaptcha-container"></div>
-    <button onclick="sendOTP()">Gửi OTP</button>
-    <input type="text" id="otp" placeholder="Nhập mã OTP">
-    <button onclick="verifyOTP()">Xác minh</button>
-  </div>
-
   <div id="adminPage" class="container hidden">
     <h1>Dashboard</h1>
     <input type="text" id="id" placeholder="ID">
