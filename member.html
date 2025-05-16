@@ -73,6 +73,85 @@
     }
   </style>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.onload = async function () {
+  const userEmail = sessionStorage.getItem('userEmail');
+  const userRole = sessionStorage.getItem('userRole');
+  
+  if (!userEmail) {
+    window.location.href = "login.html";
+  } else {
+    if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
+      document.getElementById("adminButton").style.display = "block";
+    }
+    await getUserData(userEmail);
+  }
+};
+
+    async function getUserData(email) {
+      const employeesRef = collection(db, "employees");
+      const q = query(employeesRef, where("email", "==", email));
+
+      try {
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
+          displayUserData(userData);
+        } else {
+          alert("Không tìm thấy thông tin người dùng trong hệ thống!");
+        }
+      } catch (error) {
+        console.error("Lỗi khi truy vấn dữ liệu:", error);
+        alert("Lỗi hệ thống, vui lòng thử lại.");
+      }
+    }
+
+    function displayUserData(userData) {
+  const container = document.getElementById("profileContainer");
+
+  const photoURL = userData.photoURL || "https://i.imgur.com/GZwfGjd.png"; // Placeholder nếu không có ảnh
+
+  container.innerHTML = `
+    <div class="profile-card">
+      <img class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
+      <div class="profile-info">
+        <h2>${userData.name || "Chưa cập nhật"}</h2>
+        <p><strong>ID:</strong> ${userData.id}</p>
+        <p><strong>Ban:</strong> ${userData.ban}</p>
+        <p><strong>Email:</strong> ${userData.email}</p>
+        <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
+        <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
+        <p><strong>OTP:</strong> ${userData.otp}</p>
+      </div>
+    </div>
+  `;
+
+  // Nếu role là Admin thì hiện nút Admin
+const userRole = sessionStorage.getItem('userRole');
+if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
+  document.getElementById("adminButton").style.display = "block";
+}
+
+}
+    window.addEventListener('beforeunload', () => {
+  sessionStorage.clear();
+});
+  </script>
 </head>
 
 <body>
@@ -86,74 +165,5 @@
 
   <div id="profileContainer"></div>
   <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
-
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-    authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-    projectId: "enactusftuhanoi-tracuu",
-    storageBucket: "enactusftuhanoi-tracuu.appspot.com",
-    messagingSenderId: "611356979403",
-    appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.onload = async function () {
-    const userEmail = sessionStorage.getItem('userEmail');
-    const userRole = sessionStorage.getItem('userRole');
-
-    if (!userEmail) {
-      window.location.href = "login.html";
-    } else {
-      if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
-        document.getElementById("adminButton").style.display = "block";
-      }
-      await getUserData(userEmail);
-    }
-  };
-
-  async function getUserData(email) {
-    const employeesRef = collection(db, "employees");
-    const q = query(employeesRef, where("email", "==", email));
-
-    try {
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const userData = querySnapshot.docs[0].data();
-        displayUserData(userData);
-      } else {
-        alert("Không tìm thấy thông tin người dùng trong hệ thống!");
-      }
-    } catch (error) {
-      console.error("Lỗi khi truy vấn dữ liệu:", error);
-      alert("Lỗi hệ thống, vui lòng thử lại.");
-    }
-  }
-
-  function displayUserData(userData) {
-    const container = document.getElementById("profileContainer");
-    const photoURL = userData.photoURL || "https://i.imgur.com/GZwfGjd.png";
-
-    container.innerHTML = `
-      <div class="profile-card">
-        <img class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
-        <div class="profile-info">
-          <h2>${userData.name || "Chưa cập nhật"}</h2>
-          <p><strong>ID:</strong> ${userData.id}</p>
-          <p><strong>Ban:</strong> ${userData.ban}</p>
-          <p><strong>Email:</strong> ${userData.email}</p>
-          <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
-          <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
-          <p><strong>OTP:</strong> ${userData.otp}</p>
-        </div>
-      </div>
-    `;
-  }
-</script>
 </body>
 </html>
