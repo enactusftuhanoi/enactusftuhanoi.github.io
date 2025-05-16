@@ -88,32 +88,52 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Kiểm tra người dùng đã đăng nhập và có quyền admin
     onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // Kiểm tra nếu người dùng đã đăng nhập
-        const q = query(collection(db, "employees"), where("email", "==", user.email));
-        const snapshot = await getDocs(q);
+  if (!user) {
+    // Nếu chưa đăng nhập thì chuyển về login
+    window.location.href = "login.html";
+    return;
+  }
 
-        if (!snapshot.empty) {
-          const userData = snapshot.docs[0].data();
-          if (userData.role === "Admin") {
-            // Nếu role là Admin, giữ người dùng ở trang Admin
-            document.getElementById("adminPage").classList.remove("hidden");
-            loadEmployees();
-          } else {
-            // Nếu không phải Admin, chuyển hướng về trang login
-            window.location.href = "login.html";
-          }
-        } else {
-          // Nếu không tìm thấy người dùng trong Firestore, chuyển hướng về login
-          window.location.href = "login.html";
-        }
-      } else {
-        // Nếu chưa đăng nhập, chuyển hướng về trang login
-        window.location.href = "login.html";
-      }
-    });
+  const userEmail = user.email;
+  if (!userEmail) {
+    // Nếu user không có email (đăng nhập bằng phone hoặc chưa đủ thông tin)
+    alert("Tài khoản chưa có email, không thể xác thực quyền admin.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  try {
+    // Query trong Firestore collection "employees" tìm user có email khớp
+    const q = query(collection(db, "employees"), where("email", "==", userEmail));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      // Không tìm thấy user trong Firestore => không có quyền truy cập admin
+      alert("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
+      window.location.href = "login.html";
+      return;
+    }
+
+    const userData = snapshot.docs[0].data();
+
+    if (userData.role === "Admin") {
+      // Nếu có quyền admin, hiển thị trang admin
+      document.getElementById("adminPage").classList.remove("hidden");
+      await loadEmployees();
+    } else {
+      // Nếu không phải admin thì redirect về login
+      alert("Bạn không có quyền truy cập trang này.");
+      window.location.href = "login.html";
+    }
+  } catch (error) {
+    // Bắt lỗi khi truy vấn Firestore
+    console.error("Lỗi khi kiểm tra quyền admin:", error);
+    alert("Có lỗi xảy ra khi kiểm tra quyền truy cập. Vui lòng thử lại sau.");
+    window.location.href = "login.html";
+  }
+});
+
 
     async function loadEmployees() {
       const querySnapshot = await getDocs(collection(db, "employees"));
