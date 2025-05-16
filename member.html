@@ -151,12 +151,6 @@
     </div>
   `;
 
-  // Nếu role là Admin thì hiện nút Admin
-const userRole = sessionStorage.getItem('userRole');
-if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
-  document.getElementById("adminButton").style.display = "block";
-}
-
 }
     window.addEventListener('beforeunload', () => {
   sessionStorage.clear();
