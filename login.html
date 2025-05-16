@@ -89,19 +89,21 @@
 
         // Đăng nhập qua Google 
         window.loginWithGoogle = async function() {
-            try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
 
-                sessionStorage.setItem('userEmail', userEmail); // userEmail là email của người dùng đăng nhập
+        // Lưu email đúng chỗ
+        sessionStorage.setItem('userEmail', user.email);
 
-                // Kiểm tra email trong Firestore
-                await checkUserInFirestore(user.email);
-            } catch (error) {
-                alert("Lỗi đăng nhập: " + error.message);
-            }
-        };
+        // Kiểm tra email trong Firestore
+        await checkUserInFirestore(user.email);
+    } catch (error) {
+        alert("Lỗi đăng nhập: " + error.message);
+    }
+};
+
 
         // Kiểm tra email trong Firestore
         async function checkUserInFirestore(email) {
