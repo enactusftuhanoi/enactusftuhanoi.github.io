@@ -138,21 +138,26 @@
   `;
 
   // Nếu role là Admin thì hiện nút Admin
-  const userRole = sessionStorage.getItem('userRole');
-  if (userRole && userRole.toLowerCase() === "admin") {
-    document.getElementById("adminButton").style.display = "block";
-  }
+  // Nếu role là Admin thì hiện nút Admin
+const userRole = sessionStorage.getItem('userRole');
+if (userRole && userRole.toLowerCase() === "admin") {
+  document.getElementById("adminButton").style.display = "block";
 }
+}
+    window.addEventListener('beforeunload', () => {
+  sessionStorage.clear();
+});
   </script>
 </head>
 
 <body>
   <!-- Thêm vào trong <body> ngay sau thẻ mở <body> -->
   <div id="adminButton" style="position: absolute; top: 20px; right: 20px; display: none;">
-    <button onclick="window.location.href='admin.html'" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+  <button onclick="window.location.href='admin.html'" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
     🔒 Admin
   </button>
 </div>
+
 
   <div id="profileContainer"></div>
   <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
