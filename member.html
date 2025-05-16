@@ -90,14 +90,18 @@
     const db = getFirestore(app);
 
     window.onload = async function () {
-  const userEmail = sessionStorage.getItem('userEmail'); // đổi từ localStorage sang sessionStorage
+  const userEmail = sessionStorage.getItem('userEmail');
+  const userRole = sessionStorage.getItem('userRole');
+  
   if (!userEmail) {
     window.location.href = "login.html";
   } else {
+    if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
+      document.getElementById("adminButton").style.display = "block";
+    }
     await getUserData(userEmail);
   }
 };
-
 
     async function getUserData(email) {
       const employeesRef = collection(db, "employees");
@@ -139,9 +143,10 @@
 
   // Nếu role là Admin thì hiện nút Admin
 const userRole = sessionStorage.getItem('userRole');
-if (userRole && userRole.toLowerCase() === "Admin") {
+if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
   document.getElementById("adminButton").style.display = "block";
 }
+
 }
     window.addEventListener('beforeunload', () => {
   sessionStorage.clear();
