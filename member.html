@@ -90,13 +90,14 @@
     const db = getFirestore(app);
 
     window.onload = async function () {
-      const userEmail = localStorage.getItem('userEmail');
-      if (!userEmail) {
-        window.location.href = "login.html";
-      } else {
-        await getUserData(userEmail);
-      }
-    };
+  const userEmail = sessionStorage.getItem('userEmail'); // đổi từ localStorage sang sessionStorage
+  if (!userEmail) {
+    window.location.href = "login.html";
+  } else {
+    await getUserData(userEmail);
+  }
+};
+
 
     async function getUserData(email) {
       const employeesRef = collection(db, "employees");
