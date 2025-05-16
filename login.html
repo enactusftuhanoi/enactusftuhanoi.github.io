@@ -87,7 +87,7 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Đăng nhập qua Google
+        // Đăng nhập qua Google 
         window.loginWithGoogle = async function() {
             try {
                 const result = await signInWithPopup(auth, provider);
