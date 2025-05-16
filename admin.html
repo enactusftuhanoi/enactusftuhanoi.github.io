@@ -2,18 +2,17 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Enactus Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enactus Admin - Import CSV</title>
   <link rel="icon" href="icon.png" type="image/png"/>
   <style>
     body {
       font-family: Montserrat, sans-serif;
       background-color: #FFD100;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
     }
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 40px auto;
       padding: 20px;
       background: white;
@@ -23,6 +22,7 @@
     h1 {
       color: #0057B8;
       text-align: center;
+      margin-bottom: 20px;
     }
     input, select, button {
       width: 100%;
@@ -58,6 +58,33 @@
     }
     .hidden {
       display: none;
+    }
+    #csvPreviewTable {
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    #csvPreviewTable table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #csvPreviewTable th, #csvPreviewTable td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    #errorMessages {
+      margin-top: 15px;
+      color: red;
+      font-weight: bold;
+      white-space: pre-line;
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid #f44336;
+      padding: 10px;
+      border-radius: 6px;
     }
   </style>
   <script type="module">
@@ -151,6 +178,7 @@
     }
 
     function formatDate(date) {
+      if (!date) return "";
       const [y, m, d] = date.split("-");
       return `${d}/${m}/${y}`;
     }
@@ -158,17 +186,18 @@
     window.addEmployee = async function () {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       await addDoc(collection(db, "employees"), {
-        id: document.getElementById("id").value,
-        ban: document.getElementById("ban").value,
-        name: document.getElementById("name").value,
+        id: document.getElementById("id").value.trim(),
+        ban: document.getElementById("ban").value.trim(),
+        name: document.getElementById("name").value.trim(),
         dob: document.getElementById("dob").value,
         process: document.getElementById("process").value,
         otp,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
         role: document.getElementById("role").value
       });
       alert("Thêm nhân sự thành công!");
+      clearForm();
       loadEmployees();
     };
 
@@ -183,61 +212,259 @@
       document.getElementById("role").value = role;
       document.getElementById("saveButton").onclick = async function () {
         await updateDoc(doc(db, "employees", docId), {
-          id: document.getElementById("id").value,
-          ban: document.getElementById("ban").value,
-          name: document.getElementById("name").value,
+          id: document.getElementById("id").value.trim(),
+          ban: document.getElementById("ban").value.trim(),
+          name: document.getElementById("name").value.trim(),
           dob: document.getElementById("dob").value,
           process: document.getElementById("process").value,
           otp,
-          email: document.getElementById("email").value,
-          phone: document.getElementById("phone").value,
+          email: document.getElementById("email").value.trim(),
+          phone: document.getElementById("phone").value.trim(),
           role: document.getElementById("role").value
         });
         alert("Cập nhật thành công!");
+        clearForm();
         loadEmployees();
       };
     };
 
     window.deleteEmployee = async function (id) {
+      if (!confirm("Bạn có chắc muốn xóa nhân sự này?")) return;
       await deleteDoc(doc(db, "employees", id));
       alert("Đã xóa nhân sự.");
       loadEmployees();
     };
+
+    function clearForm() {
+      document.getElementById("id").value = "";
+      document.getElementById("ban").value = "";
+      document.getElementById("name").value = "";
+      document.getElementById("dob").value = "";
+      document.getElementById("process").value = "Active";
+      document.getElementById("email").value = "";
+      document.getElementById("phone").value = "";
+      document.getElementById("role").value = "Member";
+      document.getElementById("saveButton").onclick = null;
+    }
+
+    // ==================== CSV Import with Preview + Validation ===================
+    const requiredHeaders = ["id","ban","name","dob","process","email","phone","role"];
+
+    window.parseCSV = function (text) {
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+      if (lines.length < 2) return {error: "File CSV phải có ít nhất 1 dòng dữ liệu."};
+      
+      const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+      // Kiểm tra headers bắt buộc
+      for (const h of requiredHeaders) {
+        if (!headers.includes(h)) {
+          return {error: `Thiếu trường bắt buộc trong CSV: ${h}`};
+        }
+      }
+
+      // Lấy index từng trường trong CSV
+      const idxMap = {};
+      requiredHeaders.forEach(field => {
+        idxMap[field] = headers.indexOf(field);
+      });
+
+      const dataRows = [];
+      const errors = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(",").map(v => v.trim());
+        if (values.length !== headers.length) {
+          errors.push(`Dòng ${i + 1}: Số cột không đúng (cần ${headers.length}, có ${values.length})`);
+          continue;
+        }
+        // Kiểm tra từng trường bắt buộc không rỗng
+        let lineError = "";
+        for (const field of requiredHeaders) {
+          if (!values[idxMap[field]]) {
+            lineError += `Trường "${field}" rỗng. `;
+          }
+        }
+        if (lineError) {
+          errors.push(`Dòng ${i + 1}: ${lineError}`);
+          continue;
+        }
+        // Kiểm tra ngày tháng
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(values[idxMap.dob])) {
+          errors.push(`Dòng ${i + 1}: Định dạng ngày sinh không đúng (yyyy-mm-dd)`);
+          continue;
+        }
+        dataRows.push({
+          id: values[idxMap.id],
+          ban: values[idxMap.ban],
+          name: values[idxMap.name],
+          dob: values[idxMap.dob],
+          process: values[idxMap.process],
+          email: values[idxMap.email],
+          phone: values[idxMap.phone],
+          role: values[idxMap.role]
+        });
+      }
+
+      return {dataRows, errors};
+    };
+
+    window.previewCSV = function () {
+      const fileInput = document.getElementById("csvFileInput");
+      const previewDiv = document.getElementById("csvPreviewTable");
+      const errorDiv = document.getElementById("errorMessages");
+      previewDiv.innerHTML = "";
+      errorDiv.textContent = "";
+
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Vui lòng chọn file CSV trước khi xem trước.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const text = e.target.result;
+        const {dataRows, errors, error} = parseCSV(text);
+
+        if (error) {
+          errorDiv.textContent = error;
+          return;
+        }
+        if (errors.length > 0) {
+          errorDiv.textContent = errors.join("\n");
+        }
+
+        if (dataRows.length === 0) {
+          previewDiv.innerHTML = "<p>Không có dữ liệu hợp lệ để xem trước.</p>";
+          return;
+        }
+
+        let html = `<table><thead><tr>
+          <th>ID</th><th>BAN</th><th>Name</th><th>DOB</th><th>Process</th><th>Email</th><th>Phone</th><th>Role</th>
+          </tr></thead><tbody>`;
+        for (const r of dataRows) {
+          html += `<tr>
+            <td>${r.id}</td><td>${r.ban}</td><td>${r.name}</td><td>${r.dob}</td><td>${r.process}</td><td>${r.email}</td><td>${r.phone}</td><td>${r.role}</td>
+          </tr>`;
+        }
+        html += "</tbody></table>";
+        previewDiv.innerHTML = html;
+      };
+      reader.readAsText(file);
+    };
+
+    window.importCSV = async function () {
+      const fileInput = document.getElementById("csvFileInput");
+      const errorDiv = document.getElementById("errorMessages");
+      errorDiv.textContent = "";
+
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Vui lòng chọn file CSV.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function (e) {
+        const text = e.target.result;
+        const {dataRows, errors, error} = parseCSV(text);
+
+        if (error) {
+          errorDiv.textContent = error;
+          return;
+        }
+
+        if (errors.length > 0) {
+          errorDiv.textContent = "Không thể import do lỗi:\n" + errors.join("\n");
+          return;
+        }
+
+        if (dataRows.length === 0) {
+          errorDiv.textContent = "Không có dữ liệu hợp lệ để import.";
+          return;
+        }
+
+        let successCount = 0;
+        let failCount = 0;
+        let failMessages = [];
+
+        for (let i = 0; i < dataRows.length; i++) {
+          const row = dataRows[i];
+          row.otp = Math.floor(100000 + Math.random() * 900000).toString();
+          try {
+            await addDoc(collection(db, "employees"), row);
+            successCount++;
+          } catch (err) {
+            failCount++;
+            failMessages.push(`Dòng ${i + 2}: Lỗi khi thêm vào Firestore - ${err.message}`);
+          }
+        }
+
+        let alertMsg = `Import hoàn tất. Thành công: ${successCount}, Thất bại: ${failCount}`;
+        if (failMessages.length > 0) {
+          alertMsg += "\nXem chi tiết lỗi ở phần thông báo lỗi.";
+          errorDiv.textContent = failMessages.join("\n");
+        } else {
+          errorDiv.textContent = "";
+        }
+        alert(alertMsg);
+        await loadEmployees();
+      };
+      reader.readAsText(file);
+    };
   </script>
 </head>
 <body>
-  <div id="adminPage" class="container hidden">
-    <h1>Dashboard</h1>
-    <input type="text" id="id" placeholder="ID">
-    <input type="text" id="ban" placeholder="Ban">
-    <input type="text" id="name" placeholder="Tên">
-    <input type="date" id="dob">
+  <div class="container hidden" id="adminPage">
+    <h1>Quản lý Nhân sự - Enactus FTU Hanoi</h1>
+
+    <h2>Thêm / Sửa nhân sự</h2>
+    <input id="id" placeholder="ID" />
+    <input id="ban" placeholder="Ban (ví dụ: MD, HR, IT)" />
+    <input id="name" placeholder="Họ tên" />
+    <input id="dob" type="date" placeholder="Ngày sinh" />
     <select id="process">
       <option value="Active">Active</option>
       <option value="Inactive">Inactive</option>
     </select>
-    <input type="email" id="email" placeholder="Email">
-    <input type="tel" id="phone" placeholder="SĐT (+84...)">
+    <input id="email" placeholder="Email" type="email" />
+    <input id="phone" placeholder="Số điện thoại" />
     <select id="role">
-      <option value="Admin">Admin</option>
       <option value="Member">Member</option>
+      <option value="Admin">Admin</option>
     </select>
     <button onclick="addEmployee()">Thêm nhân sự</button>
-    <button id="saveButton">Lưu chỉnh sửa</button>
+    <button id="saveButton" style="display:none;">Lưu thay đổi</button>
+
+    <hr>
+
+    <h2>Import nhân sự từ CSV</h2>
+    <input type="file" id="csvFileInput" accept=".csv" />
+    <button onclick="previewCSV()">Xem trước CSV</button>
+    <button onclick="importCSV()">Import CSV</button>
+
+    <div id="errorMessages"></div>
+    <div id="csvPreviewTable"></div>
+
+    <hr>
+
+    <h2>Danh sách nhân sự hiện có</h2>
     <table>
       <thead>
         <tr>
           <th>ID</th>
-          <th>Ban</th>
-          <th>Name</th>
-          <th>DOB</th>
+          <th>BAN</th>
+          <th>Họ tên</th>
+          <th>Ngày sinh</th>
           <th>Process</th>
           <th>OTP</th>
           <th>Role</th>
-          <th>Hành Động</th>
+          <th>Hành động</th>
         </tr>
       </thead>
-      <tbody id="employeeTableBody"></tbody>
+      <tbody id="employeeTableBody">
+        <!-- Dữ liệu load từ Firestore -->
+      </tbody>
     </table>
   </div>
 </body>
