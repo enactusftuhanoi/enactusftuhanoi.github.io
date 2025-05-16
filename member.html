@@ -138,7 +138,8 @@
   `;
 
   // Nếu role là Admin thì hiện nút Admin
-  if (userData.role && userData.role.toLowerCase() === "admin") {
+  const userRole = sessionStorage.getItem('userRole');
+  if (userRole && userRole.toLowerCase() === "admin") {
     document.getElementById("adminButton").style.display = "block";
   }
 }
