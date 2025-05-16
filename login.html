@@ -94,8 +94,7 @@
                 const user = result.user;
                 alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
 
-                // Lưu email vào localStorage
-                localStorage.setItem('userEmail', user.email);
+                sessionStorage.setItem('userEmail', userEmail); // userEmail là email của người dùng đăng nhập
 
                 // Kiểm tra email trong Firestore
                 await checkUserInFirestore(user.email);
