@@ -2,78 +2,132 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Enactus Admin</title>
-  <link rel="icon" href="icon.png" type="image/png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trang Quản lý Admin</title>
   <style>
     body {
-      font-family: Montserrat, sans-serif;
-      background-color: #FFD100;
+      font-family: 'Montserrat', sans-serif;
+      background: #eef2f7;
       margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 800px;
-      margin: 40px auto;
       padding: 20px;
+    }
+    #adminPage {
+      opacity: 0;
+      max-width: 960px;
+      margin: auto;
       background: white;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.15);
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
-    h1, h2 {
-      color: #0057B8;
+    h1 {
       text-align: center;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #0057B8;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      background-color: #003A70;
+      margin-bottom: 20px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 30px;
+      margin-bottom: 1rem;
     }
     th, td {
-      padding: 12px;
-      border: 1px solid #ccc;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
       text-align: center;
     }
     th {
-      background-color: #0057B8;
+      background-color: #007bff;
       color: white;
     }
-    .hidden {
-      display: none;
+    button {
+      background-color: #007bff;
+      border: none;
+      padding: 6px 12px;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 2px;
+      font-size: 0.9rem;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    form {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    input, select {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      flex: 1 1 150px;
+      min-width: 150px;
+    }
+    #saveButton {
+      background-color: #28a745;
+      flex: 1 1 100px;
+      min-width: 100px;
+    }
+    #logoutBtn {
+      float: right;
+      background-color: #dc3545;
     }
   </style>
+</head>
+<body>
+  <div id="adminPage" class="hidden">
+    <h1>Quản lý Nhân sự Admin</h1>
+    <button id="logoutBtn">Đăng xuất</button>
+
+    <form id="employeeForm" onsubmit="return false;">
+      <input type="text" id="id" placeholder="ID" required />
+      <input type="text" id="ban" placeholder="Ban" required />
+      <input type="text" id="name" placeholder="Tên" required />
+      <input type="date" id="dob" placeholder="Ngày sinh" required />
+      <select id="process" required>
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="text" id="phone" placeholder="Số điện thoại" required />
+      <select id="role" required>
+        <option value="Member">Member</option>
+        <option value="Admin">Admin</option>
+      </select>
+      <button id="addButton" type="button">Thêm nhân sự</button>
+      <button id="saveButton" type="button" style="display: none;">Lưu thay đổi</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Ban</th><th>Tên</th><th>Ngày sinh</th><th>Process</th><th>Email</th><th>Phone</th><th>Role</th><th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="employeeTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Firebase + GSAP + Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import {
       getFirestore,
       collection,
-      addDoc,
       getDocs,
+      addDoc,
       updateDoc,
       deleteDoc,
       doc,
       query,
-      where
+      where,
+      getDoc
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import gsap from "https://cdn.skypack.dev/gsap";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -88,164 +142,160 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    const adminPage = document.getElementById("adminPage");
+    const employeeTableBody = document.getElementById("employeeTableBody");
+
+    const idInput = document.getElementById("id");
+    const banInput = document.getElementById("ban");
+    const nameInput = document.getElementById("name");
+    const dobInput = document.getElementById("dob");
+    const processInput = document.getElementById("process");
+    const emailInput = document.getElementById("email");
+    const phoneInput = document.getElementById("phone");
+    const roleInput = document.getElementById("role");
+
+    const addButton = document.getElementById("addButton");
+    const saveButton = document.getElementById("saveButton");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    let editingDocId = null;
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        // Nếu chưa đăng nhập thì chuyển về login
         window.location.href = "login.html";
         return;
       }
-
-      const userEmail = user.email;
-      if (!userEmail) {
-        // Nếu user không có email (đăng nhập bằng phone hoặc chưa đủ thông tin)
-        alert("Tài khoản chưa có email, không thể xác thực quyền admin.");
+      const q = query(collection(db, "employees"), where("email", "==", user.email));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty || snapshot.docs[0].data().role !== "Admin") {
+        alert("Bạn không có quyền truy cập trang này!");
+        await signOut(auth);
         window.location.href = "login.html";
         return;
       }
-
-      try {
-        // Query trong Firestore collection "employees" tìm user có email khớp
-        const q = query(collection(db, "employees"), where("email", "==", userEmail));
-        const snapshot = await getDocs(q);
-
-        if (snapshot.empty) {
-          // Không tìm thấy user trong Firestore => không có quyền truy cập admin
-          alert("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
-          window.location.href = "login.html";
-          return;
-        }
-
-        const userData = snapshot.docs[0].data();
-
-        if (userData.role === "Admin") {
-          // Nếu có quyền admin, hiển thị trang admin
-          document.getElementById("adminPage").classList.remove("hidden");
-          await loadEmployees();
-        } else {
-          // Nếu không phải admin thì redirect về login
-          alert("Bạn không có quyền truy cập trang này.");
-          window.location.href = "login.html";
-        }
-      } catch (error) {
-        // Bắt lỗi khi truy vấn Firestore
-        console.error("Lỗi khi kiểm tra quyền admin:", error);
-        alert("Có lỗi xảy ra khi kiểm tra quyền truy cập. Vui lòng thử lại sau.");
-        window.location.href = "login.html";
-      }
+      adminPage.classList.remove("hidden");
+      gsap.to(adminPage, { opacity: 1, duration: 1, ease: "power2.out" });
+      loadEmployees();
     });
 
+    logoutBtn.onclick = async () => {
+      await signOut(auth);
+      window.location.href = "login.html";
+    };
+
     async function loadEmployees() {
-      const querySnapshot = await getDocs(collection(db, "employees"));
-      const tableBody = document.getElementById("employeeTableBody");
-      tableBody.innerHTML = "";
-      querySnapshot.forEach((docSnap) => {
+      employeeTableBody.innerHTML = "";
+      const snapshot = await getDocs(collection(db, "employees"));
+      snapshot.forEach(docSnap => {
         const emp = docSnap.data();
-        tableBody.innerHTML += `
-          <tr>
-            <td>${emp.id}</td>
-            <td>${emp.ban}</td>
-            <td>${emp.name}</td>
-            <td>${formatDate(emp.dob)}</td>
-            <td>${emp.process}</td>
-            <td>${emp.otp}</td>
-            <td>${emp.role}</td>
-            <td>
-              <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
-              <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
-            </td>
-          </tr>`;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${emp.id}</td>
+          <td>${emp.ban}</td>
+          <td>${emp.name}</td>
+          <td>${emp.dob}</td>
+          <td>${emp.process}</td>
+          <td>${emp.email}</td>
+          <td>${emp.phone}</td>
+          <td>${emp.role}</td>
+          <td>
+            <button class="editBtn" data-id="${docSnap.id}">Sửa</button>
+            <button class="deleteBtn" data-id="${docSnap.id}">Xóa</button>
+          </td>
+        `;
+        employeeTableBody.appendChild(tr);
+      });
+
+      document.querySelectorAll(".editBtn").forEach(btn => {
+        btn.onclick = () => startEdit(btn.dataset.id);
+      });
+      document.querySelectorAll(".deleteBtn").forEach(btn => {
+        btn.onclick = () => deleteEmployee(btn.dataset.id);
       });
     }
 
-    function formatDate(date) {
-      const [y, m, d] = date.split("-");
-      return `${d}/${m}/${y}`;
+    async function startEdit(docId) {
+      const docRef = doc(db, "employees", docId);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) return alert("Nhân sự không tồn tại!");
+
+      const emp = docSnap.data();
+      editingDocId = docId;
+      idInput.value = emp.id;
+      banInput.value = emp.ban;
+      nameInput.value = emp.name;
+      dobInput.value = emp.dob;
+      processInput.value = emp.process;
+      emailInput.value = emp.email;
+      phoneInput.value = emp.phone;
+      roleInput.value = emp.role;
+
+      addButton.style.display = "none";
+      saveButton.style.display = "inline-block";
     }
 
-    window.addEmployee = async function () {
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      await addDoc(collection(db, "employees"), {
-        id: document.getElementById("id").value,
-        ban: document.getElementById("ban").value,
-        name: document.getElementById("name").value,
-        dob: document.getElementById("dob").value,
-        process: document.getElementById("process").value,
-        otp,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        role: document.getElementById("role").value
-      });
-      alert("Thêm nhân sự thành công!");
+    async function deleteEmployee(docId) {
+      if (!confirm("Bạn có chắc muốn xóa nhân sự này?")) return;
+      await deleteDoc(doc(db, "employees", docId));
+      loadEmployees();
+    }
+
+    addButton.onclick = async () => {
+      const newEmp = getFormData();
+      if (!newEmp) return;
+      await addDoc(collection(db, "employees"), newEmp);
+      clearForm();
       loadEmployees();
     };
 
-    window.editEmployee = async function (docId, id, ban, name, dob, process, otp, email, phone, role) {
-      document.getElementById("id").value = id;
-      document.getElementById("ban").value = ban;
-      document.getElementById("name").value = name;
-      document.getElementById("dob").value = dob;
-      document.getElementById("process").value = process;
-      document.getElementById("email").value = email;
-      document.getElementById("phone").value = phone;
-      document.getElementById("role").value = role;
-      document.getElementById("saveButton").onclick = async function () {
-        await updateDoc(doc(db, "employees", docId), {
-          id: document.getElementById("id").value,
-          ban: document.getElementById("ban").value,
-          name: document.getElementById("name").value,
-          dob: document.getElementById("dob").value,
-          process: document.getElementById("process").value,
-          otp,
-          email: document.getElementById("email").value,
-          phone: document.getElementById("phone").value,
-          role: document.getElementById("role").value
-        });
-        alert("Cập nhật thành công!");
-        loadEmployees();
+    saveButton.onclick = async () => {
+      if (!editingDocId) return alert("Chưa chọn nhân sự để sửa.");
+      const newEmp = getFormData();
+      if (!newEmp) return;
+      await updateDoc(doc(db, "employees", editingDocId), newEmp);
+      editingDocId = null;
+      clearForm();
+      loadEmployees();
+      addButton.style.display = "inline-block";
+      saveButton.style.display = "none";
+    };
+
+    function getFormData() {
+      if (
+        !idInput.value.trim() ||
+        !banInput.value.trim() ||
+        !nameInput.value.trim() ||
+        !dobInput.value.trim() ||
+        !processInput.value.trim() ||
+        !emailInput.value.trim() ||
+        !phoneInput.value.trim() ||
+        !roleInput.value.trim()
+      ) {
+        alert("Vui lòng điền đầy đủ thông tin.");
+        return null;
+      }
+      return {
+        id: idInput.value.trim(),
+        ban: banInput.value.trim(),
+        name: nameInput.value.trim(),
+        dob: dobInput.value,
+        process: processInput.value,
+        email: emailInput.value.trim(),
+        phone: phoneInput.value.trim(),
+        role: roleInput.value
       };
-    };
+    }
 
-    window.deleteEmployee = async function (id) {
-      await deleteDoc(doc(db, "employees", id));
-      alert("Đã xóa nhân sự.");
-      loadEmployees();
-    };
+    function clearForm() {
+      idInput.value = "";
+      banInput.value = "";
+      nameInput.value = "";
+      dobInput.value = "";
+      processInput.value = "Active";
+      emailInput.value = "";
+      phoneInput.value = "";
+      roleInput.value = "Member";
+    }
   </script>
-</head>
-<body>
-  <div id="adminPage" class="container hidden">
-    <h1>Dashboard</h1>
-    <input type="text" id="id" placeholder="ID">
-    <input type="text" id="ban" placeholder="Ban">
-    <input type="text" id="name" placeholder="Tên">
-    <input type="date" id="dob">
-    <select id="process">
-      <option value="Active">Active</option>
-      <option value="Inactive">Inactive</option>
-    </select>
-    <input type="email" id="email" placeholder="Email">
-    <input type="tel" id="phone" placeholder="SĐT (+84...)">
-    <select id="role">
-      <option value="Admin">Admin</option>
-      <option value="Member">Member</option>
-    </select>
-    <button onclick="addEmployee()">Thêm nhân sự</button>
-    <button id="saveButton">Lưu chỉnh sửa</button>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Ban</th>
-          <th>Tên</th>
-          <th>Ngày sinh</th>
-          <th>Trạng thái</th>
-          <th>OTP</th>
-          <th>Vai trò</th>
-          <th>Hành động</th>
-        </tr>
-      </thead>
-      <tbody id="employeeTableBody"></tbody>
-    </table>
-  </div>
 </body>
 </html>
