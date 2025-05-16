@@ -2,251 +2,390 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Enactus Admin</title>
-  <link rel="icon" href="icon.png" type="image/png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trang Admin Nhân Sự</title>
   <style>
-    body {
-      font-family: Montserrat, sans-serif;
-      background-color: #FFD100;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.15);
-    }
-    h1, h2 {
-      color: #0057B8;
-      text-align: center;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #0057B8;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      background-color: #003A70;
-    }
+    .hidden { display: none; }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 30px;
+      margin-top: 1em;
     }
     th, td {
-      padding: 12px;
       border: 1px solid #ccc;
-      text-align: center;
+      padding: 0.5em;
+      text-align: left;
     }
-    th {
-      background-color: #0057B8;
-      color: white;
+    button {
+      margin: 0 2px;
+      padding: 0.3em 0.6em;
     }
-    .hidden {
-      display: none;
+    form {
+      margin-top: 1em;
+      border: 1px solid #ccc;
+      padding: 1em;
+      width: 400px;
+      background: #f9f9f9;
+    }
+    label {
+      display: block;
+      margin-top: 0.5em;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.3em;
+      margin-top: 0.2em;
     }
   </style>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-      projectId: "enactusftuhanoi-tracuu",
-      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
-      messagingSenderId: "611356979403",
-      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    // Nếu chưa đăng nhập thì chuyển về login
-    window.location.href = "login.html";
-    return;
-  }
-
-  const userEmail = user.email;
-  if (!userEmail) {
-    // Nếu user không có email (đăng nhập bằng phone hoặc chưa đủ thông tin)
-    alert("Tài khoản chưa có email, không thể xác thực quyền admin.");
-    window.location.href = "login.html";
-    return;
-  }
-
-  try {
-    // Query trong Firestore collection "employees" tìm user có email khớp
-    const q = query(collection(db, "employees"), where("email", "==", userEmail));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) {
-      // Không tìm thấy user trong Firestore => không có quyền truy cập admin
-      alert("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
-      window.location.href = "login.html";
-      return;
-    }
-
-    const userData = snapshot.docs[0].data();
-
-    if (userData.role === "Admin") {
-      // Nếu có quyền admin, hiển thị trang admin
-      document.getElementById("adminPage").classList.remove("hidden");
-      await loadEmployees();
-    } else {
-      // Nếu không phải admin thì redirect về login
-      alert("Bạn không có quyền truy cập trang này.");
-      window.location.href = "login.html";
-    }
-  } catch (error) {
-    // Bắt lỗi khi truy vấn Firestore
-    console.error("Lỗi khi kiểm tra quyền admin:", error);
-    alert("Có lỗi xảy ra khi kiểm tra quyền truy cập. Vui lòng thử lại sau.");
-    window.location.href = "login.html";
-  }
-});
-
-
-    async function loadEmployees() {
-      const querySnapshot = await getDocs(collection(db, "employees"));
-      const tableBody = document.getElementById("employeeTableBody");
-      tableBody.innerHTML = "";
-      querySnapshot.forEach((docSnap) => {
-        const emp = docSnap.data();
-        tableBody.innerHTML += `
-          <tr>
-            <td>${emp.id}</td>
-            <td>${emp.ban}</td>
-            <td>${emp.name}</td>
-            <td>${formatDate(emp.dob)}</td>
-            <td>${emp.process}</td>
-            <td>${emp.otp}</td>
-            <td>${emp.role}</td>
-            <td>
-              <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
-              <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
-            </td>
-          </tr>`;
-      });
-    }
-
-    function formatDate(date) {
-      const [y, m, d] = date.split("-");
-      return `${d}/${m}/${y}`;
-    }
-
-    window.addEmployee = async function () {
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      await addDoc(collection(db, "employees"), {
-        id: document.getElementById("id").value,
-        ban: document.getElementById("ban").value,
-        name: document.getElementById("name").value,
-        dob: document.getElementById("dob").value,
-        process: document.getElementById("process").value,
-        otp,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        role: document.getElementById("role").value
-      });
-      alert("Thêm nhân sự thành công!");
-      loadEmployees();
-    };
-
-    window.editEmployee = async function (docId, id, ban, name, dob, process, otp, email, phone, role) {
-      document.getElementById("id").value = id;
-      document.getElementById("ban").value = ban;
-      document.getElementById("name").value = name;
-      document.getElementById("dob").value = dob;
-      document.getElementById("process").value = process;
-      document.getElementById("email").value = email;
-      document.getElementById("phone").value = phone;
-      document.getElementById("role").value = role;
-      document.getElementById("saveButton").onclick = async function () {
-        await updateDoc(doc(db, "employees", docId), {
-          id: document.getElementById("id").value,
-          ban: document.getElementById("ban").value,
-          name: document.getElementById("name").value,
-          dob: document.getElementById("dob").value,
-          process: document.getElementById("process").value,
-          otp,
-          email: document.getElementById("email").value,
-          phone: document.getElementById("phone").value,
-          role: document.getElementById("role").value
-        });
-        alert("Cập nhật thành công!");
-        loadEmployees();
-      };
-    };
-
-    window.deleteEmployee = async function (id) {
-      await deleteDoc(doc(db, "employees", id));
-      alert("Đã xóa nhân sự.");
-      loadEmployees();
-    };
-  </script>
 </head>
 <body>
-  <div id="adminPage" class="container hidden">
-    <h1>Dashboard</h1>
-    <input type="text" id="id" placeholder="ID">
-    <input type="text" id="ban" placeholder="Ban">
-    <input type="text" id="name" placeholder="Tên">
-    <input type="date" id="dob">
-    <select id="process">
-      <option value="Active">Active</option>
-      <option value="Inactive">Inactive</option>
-    </select>
-    <input type="email" id="email" placeholder="Email">
-    <input type="tel" id="phone" placeholder="SĐT (+84...)">
-    <select id="role">
-      <option value="Admin">Admin</option>
-      <option value="Member">Member</option>
-    </select>
-    <button onclick="addEmployee()">Thêm nhân sự</button>
-    <button id="saveButton">Lưu chỉnh sửa</button>
+  <div id="adminPage" class="hidden">
+    <h1>Trang quản lý nhân sự</h1>
+    <button id="logoutBtn">Đăng xuất</button>
+    <button id="addEmployeeButton" style="display:none;">Thêm nhân sự</button>
+
     <table>
       <thead>
         <tr>
           <th>ID</th>
-          <th>Ban</th>
-          <th>Name</th>
-          <th>DOB</th>
-          <th>Process</th>
+          <th>Bộ phận</th>
+          <th>Tên</th>
+          <th>Ngày sinh</th>
+          <th>Quá trình</th>
           <th>OTP</th>
-          <th>Role</th>
-          <th>Hành Động</th>
+          <th>Email</th>
+          <th>Điện thoại</th>
+          <th>Vai trò</th>
+          <th>Hành động</th>
         </tr>
       </thead>
-      <tbody id="employeeTableBody"></tbody>
+      <tbody id="tableBody"></tbody>
     </table>
+
+    <!-- Form thêm nhân sự -->
+    <form id="addForm" class="hidden">
+      <h3>Thêm nhân sự mới</h3>
+      <label>ID <input type="text" id="id" required /></label>
+      <label>Bộ phận <input type="text" id="ban" required /></label>
+      <label>Tên <input type="text" id="name" required /></label>
+      <label>Ngày sinh <input type="date" id="dob" required /></label>
+      <label>Quá trình <input type="text" id="process" /></label>
+      <label>OTP <input type="text" id="otp" /></label>
+      <label>Email <input type="email" id="email" required /></label>
+      <label>Điện thoại <input type="text" id="phone" /></label>
+      <label>Vai trò 
+        <select id="role" required>
+          <option value="Member">Member</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </label>
+      <button id="addButton">Thêm</button>
+      <button id="cancelButton">Hủy</button>
+    </form>
+
+    <!-- Form cập nhật nhân sự -->
+    <form id="updateForm" class="hidden">
+      <h3>Cập nhật nhân sự</h3>
+      <label>ID <input type="text" id="updateId" disabled /></label>
+      <label>Bộ phận <input type="text" id="updateBan" required /></label>
+      <label>Tên <input type="text" id="updateName" required /></label>
+      <label>Ngày sinh <input type="date" id="updateDob" required /></label>
+      <label>Quá trình <input type="text" id="updateProcess" /></label>
+      <label>OTP <input type="text" id="updateOtp" /></label>
+      <label>Email <input type="email" id="updateEmail" required /></label>
+      <label>Điện thoại <input type="text" id="updatePhone" /></label>
+      <label>Vai trò 
+        <select id="updateRole" required>
+          <option value="Member">Member</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </label>
+      <button id="updateButton">Cập nhật</button>
+      <button id="cancelUpdateButton">Hủy</button>
+    </form>
   </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      setDoc,
+      query,
+      where,
+      updateDoc,
+      deleteDoc,
+    } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut,
+    } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAp_E-6vXhYQl1Yj4zn4b5d1oQyOyrFgcg",
+      authDomain: "enactus-ftu-hn.firebaseapp.com",
+      projectId: "enactus-ftu-hn",
+      storageBucket: "enactus-ftu-hn.appspot.com",
+      messagingSenderId: "916416366805",
+      appId: "1:916416366805:web:b5352eaa98df0a29382c54",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    let employees = [];
+    let isAdmin = false;
+
+    const tableBody = document.getElementById("tableBody");
+    const addEmployeeButton = document.getElementById("addEmployeeButton");
+    const addForm = document.getElementById("addForm");
+    const addButton = document.getElementById("addButton");
+    const cancelButton = document.getElementById("cancelButton");
+    const updateForm = document.getElementById("updateForm");
+    const updateButton = document.getElementById("updateButton");
+    const cancelUpdateButton = document.getElementById("cancelUpdateButton");
+
+    // Lấy các input thêm
+    const addInputs = {
+      id: document.getElementById("id"),
+      ban: document.getElementById("ban"),
+      name: document.getElementById("name"),
+      dob: document.getElementById("dob"),
+      process: document.getElementById("process"),
+      otp: document.getElementById("otp"),
+      email: document.getElementById("email"),
+      phone: document.getElementById("phone"),
+      role: document.getElementById("role"),
+    };
+
+    // Lấy các input cập nhật
+    const updateInputs = {
+      id: document.getElementById("updateId"),
+      ban: document.getElementById("updateBan"),
+      name: document.getElementById("updateName"),
+      dob: document.getElementById("updateDob"),
+      process: document.getElementById("updateProcess"),
+      otp: document.getElementById("updateOtp"),
+      email: document.getElementById("updateEmail"),
+      phone: document.getElementById("updatePhone"),
+      role: document.getElementById("updateRole"),
+    };
+
+    async function loadEmployees() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "employees"));
+        employees = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        renderEmployees();
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách nhân sự:", error);
+      }
+    }
+
+    function renderEmployees() {
+      tableBody.innerHTML = "";
+      employees.forEach(({ id, ban, name, dob, process, otp, email, phone, role }) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${id}</td>
+          <td>${ban}</td>
+          <td>${name}</td>
+          <td>${dob}</td>
+          <td>${process}</td>
+          <td>${otp}</td>
+          <td>${email}</td>
+          <td>${phone}</td>
+          <td>${role}</td>
+          <td>
+            ${isAdmin ? `<button onclick="editEmployee('${id}')">Sửa</button> <button onclick="deleteEmployee('${id}')">Xóa</button>` : ""}
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    window.editEmployee = function (id) {
+      if (!isAdmin) {
+        alert("Bạn không có quyền thực hiện thao tác này.");
+        return;
+      }
+      const emp = employees.find((e) => e.id === id);
+      if (!emp) {
+        alert("Nhân sự không tồn tại.");
+        return;
+      }
+      updateInputs.id.value = emp.id;
+      updateInputs.ban.value = emp.ban;
+      updateInputs.name.value = emp.name;
+      updateInputs.dob.value = emp.dob;
+      updateInputs.process.value = emp.process;
+      updateInputs.otp.value = emp.otp;
+      updateInputs.email.value = emp.email;
+      updateInputs.phone.value = emp.phone;
+      updateInputs.role.value = emp.role;
+
+      updateForm.classList.remove("hidden");
+      addForm.classList.add("hidden");
+    };
+
+    window.deleteEmployee = async function (id) {
+      if (!isAdmin) {
+        alert("Bạn không có quyền thực hiện thao tác này.");
+        return;
+      }
+      if (!confirm("Bạn có chắc chắn muốn xóa nhân sự này không?")) {
+        return;
+      }
+      try {
+        await deleteDoc(doc(db, "employees", id));
+        employees = employees.filter((e) => e.id !== id);
+        renderEmployees();
+      } catch (error) {
+        console.error("Lỗi khi xóa nhân sự:", error);
+        alert("Xóa nhân sự thất bại.");
+      }
+    };
+
+    addEmployeeButton.addEventListener("click", () => {
+      if (!isAdmin) {
+        alert("Bạn không có quyền thực hiện thao tác này.");
+        return;
+      }
+      addForm.classList.remove("hidden");
+      updateForm.classList.add("hidden");
+    });
+
+    addButton.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (!isAdmin) {
+        alert("Bạn không có quyền thực hiện thao tác này.");
+        return;
+      }
+      const newEmployee = {
+        id: addInputs.id.value.trim(),
+        ban: addInputs.ban.value.trim(),
+        name: addInputs.name.value.trim(),
+        dob: addInputs.dob.value,
+        process: addInputs.process.value.trim(),
+        otp: addInputs.otp.value.trim(),
+        email: addInputs.email.value.trim(),
+        phone: addInputs.phone.value.trim(),
+        role: addInputs.role.value,
+      };
+      if (!newEmployee.id || !newEmployee.ban || !newEmployee.name || !newEmployee.dob || !newEmployee.email || !newEmployee.role) {
+        alert("Vui lòng điền đầy đủ thông tin bắt buộc.");
+        return;
+      }
+      try {
+        const docRef = doc(db, "employees", newEmployee.id);
+        await setDoc(docRef, newEmployee);
+        employees.push(newEmployee);
+        renderEmployees();
+        addForm.reset();
+        addForm.classList.add("hidden");
+      } catch (error) {
+        console.error("Lỗi khi thêm nhân sự:", error);
+        alert("Thêm nhân sự thất bại.");
+      }
+    });
+
+    cancelButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      addForm.classList.add("hidden");
+      addForm.reset();
+    });
+
+    updateButton.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (!isAdmin) {
+        alert("Bạn không có quyền thực hiện thao tác này.");
+        return;
+      }
+      const id = updateInputs.id.value;
+      const updatedEmployee = {
+        ban: updateInputs.ban.value.trim(),
+        name: updateInputs.name.value.trim(),
+        dob: updateInputs.dob.value,
+        process: updateInputs.process.value.trim(),
+        otp: updateInputs.otp.value.trim(),
+        email: updateInputs.email.value.trim(),
+        phone: updateInputs.phone.value.trim(),
+        role: updateInputs.role.value,
+      };
+      if (!updatedEmployee.ban || !updatedEmployee.name || !updatedEmployee.dob || !updatedEmployee.email || !updatedEmployee.role) {
+        alert("Vui lòng điền đầy đủ thông tin bắt buộc.");
+        return;
+      }
+      try {
+        const empRef = doc(db, "employees", id);
+        await updateDoc(empRef, updatedEmployee);
+        const index = employees.findIndex((e) => e.id === id);
+        employees[index] = { id, ...updatedEmployee };
+        renderEmployees();
+        updateForm.reset();
+        updateForm.classList.add("hidden");
+      } catch (error) {
+        console.error("Lỗi khi cập nhật nhân sự:", error);
+        alert("Cập nhật nhân sự thất bại.");
+      }
+    });
+
+    cancelUpdateButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      updateForm.classList.add("hidden");
+      updateForm.reset();
+    });
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.addEventListener("click", () => {
+      signOut(auth).then(() => {
+        alert("Bạn đã đăng xuất.");
+        location.reload();
+      }).catch((error) => {
+        alert("Lỗi đăng xuất: " + error.message);
+      });
+    });
+
+    function showAdminPage(show) {
+      document.getElementById("adminPage").classList.toggle("hidden", !show);
+    }
+
+    // Kiểm tra quyền Admin khi user đăng nhập
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Kiểm tra role của user trong Firestore (giả sử user email trùng với email trong bảng employees)
+        const q = query(collection(db, "employees"), where("email", "==", user.email));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+          alert("Bạn không có quyền truy cập trang admin.");
+          await signOut(auth);
+          showAdminPage(false);
+          return;
+        }
+        const docData = querySnapshot.docs[0].data();
+        if (docData.role === "Admin") {
+          isAdmin = true;
+          addEmployeeButton.style.display = "inline-block";
+        } else {
+          isAdmin = false;
+          addEmployeeButton.style.display = "none";
+          alert("Bạn không có quyền Admin để thao tác trên trang này.");
+        }
+        showAdminPage(true);
+        loadEmployees();
+      } else {
+        showAdminPage(false);
+        alert("Vui lòng đăng nhập để truy cập trang admin.");
+        // Có thể chuyển hướng về trang login nếu có
+      }
+    });
+  </script>
 </body>
 </html>
