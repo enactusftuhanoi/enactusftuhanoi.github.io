@@ -96,8 +96,7 @@
 
         // Lưu email đúng chỗ
         sessionStorage.setItem('userEmail', user.email);
-        sessionStorage.setItem("userRole", user.role);
-
+        
         // Kiểm tra email trong Firestore
         await checkUserInFirestore(user.email);
     } catch (error) {
