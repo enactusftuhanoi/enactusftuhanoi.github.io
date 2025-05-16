@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Đăng Nhập - Google</title>
-    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="icon" href="icon.png" type="image/png" />
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -46,8 +46,12 @@
             transition: background-color 0.3s ease;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        .google-btn:hover {
+        .google-btn:hover:not(:disabled) {
             background-color: #a6a6a6;
+        }
+        .google-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         .google-logo {
             width: 20px;
@@ -60,6 +64,7 @@
         .error-message {
             color: red;
             margin-top: 15px;
+            min-height: 20px;
         }
         .footer-text {
             margin-top: 20px;
@@ -72,7 +77,6 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
             authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -82,56 +86,59 @@
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
-        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Đăng nhập qua Google 
-        window.loginWithGoogle = async function() {
+        const errorMessageEl = document.getElementById("errorMessage");
+        const googleBtn = document.querySelector(".google-btn");
+
+        window.loginWithGoogle = async function () {
+            errorMessageEl.textContent = ""; // reset lỗi
+            googleBtn.disabled = true; // disable button khi đang xử lý
             try {
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
-                alert(`Đăng nhập thành công với Google! Chào mừng ${user.displayName}`);
 
-                // Lưu email vào localStorage
-                localStorage.setItem('userEmail', user.email);
-
-                // Kiểm tra email trong Firestore
+                // Kiểm tra email trong Firestore trước khi redirect
                 await checkUserInFirestore(user.email);
             } catch (error) {
-                alert("Lỗi đăng nhập: " + error.message);
+                console.error("Lỗi đăng nhập:", error);
+                errorMessageEl.textContent = "Lỗi đăng nhập: " + error.message;
+                googleBtn.disabled = false;
             }
         };
 
-        // Kiểm tra email trong Firestore
         async function checkUserInFirestore(email) {
             const db = getFirestore();
             const employeesRef = collection(db, "employees");
-            const q = query(employeesRef, where("email", "==", email));  // Truy vấn theo email
+            const q = query(employeesRef, where("email", "==", email));
 
             try {
                 const querySnapshot = await getDocs(q);
-
                 if (!querySnapshot.empty) {
-                    // Nếu email tồn tại trong Firestore, chuyển hướng đến member.html
+                    // Email tồn tại, chuyển đến member.html
                     window.location.href = "member.html";
                 } else {
-                    // Nếu không tồn tại, thông báo lỗi
-                    alert("Email không có quyền truy cập! Vui lòng liên hệ quản trị viên.");
+                    errorMessageEl.textContent = "Email không có quyền truy cập! Vui lòng liên hệ quản trị viên.";
+                    googleBtn.disabled = false;
                 }
             } catch (error) {
                 console.error("Lỗi khi kiểm tra email trong Firestore:", error);
-                alert("Lỗi hệ thống, vui lòng thử lại.");
+                errorMessageEl.textContent = "Lỗi hệ thống, vui lòng thử lại.";
+                googleBtn.disabled = false;
             }
         }
 
-        // Kiểm tra trạng thái đăng nhập
+        // Có thể dùng onAuthStateChanged để tự động redirect nếu đã đăng nhập
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("User logged in: ", user);
+                console.log("User đã đăng nhập:", user.email);
+                // Bạn có thể gọi checkUserInFirestore(user.email) ở đây nếu muốn tự động redirect
+                // Ví dụ:
+                // checkUserInFirestore(user.email);
             } else {
-                console.log("No user is logged in.");
+                console.log("Chưa có user đăng nhập.");
             }
         });
     </script>
@@ -140,7 +147,7 @@
     <div class="login-container">
         <h2>Đăng Nhập Bằng Google</h2>
         <button class="google-btn" onclick="loginWithGoogle()">
-            <img class="google-logo" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+            <img class="google-logo" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" />
             <span class="google-btn-text">Đăng Nhập với Google</span>
         </button>
         <div id="errorMessage" class="error-message"></div>
