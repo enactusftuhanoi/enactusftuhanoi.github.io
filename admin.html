@@ -386,8 +386,6 @@
     const fields = ["id", "ban", "name", "dob", "process", "email", "phone", "role"];
     fields.forEach(f => document.getElementById(f).value = "");
   }
-</script>
-
 
     window.deleteEmployee = async function (id) {
       if (!confirm("Bạn có chắc muốn xóa nhân sự này?")) return;
