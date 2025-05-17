@@ -325,8 +325,8 @@ tbody button:hover {
 
     function formatDate(date) {
       if (!date) return "";
-      const [y, m, d] = date.split("-");
-      return ${d}/${m}/${y};
+      const [d, m, y] = date.split("/");
+      return `${d}/${m}/${y}`;
     }
 
     window.addEmployee = async function () {
