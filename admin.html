@@ -313,79 +313,35 @@
       loadEmployees();
     };
 
-    <!-- FORM CHỈNH SỬA NHÂN SỰ -->
-<div id="editFormContainer" class="hidden p-6 bg-white rounded-xl shadow-md max-w-xl mx-auto my-6">
-  <h2 class="text-xl font-semibold mb-4">Chỉnh sửa nhân sự</h2>
-  <input id="id" class="border p-2 mb-2 w-full rounded" placeholder="ID" />
-  <input id="ban" class="border p-2 mb-2 w-full rounded" placeholder="Ban" />
-  <input id="name" class="border p-2 mb-2 w-full rounded" placeholder="Tên" />
-  <input id="dob" type="date" class="border p-2 mb-2 w-full rounded" />
-  <textarea id="process" class="border p-2 mb-2 w-full rounded" placeholder="Quá trình"></textarea>
-  <input id="email" class="border p-2 mb-2 w-full rounded" placeholder="Email" />
-  <input id="phone" class="border p-2 mb-2 w-full rounded" placeholder="Số điện thoại" />
-  <select id="role" class="border p-2 mb-4 w-full rounded">
-    <option value="member">Member</option>
-    <option value="admin">Admin</option>
-  </select>
-
-  <div class="flex justify-between">
-    <button id="saveButton" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-      Lưu thay đổi
-    </button>
-    <button onclick="cancelEdit()" class="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400">
-      Hủy
-    </button>
-  </div>
-</div>
-
-<script type="module">
-  import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-  import { db } from "./firebaseConfig.js"; // Hoặc đường dẫn firebase config của bạn
-
-  window.editEmployee = function (docId, id, ban, name, dob, process, otp, email, phone, role) {
-    // Hiện form
-    document.getElementById("editFormContainer").classList.remove("hidden");
-
-    // Gán dữ liệu vào form
-    document.getElementById("id").value = id;
-    document.getElementById("ban").value = ban;
-    document.getElementById("name").value = name;
-    document.getElementById("dob").value = dob;
-    document.getElementById("process").value = process;
-    document.getElementById("email").value = email;
-    document.getElementById("phone").value = phone;
-    document.getElementById("role").value = role;
-
-    // Gán hàm lưu
-    document.getElementById("saveButton").onclick = async function () {
-      await updateDoc(doc(db, "employees", docId), {
-        id: document.getElementById("id").value.trim(),
-        ban: document.getElementById("ban").value.trim(),
-        name: document.getElementById("name").value.trim(),
-        dob: document.getElementById("dob").value,
-        process: document.getElementById("process").value,
-        otp: otp, // giữ nguyên
-        email: document.getElementById("email").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        role: document.getElementById("role").value
-      });
-
-      alert("Cập nhật thành công!");
-      clearForm();
-      document.getElementById("editFormContainer").classList.add("hidden");
-      loadEmployees(); // Cập nhật lại danh sách
+    window.editEmployee = function (docId, id, ban, name, dob, process, otp, email, phone, role) {
+      document.getElementById("id").value = id;
+      document.getElementById("ban").value = ban;
+      document.getElementById("name").value = name;
+      document.getElementById("dob").value = dob;
+      document.getElementById("process").value = process;
+      document.getElementById("email").value = email;
+      document.getElementById("phone").value = phone;
+      document.getElementById("role").value = role;
+      document.getElementById("saveButton").onclick = async function () {
+        await updateDoc(doc(db, "employees", docId), {
+          id: document.getElementById("id").value.trim(),
+          ban: document.getElementById("ban").value.trim(),
+          name: document.getElementById("name").value.trim(),
+          dob: document.getElementById("dob").value,
+          process: document.getElementById("process").value,
+          otp,
+          email: document.getElementById("email").value.trim(),
+          phone: document.getElementById("phone").value.trim(),
+          role: document.getElementById("role").value
+        });
+        <button id="saveButton" type="button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+    Lưu thay đổi
+  </button>
+        alert("Cập nhật thành công!");
+        clearForm();
+        loadEmployees();
+      };
     };
-  };
-
-  window.cancelEdit = function () {
-    clearForm();
-    document.getElementById("editFormContainer").classList.add("hidden");
-  };
-
-  function clearForm() {
-    const fields = ["id", "ban", "name", "dob", "process", "email", "phone", "role"];
-    fields.forEach(f => document.getElementById(f).value = "");
-  }
 
     window.deleteEmployee = async function (id) {
       if (!confirm("Bạn có chắc muốn xóa nhân sự này?")) return;
