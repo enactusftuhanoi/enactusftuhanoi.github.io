@@ -314,34 +314,37 @@
     };
 
     window.editEmployee = function (docId, id, ban, name, dob, process, otp, email, phone, role) {
-      document.getElementById("id").value = id;
-      document.getElementById("ban").value = ban;
-      document.getElementById("name").value = name;
-      document.getElementById("dob").value = dob;
-      document.getElementById("process").value = process;
-      document.getElementById("email").value = email;
-      document.getElementById("phone").value = phone;
-      document.getElementById("role").value = role;
-      document.getElementById("saveButton").onclick = async function () {
-        await updateDoc(doc(db, "employees", docId), {
-          id: document.getElementById("id").value.trim(),
-          ban: document.getElementById("ban").value.trim(),
-          name: document.getElementById("name").value.trim(),
-          dob: document.getElementById("dob").value,
-          process: document.getElementById("process").value,
-          otp,
-          email: document.getElementById("email").value.trim(),
-          phone: document.getElementById("phone").value.trim(),
-          role: document.getElementById("role").value
-        });
-        <button id="saveButton" type="button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-    Lưu thay đổi
-  </button>
-        alert("Cập nhật thành công!");
-        clearForm();
-        loadEmployees();
-      };
-    };
+  document.getElementById("id").value = id;
+  document.getElementById("ban").value = ban;
+  document.getElementById("name").value = name;
+  document.getElementById("dob").value = dob;
+  document.getElementById("process").value = process;
+  document.getElementById("email").value = email;
+  document.getElementById("phone").value = phone;
+  document.getElementById("role").value = role;
+
+  const saveButton = document.getElementById("saveButton");
+  saveButton.style.display = "inline-block"; // Hiện nút Lưu
+
+  saveButton.onclick = async function () {
+    await updateDoc(doc(db, "employees", docId), {
+      id: document.getElementById("id").value.trim(),
+      ban: document.getElementById("ban").value.trim(),
+      name: document.getElementById("name").value.trim(),
+      dob: document.getElementById("dob").value,
+      process: document.getElementById("process").value,
+      otp,
+      email: document.getElementById("email").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      role: document.getElementById("role").value
+    });
+    alert("Cập nhật thành công!");
+    clearForm();
+    loadEmployees();
+    saveButton.style.display = "none"; // Ẩn lại nút Lưu
+  };
+};
+
 
     window.deleteEmployee = async function (id) {
       if (!confirm("Bạn có chắc muốn xóa nhân sự này?")) return;
