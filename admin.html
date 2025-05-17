@@ -305,7 +305,7 @@ tbody button:hover {
       tableBody.innerHTML = "";
       querySnapshot.forEach((docSnap) => {
         const emp = docSnap.data();
-        tableBody.innerHTML += `
+        tableBody.innerHTML += 
           <tr>
             <td>${emp.id}</td>
             <td>${emp.ban}</td>
@@ -319,14 +319,14 @@ tbody button:hover {
               <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
             </td>
           </tr>
-        `;
+        ;
       });
     }
 
     function formatDate(date) {
       if (!date) return "";
       const [y, m, d] = date.split("-");
-      return `${d}/${m}/${y}`;
+      return ${d}/${m}/${y};
     }
 
     window.addEmployee = async function () {
@@ -347,84 +347,32 @@ tbody button:hover {
       loadEmployees();
     };
 
-    <!-- Popup chỉnh sửa nhân sự -->
-<div id="editModal" class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 hidden justify-center items-center z-50">
-  <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl relative">
-    <h2 class="text-xl font-bold mb-4 text-center text-blue-600">Chỉnh sửa nhân sự</h2>
-
-    <div class="grid grid-cols-1 gap-3">
-      <input id="edit-id" class="p-2 border rounded" placeholder="ID" />
-      <input id="edit-ban" class="p-2 border rounded" placeholder="Ban" />
-      <input id="edit-name" class="p-2 border rounded" placeholder="Họ tên" />
-      <input id="edit-dob" type="date" class="p-2 border rounded" placeholder="Ngày sinh" />
-      <select id="edit-process" class="p-2 border rounded">
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
-      </select>
-      <input id="edit-email" class="p-2 border rounded" placeholder="Email" />
-      <input id="edit-phone" class="p-2 border rounded" placeholder="Số điện thoại" />
-      <select id="edit-role" class="p-2 border rounded">
-        <option value="Member">Member</option>
-        <option value="Admin">Admin</option>
-      </select>
-    </div>
-
-    <div class="mt-6 flex justify-center gap-4">
-      <button onclick="saveEdit()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Lưu thay đổi</button>
-      <button onclick="closeEditModal()" class="bg-red-500 text-w
-
-  <script>
-  let currentEditId = null;
-  let currentOTP = null;
-
-  function editEmployee(docId, id, ban, name, dob, process, otp, email, phone, role) {
-    currentEditId = docId;
-    currentOTP = otp;
-
-    document.getElementById("edit-id").value = id;
-    document.getElementById("edit-ban").value = ban;
-    document.getElementById("edit-name").value = name;
-    document.getElementById("edit-dob").value = dob;
-    document.getElementById("edit-process").value = process;
-    document.getElementById("edit-email").value = email;
-    document.getElementById("edit-phone").value = phone;
-    document.getElementById("edit-role").value = role;
-
-    document.getElementById("editModal").classList.remove("hidden");
-    document.getElementById("editModal").classList.add("flex");
-  }
-
-  function closeEditModal() {
-    document.getElementById("editModal").classList.remove("flex");
-    document.getElementById("editModal").classList.add("hidden");
-  }
-
-  async function saveEdit() {
-    if (!currentEditId) return;
-
-    try {
-      await updateDoc(doc(db, "employees", currentEditId), {
-        id: document.getElementById("edit-id").value.trim(),
-        ban: document.getElementById("edit-ban").value.trim(),
-        name: document.getElementById("edit-name").value.trim(),
-        dob: document.getElementById("edit-dob").value,
-        process: document.getElementById("edit-process").value,
-        otp: currentOTP,
-        email: document.getElementById("edit-email").value.trim(),
-        phone: document.getElementById("edit-phone").value.trim(),
-        role: document.getElementById("edit-role").value
-      });
-
-      alert("Cập nhật thành công!");
-      closeEditModal();
-      await loadEmployees(); // Tải lại danh sách
-    } catch (error) {
-      alert("Lỗi khi cập nhật: " + error.message);
-    }
-  }
-<button onclick="editEmployee('${doc.id}', '${data.id}', '${data.ban}', '${data.name}', '${data.dob}', '${data.process}', '${data.otp}', '${data.email}', '${data.phone}', '${data.role}')">
-  Sửa
-</button>
+    window.editEmployee = function (docId, id, ban, name, dob, process, otp, email, phone, role) {
+      document.getElementById("id").value = id;
+      document.getElementById("ban").value = ban;
+      document.getElementById("name").value = name;
+      document.getElementById("dob").value = dob;
+      document.getElementById("process").value = process;
+      document.getElementById("email").value = email;
+      document.getElementById("phone").value = phone;
+      document.getElementById("role").value = role;
+      document.getElementById("saveButton").onclick = async function () {
+        await updateDoc(doc(db, "employees", docId), {
+          id: document.getElementById("id").value.trim(),
+          ban: document.getElementById("ban").value.trim(),
+          name: document.getElementById("name").value.trim(),
+          dob: document.getElementById("dob").value,
+          process: document.getElementById("process").value,
+          otp,
+          email: document.getElementById("email").value.trim(),
+          phone: document.getElementById("phone").value.trim(),
+          role: document.getElementById("role").value
+        });
+        alert("Cập nhật thành công!");
+        clearForm();
+        loadEmployees();
+      };
+    };
 
     window.deleteEmployee = async function (id) {
       if (!confirm("Bạn có chắc muốn xóa nhân sự này?")) return;
@@ -456,7 +404,7 @@ tbody button:hover {
       // Kiểm tra headers bắt buộc
       for (const h of requiredHeaders) {
         if (!headers.includes(h)) {
-          return {error: `Thiếu trường bắt buộc trong CSV: ${h}`};
+          return {error: Thiếu trường bắt buộc trong CSV: ${h}};
         }
       }
 
@@ -472,23 +420,23 @@ tbody button:hover {
       for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(",").map(v => v.trim());
         if (values.length !== headers.length) {
-          errors.push(`Dòng ${i + 1}: Số cột không đúng (cần ${headers.length}, có ${values.length})`);
+          errors.push(Dòng ${i + 1}: Số cột không đúng (cần ${headers.length}, có ${values.length}));
           continue;
         }
         // Kiểm tra từng trường bắt buộc không rỗng
         let lineError = "";
         for (const field of requiredHeaders) {
           if (!values[idxMap[field]]) {
-            lineError += `Trường "${field}" rỗng. `;
+            lineError += Trường "${field}" rỗng. ;
           }
         }
         if (lineError) {
-          errors.push(`Dòng ${i + 1}: ${lineError}`);
+          errors.push(Dòng ${i + 1}: ${lineError});
           continue;
         }
         // Kiểm tra ngày tháng
         if (!/^\d{4}-\d{2}-\d{2}$/.test(values[idxMap.dob])) {
-          errors.push(`Dòng ${i + 1}: Định dạng ngày sinh không đúng (yyyy-mm-dd)`);
+          errors.push(Dòng ${i + 1}: Định dạng ngày sinh không đúng (yyyy-mm-dd));
           continue;
         }
         dataRows.push({
@@ -537,13 +485,13 @@ tbody button:hover {
           return;
         }
 
-        let html = `<table><thead><tr>
+        let html = <table><thead><tr>
           <th>ID</th><th>BAN</th><th>Name</th><th>DOB</th><th>Process</th><th>Email</th><th>Phone</th><th>Role</th>
-          </tr></thead><tbody>`;
+          </tr></thead><tbody>;
         for (const r of dataRows) {
-          html += `<tr>
+          html += <tr>
             <td>${r.id}</td><td>${r.ban}</td><td>${r.name}</td><td>${r.dob}</td><td>${r.process}</td><td>${r.email}</td><td>${r.phone}</td><td>${r.role}</td>
-          </tr>`;
+          </tr>;
         }
         html += "</tbody></table>";
         previewDiv.innerHTML = html;
@@ -594,11 +542,11 @@ tbody button:hover {
             successCount++;
           } catch (err) {
             failCount++;
-            failMessages.push(`Dòng ${i + 2}: Lỗi khi thêm vào Firestore - ${err.message}`);
+            failMessages.push(Dòng ${i + 2}: Lỗi khi thêm vào Firestore - ${err.message});
           }
         }
 
-        let alertMsg = `Import hoàn tất. Thành công: ${successCount}, Thất bại: ${failCount}`;
+        let alertMsg = Import hoàn tất. Thành công: ${successCount}, Thất bại: ${failCount};
         if (failMessages.length > 0) {
           alertMsg += "\nXem chi tiết lỗi ở phần thông báo lỗi.";
           errorDiv.textContent = failMessages.join("\n");
