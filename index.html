@@ -72,26 +72,26 @@
 
     /* Hero Section */
     #hero {
-  background: linear-gradient(135deg, #f7b733cc 0%, #f5a623cc 100%);
-  /* Thêm cc để có alpha = 0.8, nền bớt chói */
-  /* hoặc thêm overlay màu tối mờ */
-  position: relative;
-  color: #fff;
-}
+      padding: 6rem 1rem 5rem 1rem;
+      background: linear-gradient(135deg, #f7b733 0%, #f5a623 100%);
+      color: white;
+      text-align: center;
+      box-shadow: inset 0 0 150px #c28800;
+    }
 
-#hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.3); /* overlay đen mờ */
-  z-index: 0;
-}
-
-#hero .container {
-  position: relative;
-  z-index: 1;
-}
-
+    #hero h1 {
+      font-size: 3.5rem;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      text-shadow: 2px 2px 4px #b27e00;
+    }
+    #hero p {
+      font-size: 1.3rem;
+      max-width: 650px;
+      margin: 0 auto 2rem auto;
+      font-weight: 600;
+      text-shadow: 1px 1px 3px #a67300;
+    }
 
     /* Section Titles */
     section h2 {
