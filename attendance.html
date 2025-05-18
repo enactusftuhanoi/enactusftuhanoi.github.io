@@ -3,75 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Điểm danh / Quản lý điểm danh</title>
+  <title>Điểm danh hệ thống</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    #adminUI, #memberUI { display: none; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans p-6">
+  <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold">Hệ thống điểm danh</h1>
+      <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded">Đăng xuất</button>
+    </div>
+
+    <div id="adminUI">
+      <h2 class="text-xl font-semibold mb-4">Giao diện Quản trị viên (Admin)</h2>
+      <!-- Form tạo phiên điểm danh -->
+      <form id="createSessionForm" class="space-y-4 max-w-md">
+        <div>
+          <label for="sessionName" class="block font-medium mb-1">Tên phiên điểm danh:</label>
+          <input type="text" id="sessionName" required class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label for="startTime" class="block font-medium mb-1">Thời gian bắt đầu:</label>
+          <input type="datetime-local" id="startTime" required class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label for="endTime" class="block font-medium mb-1">Thời gian kết thúc:</label>
+          <input type="datetime-local" id="endTime" required class="w-full border rounded px-3 py-2" />
+        </div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Tạo phiên điểm danh</button>
+      </form>
+      <p id="adminMsg" class="mt-4 text-green-600"></p>
+    </div>
+
+    <div id="memberUI">
+      <h2 class="text-xl font-semibold mb-4">Giao diện Thành viên - Điểm danh</h2>
+      <p id="attendanceStatus" class="mb-4">Đang kiểm tra phiên điểm danh...</p>
+      <button id="checkInBtn" class="bg-green-600 text-white px-4 py-2 rounded" disabled>Điểm danh</button>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-</head>
-<body class="bg-gray-100 min-h-screen font-sans p-6 flex flex-col items-center">
-
-  <header class="w-full max-w-3xl flex justify-between items-center mb-6">
-    <h1 id="pageTitle" class="text-3xl font-bold text-blue-700">Đang tải...</h1>
-    <div>
-      <span id="userInfo" class="mr-4 text-gray-700"></span>
-      <button id="btnLogout" class="text-sm text-red-600 hover:underline hidden">Đăng xuất</button>
-    </div>
-  </header>
-
-  <main class="w-full max-w-3xl bg-white rounded-xl shadow p-6 min-h-[300px]">
-
-    <!-- Admin UI -->
-    <section id="adminUI" class="hidden">
-      <form id="formCreateSession" class="mb-8 space-y-4">
-        <h2 class="text-xl font-semibold mb-4">Tạo phiên điểm danh mới</h2>
-
-        <div>
-          <label for="sessionName" class="block mb-1 font-medium">Tên phiên</label>
-          <input id="sessionName" type="text" required
-            class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-
-        <div>
-          <label for="startTime" class="block mb-1 font-medium">Thời gian bắt đầu</label>
-          <input id="startTime" type="datetime-local" required
-            class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-
-        <div>
-          <label for="endTime" class="block mb-1 font-medium">Thời gian kết thúc</label>
-          <input id="endTime" type="datetime-local" required
-            class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-
-        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
-          Tạo phiên điểm danh
-        </button>
-      </form>
-
-      <section>
-        <h2 class="text-xl font-semibold mb-4">Danh sách phiên điểm danh</h2>
-        <div id="sessionsList" class="space-y-4"></div>
-      </section>
-    </section>
-
-    <!-- Member UI -->
-    <section id="memberUI" class="hidden text-center space-y-4">
-      <h2 class="text-2xl font-semibold mb-4">Điểm danh buổi học</h2>
-      <p id="sessionStatus" class="text-gray-700 mb-4">Đang kiểm tra phiên điểm danh...</p>
-      <button id="btnCheckIn" class="hidden bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition">
-        Điểm danh ngay
-      </button>
-      <p id="checkInResult" class="mt-4 text-lg font-semibold"></p>
-    </section>
-
-    <section id="loading" class="text-center text-gray-600">Đang tải dữ liệu...</section>
-
-  </main>
-
   <script>
-    const LOGIN_PAGE = "https://enactusftuhanoi.github.io/vn/login.html";
-
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
       authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -80,87 +57,50 @@
       messagingSenderId: "611356979403",
       appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const pageTitle = document.getElementById("pageTitle");
-    const userInfo = document.getElementById("userInfo");
-    const btnLogout = document.getElementById("btnLogout");
-    const adminUI = document.getElementById("adminUI");
-    const memberUI = document.getElementById("memberUI");
-    const loading = document.getElementById("loading");
+    // Lấy userEmail và userRole từ sessionStorage
+    const userEmail = sessionStorage.getItem('userEmail');
+    const userRole = sessionStorage.getItem('userRole');
 
-    const formCreateSession = document.getElementById("formCreateSession");
-    const sessionsList = document.getElementById("sessionsList");
-
-    const sessionStatus = document.getElementById("sessionStatus");
-    const btnCheckIn = document.getElementById("btnCheckIn");
-    const checkInResult = document.getElementById("checkInResult");
-
-    let currentUser = null;
-    let currentUserData = null;
-    let currentSession = null;
-
-    btnLogout.addEventListener("click", () => {
-      auth.signOut().then(() => {
-        window.location.href = LOGIN_PAGE;
-      });
-    });
-
-    async function loadSessions() {
-      try {
-        const snapshot = await db.collection("attendance_sessions").orderBy("startTime", "desc").get();
-        sessionsList.innerHTML = "";
-        if (snapshot.empty) {
-          sessionsList.innerHTML = `<p class="text-gray-600">Chưa có phiên điểm danh nào.</p>`;
-          return;
-        }
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          const start = d.startTime.toDate();
-          const end = d.endTime.toDate();
-
-          const div = document.createElement("div");
-          div.className = "p-4 border rounded flex justify-between items-center";
-
-          div.innerHTML = `
-            <div>
-              <h3 class="font-semibold text-lg">${d.name || "(Không tên)"}</h3>
-              <p class="text-sm text-gray-600">Bắt đầu: ${start.toLocaleString()}</p>
-              <p class="text-sm text-gray-600">Kết thúc: ${end.toLocaleString()}</p>
-            </div>
-            <button class="text-red-600 hover:underline">Xóa</button>
-          `;
-
-          div.querySelector("button").onclick = async () => {
-            if (confirm(`Bạn có chắc muốn xóa phiên "${d.name}" không?`)) {
-              try {
-                await db.collection("attendance_sessions").doc(doc.id).delete();
-                loadSessions();
-              } catch (e) {
-                alert("Lỗi khi xóa: " + e.message);
-              }
-            }
-          };
-
-          sessionsList.appendChild(div);
-        });
-      } catch (e) {
-        alert("Lỗi tải phiên điểm danh: " + e.message);
-      }
+    if (!userEmail || !userRole) {
+      alert('Bạn chưa đăng nhập hoặc không có quyền truy cập.');
+      window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
     }
 
-    formCreateSession.addEventListener("submit", async (e) => {
+    const adminUI = document.getElementById('adminUI');
+    const memberUI = document.getElementById('memberUI');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Đăng xuất
+    logoutBtn.onclick = () => {
+      sessionStorage.clear();
+      auth.signOut();
+      window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+    };
+
+    if (userRole.toLowerCase() === "admin") {
+      adminUI.style.display = "block";
+    } else {
+      memberUI.style.display = "block";
+      startMemberAttendance();
+    }
+
+    // --- Admin tạo phiên điểm danh ---
+    const createSessionForm = document.getElementById('createSessionForm');
+    const adminMsg = document.getElementById('adminMsg');
+
+    createSessionForm.addEventListener('submit', async e => {
       e.preventDefault();
 
-      const name = formCreateSession.sessionName.value.trim();
-      const startTimeStr = formCreateSession.startTime.value;
-      const endTimeStr = formCreateSession.endTime.value;
+      const sessionName = document.getElementById('sessionName').value.trim();
+      const startTimeStr = document.getElementById('startTime').value;
+      const endTimeStr = document.getElementById('endTime').value;
 
-      if (!name || !startTimeStr || !endTimeStr) {
-        alert("Vui lòng nhập đầy đủ thông tin.");
+      if (!sessionName || !startTimeStr || !endTimeStr) {
+        alert("Vui lòng nhập đầy đủ thông tin!");
         return;
       }
 
@@ -168,154 +108,101 @@
       const endTime = new Date(endTimeStr);
 
       if (startTime >= endTime) {
-        alert("Thời gian bắt đầu phải trước thời gian kết thúc.");
+        alert("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc!");
         return;
       }
 
       try {
         await db.collection("attendance_sessions").add({
-          name,
+          name: sessionName,
           startTime: firebase.firestore.Timestamp.fromDate(startTime),
           endTime: firebase.firestore.Timestamp.fromDate(endTime),
+          createdBy: userEmail,
           createdAt: firebase.firestore.Timestamp.now()
         });
-        alert("Tạo phiên điểm danh thành công!");
-        formCreateSession.reset();
-        loadSessions();
-      } catch (e) {
-        alert("Lỗi tạo phiên điểm danh: " + e.message);
+
+        adminMsg.textContent = "Tạo phiên điểm danh thành công!";
+        createSessionForm.reset();
+      } catch (error) {
+        console.error("Lỗi tạo phiên điểm danh:", error);
+        adminMsg.textContent = "Lỗi khi tạo phiên điểm danh.";
       }
     });
 
-    async function checkActiveSession() {
-      sessionStatus.textContent = "Đang kiểm tra phiên điểm danh...";
-      btnCheckIn.style.display = "none";
-      checkInResult.textContent = "";
+    // --- Member điểm danh ---
+    function startMemberAttendance() {
+      const attendanceStatus = document.getElementById('attendanceStatus');
+      const checkInBtn = document.getElementById('checkInBtn');
 
-      try {
+      // Kiểm tra có phiên điểm danh đang diễn ra không
+      async function checkActiveSession() {
+        attendanceStatus.textContent = "Đang kiểm tra phiên điểm danh...";
+        checkInBtn.disabled = true;
+
         const now = firebase.firestore.Timestamp.now();
-        const q = await db.collection("attendance_sessions")
+        const sessionsRef = db.collection("attendance_sessions");
+        const activeQuery = sessionsRef
           .where("startTime", "<=", now)
-          .where("endTime", ">=", now)
-          .limit(1)
-          .get();
+          .where("endTime", ">=", now);
 
-        if (q.empty) {
-          sessionStatus.textContent = "Hiện không có phiên điểm danh nào đang diễn ra.";
-          currentSession = null;
-          return;
+        try {
+          const snapshot = await activeQuery.get();
+
+          if (snapshot.empty) {
+            attendanceStatus.textContent = "⏳ Hiện không có phiên điểm danh nào đang diễn ra.";
+            checkInBtn.disabled = true;
+            return;
+          }
+
+          const sessionDoc = snapshot.docs[0];
+          const sessionId = sessionDoc.id;
+
+          // Kiểm tra xem user đã điểm danh chưa
+          const recordRef = db.collection("attendance_records")
+            .where("sessionId", "==", sessionId)
+            .where("email", "==", userEmail);
+
+          const recordSnap = await recordRef.get();
+
+          if (!recordSnap.empty) {
+            attendanceStatus.textContent = "✅ Bạn đã điểm danh cho phiên này.";
+            checkInBtn.disabled = true;
+            return;
+          }
+
+          attendanceStatus.textContent = "Bạn chưa điểm danh. Nhấn nút để điểm danh.";
+          checkInBtn.disabled = false;
+
+          // Xử lý điểm danh khi click
+          checkInBtn.onclick = async () => {
+            try {
+              await db.collection("attendance_records").add({
+                sessionId: sessionId,
+                email: userEmail,
+                name: sessionStorage.getItem('userName') || "Không rõ tên",
+                ban: sessionStorage.getItem('userBan') || "Không rõ ban",
+                timestamp: firebase.firestore.Timestamp.now()
+              });
+              attendanceStatus.textContent = "✅ Điểm danh thành công!";
+              checkInBtn.disabled = true;
+            } catch (error) {
+              console.error("Lỗi khi điểm danh:", error);
+              attendanceStatus.textContent = "❌ Lỗi khi điểm danh. Vui lòng thử lại.";
+            }
+          };
+
+        } catch (error) {
+          console.error("Lỗi kiểm tra phiên điểm danh:", error);
+          attendanceStatus.textContent = "❌ Lỗi khi kiểm tra phiên điểm danh.";
+          checkInBtn.disabled = true;
         }
-
-        const doc = q.docs[0];
-        const data = doc.data();
-        currentSession = doc;
-
-        sessionStatus.textContent = `Phiên điểm danh: "${data.name}" (Từ ${data.startTime.toDate().toLocaleString()} đến ${data.endTime.toDate().toLocaleString()})`;
-
-        // Kiểm tra user đã điểm danh chưa
-        const recordQuery = await db.collection("attendance_records")
-          .where("sessionId", "==", doc.id)
-          .where("userId", "==", currentUser.uid)
-          .limit(1)
-          .get();
-
-        if (!recordQuery.empty) {
-          btnCheckIn.style.display = "none";
-          checkInResult.textContent = "✅ Bạn đã điểm danh cho phiên này.";
-        } else {
-          btnCheckIn.style.display = "inline-block";
-          checkInResult.textContent = "";
-        }
-      } catch (e) {
-        sessionStatus.textContent = "Lỗi kiểm tra phiên điểm danh.";
-        console.error(e);
       }
+
+      checkActiveSession();
+
+      // Có thể set interval để check lại sau 1 khoảng thời gian nếu muốn:
+      // setInterval(checkActiveSession, 60000);
     }
-
-    btnCheckIn.addEventListener("click", async () => {
-      if (!currentSession) return;
-
-      btnCheckIn.disabled = true;
-      checkInResult.textContent = "Đang điểm danh...";
-
-      try {
-        const empDoc = await db.collection("employees").doc(currentUser.uid).get();
-        if (!empDoc.exists) {
-          alert("Không tìm thấy thông tin nhân viên.");
-          btnCheckIn.disabled = false;
-          checkInResult.textContent = "";
-          return;
-        }
-
-        const empData = empDoc.data();
-
-        await db.collection("attendance_records").add({
-          sessionId: currentSession.id,
-          userId: currentUser.uid,
-          name: empData.name || currentUser.displayName || "Không rõ tên",
-          department: empData.department || "Không rõ ban",
-          timestamp: firebase.firestore.Timestamp.now()
-        });
-
-        checkInResult.textContent = "✅ Điểm danh thành công!";
-        btnCheckIn.style.display = "none";
-      } catch (e) {
-        alert("Lỗi khi điểm danh: " + e.message);
-        checkInResult.textContent = "";
-        btnCheckIn.disabled = false;
-      }
-    });
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        window.location.href = LOGIN_PAGE;
-        return;
-      }
-      currentUser = user;
-
-      loading.style.display = "block";
-      adminUI.classList.add("hidden");
-      memberUI.classList.add("hidden");
-      btnLogout.classList.add("hidden");
-
-      try {
-        const empDoc = await db.collection("employees").doc(user.uid).get();
-        if (!empDoc.exists) {
-          alert("Bạn không có quyền truy cập.");
-          await auth.signOut();
-          window.location.href = LOGIN_PAGE;
-          return;
-        }
-
-        currentUserData = empDoc.data();
-
-        userInfo.textContent = `${currentUserData.name || user.displayName || "Người dùng"} (${currentUserData.role || "member"})`;
-        btnLogout.classList.remove("hidden");
-
-        if (currentUserData.role === "admin") {
-          pageTitle.textContent = "Quản lý phiên điểm danh";
-          adminUI.classList.remove("hidden");
-          memberUI.classList.add("hidden");
-          await loadSessions();
-        } else if (currentUserData.role === "member") {
-          pageTitle.textContent = "Điểm danh nhanh";
-          adminUI.classList.add("hidden");
-          memberUI.classList.remove("hidden");
-          await checkActiveSession();
-        } else {
-          alert("Bạn không có quyền truy cập trang này.");
-          await auth.signOut();
-          window.location.href = LOGIN_PAGE;
-        }
-      } catch (e) {
-        alert("Lỗi hệ thống: " + e.message);
-        await auth.signOut();
-        window.location.href = LOGIN_PAGE;
-      } finally {
-        loading.style.display = "none";
-      }
-    });
   </script>
 </body>
 </html>
-
