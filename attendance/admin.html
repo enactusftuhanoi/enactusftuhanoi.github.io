@@ -19,7 +19,6 @@
   <main class="w-full max-w-4xl bg-white rounded-xl shadow p-6">
     <section id="adminContent" class="hidden">
 
-      <!-- Form tạo phiên điểm danh -->
       <form id="createSessionForm" class="mb-8 space-y-4">
         <h2 class="text-xl font-semibold text-gray-800">Tạo phiên điểm danh mới</h2>
 
@@ -43,16 +42,11 @@
         </button>
       </form>
 
-      <!-- Danh sách phiên điểm danh -->
       <section>
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Danh sách phiên điểm danh hiện có</h2>
         <div id="sessionsList" class="space-y-4"></div>
       </section>
 
-    </section>
-
-    <section id="noAccess" class="text-center text-red-600 text-lg font-semibold hidden">
-      Bạn không có quyền truy cập trang này.
     </section>
 
     <section id="loading" class="text-center text-gray-600">
@@ -75,26 +69,16 @@
     const db = firebase.firestore();
 
     const adminContent = document.getElementById("adminContent");
-    const noAccess = document.getElementById("noAccess");
     const loading = document.getElementById("loading");
     const btnLogout = document.getElementById("btnLogout");
     const sessionsList = document.getElementById("sessionsList");
     const createSessionForm = document.getElementById("createSessionForm");
-
-    let currentUser = null;
 
     btnLogout.addEventListener("click", () => {
       auth.signOut().then(() => {
         window.location.href = "login.html";
       });
     });
-
-    function formatDateTimeLocal(timestamp) {
-      // chuyển firestore Timestamp thành dạng yyyy-MM-ddTHH:mm
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      const pad = n => (n < 10 ? '0' + n : n);
-      return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-    }
 
     function renderSessions(sessions) {
       sessionsList.innerHTML = "";
@@ -140,7 +124,6 @@
       try {
         loading.style.display = "block";
         adminContent.style.display = "none";
-        noAccess.style.display = "none";
 
         const snapshot = await db.collection("attendance_sessions").orderBy("startTime", "desc").get();
         renderSessions(snapshot.docs);
@@ -186,33 +169,29 @@
       }
     });
 
-    // Kiểm tra user có role admin không
+    // Kiểm tra role admin từ collection "employees"
     auth.onAuthStateChanged(async user => {
       if (!user) {
         window.location.href = "login.html";
         return;
       }
-      currentUser = user;
 
       try {
         loading.style.display = "block";
         adminContent.style.display = "none";
-        noAccess.style.display = "none";
 
-        const userDoc = await db.collection("users").doc(user.uid).get();
-        const role = userDoc.exists ? userDoc.data().role : null;
+        const empDoc = await db.collection("employees").doc(user.uid).get();
+        const role = empDoc.exists ? empDoc.data().role : null;
 
         if (role === "admin") {
-          // Cho phép truy cập
           loading.style.display = "none";
           adminContent.style.display = "block";
-          noAccess.style.display = "none";
           loadSessions();
         } else {
-          // Không cho truy cập
-          loading.style.display = "none";
-          adminContent.style.display = "none";
-          noAccess.style.display = "block";
+          // Sai role thì quay về login.html
+          auth.signOut().then(() => {
+            window.location.href = "login.html";
+          });
         }
       } catch (e) {
         loading.textContent = "Lỗi khi kiểm tra quyền: " + e.message;
@@ -221,4 +200,3 @@
   </script>
 </body>
 </html>
-
