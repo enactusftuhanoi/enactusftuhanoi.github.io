@@ -1,1 +1,224 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quản lý phiên điểm danh - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6 font-sans">
+
+  <header class="w-full max-w-4xl flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-blue-700">Quản lý phiên điểm danh</h1>
+    <button id="btnLogout" class="text-sm text-red-600 hover:underline">Đăng xuất</button>
+  </header>
+
+  <main class="w-full max-w-4xl bg-white rounded-xl shadow p-6">
+    <section id="adminContent" class="hidden">
+
+      <!-- Form tạo phiên điểm danh -->
+      <form id="createSessionForm" class="mb-8 space-y-4">
+        <h2 class="text-xl font-semibold text-gray-800">Tạo phiên điểm danh mới</h2>
+
+        <div>
+          <label class="block mb-1 font-medium" for="sessionName">Tên phiên điểm danh</label>
+          <input id="sessionName" type="text" required class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+
+        <div>
+          <label class="block mb-1 font-medium" for="startTime">Thời gian bắt đầu</label>
+          <input id="startTime" type="datetime-local" required class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+
+        <div>
+          <label class="block mb-1 font-medium" for="endTime">Thời gian kết thúc</label>
+          <input id="endTime" type="datetime-local" required class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+          Tạo phiên điểm danh
+        </button>
+      </form>
+
+      <!-- Danh sách phiên điểm danh -->
+      <section>
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Danh sách phiên điểm danh hiện có</h2>
+        <div id="sessionsList" class="space-y-4"></div>
+      </section>
+
+    </section>
+
+    <section id="noAccess" class="text-center text-red-600 text-lg font-semibold hidden">
+      Bạn không có quyền truy cập trang này.
+    </section>
+
+    <section id="loading" class="text-center text-gray-600">
+      Đang tải dữ liệu...
+    </section>
+  </main>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const adminContent = document.getElementById("adminContent");
+    const noAccess = document.getElementById("noAccess");
+    const loading = document.getElementById("loading");
+    const btnLogout = document.getElementById("btnLogout");
+    const sessionsList = document.getElementById("sessionsList");
+    const createSessionForm = document.getElementById("createSessionForm");
+
+    let currentUser = null;
+
+    btnLogout.addEventListener("click", () => {
+      auth.signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    });
+
+    function formatDateTimeLocal(timestamp) {
+      // chuyển firestore Timestamp thành dạng yyyy-MM-ddTHH:mm
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      const pad = n => (n < 10 ? '0' + n : n);
+      return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function renderSessions(sessions) {
+      sessionsList.innerHTML = "";
+      if (sessions.length === 0) {
+        sessionsList.innerHTML = '<p class="text-gray-600">Chưa có phiên điểm danh nào.</p>';
+        return;
+      }
+      sessions.forEach(doc => {
+        const data = doc.data();
+        const id = doc.id;
+        const startTime = data.startTime.toDate();
+        const endTime = data.endTime.toDate();
+
+        const sessionEl = document.createElement("div");
+        sessionEl.className = "p-4 border rounded shadow-sm flex justify-between items-center";
+
+        sessionEl.innerHTML = `
+          <div>
+            <h3 class="font-semibold text-lg">${data.name || "Không tên"}</h3>
+            <p class="text-sm text-gray-600">Bắt đầu: ${startTime.toLocaleString()}</p>
+            <p class="text-sm text-gray-600">Kết thúc: ${endTime.toLocaleString()}</p>
+          </div>
+          <button class="text-red-600 hover:underline">Xóa</button>
+        `;
+
+        const btnDelete = sessionEl.querySelector("button");
+        btnDelete.addEventListener("click", async () => {
+          if (confirm(`Bạn có chắc muốn xóa phiên điểm danh "${data.name}"?`)) {
+            try {
+              await db.collection("attendance_sessions").doc(id).delete();
+              loadSessions();
+            } catch (e) {
+              alert("Lỗi khi xóa phiên điểm danh: " + e.message);
+            }
+          }
+        });
+
+        sessionsList.appendChild(sessionEl);
+      });
+    }
+
+    async function loadSessions() {
+      try {
+        loading.style.display = "block";
+        adminContent.style.display = "none";
+        noAccess.style.display = "none";
+
+        const snapshot = await db.collection("attendance_sessions").orderBy("startTime", "desc").get();
+        renderSessions(snapshot.docs);
+
+        loading.style.display = "none";
+        adminContent.style.display = "block";
+      } catch (e) {
+        loading.textContent = "Lỗi khi tải dữ liệu: " + e.message;
+      }
+    }
+
+    createSessionForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = createSessionForm.sessionName.value.trim();
+      const startTimeStr = createSessionForm.startTime.value;
+      const endTimeStr = createSessionForm.endTime.value;
+
+      if (!name || !startTimeStr || !endTimeStr) {
+        alert("Vui lòng điền đầy đủ thông tin.");
+        return;
+      }
+
+      const startTime = new Date(startTimeStr);
+      const endTime = new Date(endTimeStr);
+
+      if (startTime >= endTime) {
+        alert("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc.");
+        return;
+      }
+
+      try {
+        await db.collection("attendance_sessions").add({
+          name,
+          startTime: firebase.firestore.Timestamp.fromDate(startTime),
+          endTime: firebase.firestore.Timestamp.fromDate(endTime),
+          createdAt: firebase.firestore.Timestamp.now()
+        });
+        createSessionForm.reset();
+        loadSessions();
+        alert("Tạo phiên điểm danh thành công!");
+      } catch (e) {
+        alert("Lỗi khi tạo phiên điểm danh: " + e.message);
+      }
+    });
+
+    // Kiểm tra user có role admin không
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+
+      try {
+        loading.style.display = "block";
+        adminContent.style.display = "none";
+        noAccess.style.display = "none";
+
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        const role = userDoc.exists ? userDoc.data().role : null;
+
+        if (role === "admin") {
+          // Cho phép truy cập
+          loading.style.display = "none";
+          adminContent.style.display = "block";
+          noAccess.style.display = "none";
+          loadSessions();
+        } else {
+          // Không cho truy cập
+          loading.style.display = "none";
+          adminContent.style.display = "none";
+          noAccess.style.display = "block";
+        }
+      } catch (e) {
+        loading.textContent = "Lỗi khi kiểm tra quyền: " + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
 
