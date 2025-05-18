@@ -13,7 +13,10 @@
 
   <header class="w-full max-w-4xl flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-blue-700">Quản lý phiên điểm danh</h1>
-    <button id="btnLogout" class="text-sm text-red-600 hover:underline">Đăng xuất</button>
+    <div>
+      <span id="userInfo" class="mr-4 text-gray-700"></span>
+      <button id="btnLogout" class="text-sm text-red-600 hover:underline">Đăng xuất</button>
+    </div>
   </header>
 
   <main class="w-full max-w-4xl bg-white rounded-xl shadow p-6">
@@ -55,6 +58,8 @@
   </main>
 
   <script>
+    const LOGIN_URL = "https://enactusftuhanoi.github.io/vn/login.html";
+
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
       authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -73,10 +78,11 @@
     const btnLogout = document.getElementById("btnLogout");
     const sessionsList = document.getElementById("sessionsList");
     const createSessionForm = document.getElementById("createSessionForm");
+    const userInfo = document.getElementById("userInfo");
 
     btnLogout.addEventListener("click", () => {
       auth.signOut().then(() => {
-        window.location.href = "login.html";
+        window.location.href = LOGIN_URL;
       });
     });
 
@@ -169,34 +175,48 @@
       }
     });
 
-    // Kiểm tra role admin từ collection "employees"
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
+    // Check user login & role once on page load
+    (async () => {
+      loading.style.display = "block";
+      adminContent.style.display = "none";
 
       try {
-        loading.style.display = "block";
-        adminContent.style.display = "none";
+        const user = auth.currentUser;
+        if (!user) {
+          // chưa login -> redirect login
+          window.location.href = LOGIN_URL;
+          return;
+        }
 
+        // lấy dữ liệu employee của user
         const empDoc = await db.collection("employees").doc(user.uid).get();
         const role = empDoc.exists ? empDoc.data().role : null;
 
-        if (role === "admin") {
-          loading.style.display = "none";
-          adminContent.style.display = "block";
-          loadSessions();
-        } else {
-          // Sai role thì quay về login.html
-          auth.signOut().then(() => {
-            window.location.href = "login.html";
-          });
+        if (role !== "admin") {
+          // sai role -> logout và redirect login
+          await auth.signOut();
+          window.location.href = LOGIN_URL;
+          return;
         }
-      } catch (e) {
-        loading.textContent = "Lỗi khi kiểm tra quyền: " + e.message;
+
+        // Hiển thị tên và email người dùng ở header
+        const name = empDoc.data().name || user.displayName || "Không rõ tên";
+        const email = user.email || "Không rõ email";
+        userInfo.textContent = `${name} (${email})`;
+
+        // Hiển thị nội dung admin
+        loading.style.display = "none";
+        adminContent.style.display = "block";
+
+        loadSessions();
+      } catch (error) {
+        console.error(error);
+        alert("Lỗi khi kiểm tra quyền truy cập. Vui lòng thử lại.");
+        await auth.signOut();
+        window.location.href = LOGIN_URL;
       }
-    });
+    })();
+
   </script>
 </body>
 </html>
