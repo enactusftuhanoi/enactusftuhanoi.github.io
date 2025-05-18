@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Điểm danh</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="max-w-md mx-auto mt-20 bg-white p-6 rounded-xl shadow-md text-center">
+    <h1 class="text-2xl font-bold text-blue-600 mb-4">Điểm danh buổi học</h1>
+    <p id="status" class="text-gray-700 text-sm">Đang kiểm tra phiên điểm danh...</p>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const statusEl = document.getElementById("status");
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        statusEl.textContent = "Bạn chưa đăng nhập. Đang chuyển hướng...";
+        setTimeout(() => window.location.href = "login.html", 2000);
+        return;
+      }
+
+      const userName = user.displayName || "Không rõ tên";
+      const email = user.email;
+
+      statusEl.textContent = `Xin chào, ${userName}. Đang tìm buổi điểm danh...`;
+
+      try {
+        const now = firebase.firestore.Timestamp.now();
+        const sessionsRef = db.collection("attendance_sessions");
+        const activeQuery = sessionsRef
+          .where("startTime", "<=", now)
+          .where("endTime", ">=", now);
+
+        const snapshot = await activeQuery.get();
+
+        if (snapshot.empty) {
+          statusEl.textContent = "⏳ Hiện không có buổi điểm danh nào đang diễn ra.";
+          return;
+        }
+
+        const session = snapshot.docs[0];
+        const sessionId = session.id;
+
+        // Kiểm tra đã điểm danh chưa
+        const recordRef = db.collection("attendance_records")
+          .where("sessionId", "==", sessionId)
+          .where("userId", "==", user.uid);
+
+        const recordSnap = await recordRef.get();
+        if (!recordSnap.empty) {
+          statusEl.textContent = "✅ Bạn đã điểm danh cho buổi này.";
+          return;
+        }
+
+        // Ghi điểm danh mới
+        await db.collection("attendance_records").add({
+          sessionId: sessionId,
+          userId: user.uid,
+          email: email,
+          name: userName,
+          timestamp: now
+        });
+
+        statusEl.textContent = "✅ Điểm danh thành công!";
+      } catch (error) {
+        console.error(error);
+        statusEl.textContent = "❌ Lỗi khi ghi điểm danh.";
+      }
+    });
+  </script>
+</body>
+</html>
