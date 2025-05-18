@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enactus FTU Hanoi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Poppins:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --main-yellow: #f7b733;
+      --main-yellow-dark: #f5a623;
+      --text-color: #333;
+      --bg-color: #fff8e1;
+      --card-bg: #fff7dc;
+      --shadow-color: rgba(247, 183, 51, 0.4);
+    }
+
+    /* Reset cơ bản */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3 {
+      font-weight: 700;
+      color: var(--main-yellow-dark);
+      text-shadow: 1px 1px 2px #c07a00;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    p {
+      max-width: 800px;
+      margin: 0 auto 1.5rem auto;
+      font-weight: 500;
+      font-family: 'Poppins', sans-serif;
+      color: #5a4a00;
+      text-align: center;
+      padding: 0 1rem;
+    }
+
+    a.button {
+      display: inline-block;
+      background: var(--main-yellow);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.8rem 2rem;
+      border-radius: 30px;
+      text-decoration: none;
+      box-shadow: 0 6px 15px var(--shadow-color);
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      margin-top: 1rem;
+    }
+    a.button:hover {
+      background: var(--main-yellow-dark);
+      transform: scale(1.05);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    /* Hero Section */
+    #hero {
+      padding: 6rem 1rem 5rem 1rem;
+      background: linear-gradient(135deg, #f7b733 0%, #f5a623 100%);
+      color: white;
+      text-align: center;
+      box-shadow: inset 0 0 150px #c28800;
+    }
+
+    #hero h1 {
+      font-size: 3.5rem;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      text-shadow: 2px 2px 4px #b27e00;
+    }
+    #hero p {
+      font-size: 1.3rem;
+      max-width: 650px;
+      margin: 0 auto 2rem auto;
+      font-weight: 600;
+      text-shadow: 1px 1px 3px #a67300;
+    }
+
+    /* Section Titles */
+    section h2 {
+      font-size: 2.8rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Grid cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+      gap: 2rem;
+    }
+
+    /* Card style */
+    .card {
+      background: var(--card-bg);
+      border-radius: 15px;
+      box-shadow: 0 8px 20px var(--shadow-color);
+      padding: 1.5rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card:hover {
+      transform: translateY(-12px) scale(1.05);
+      box-shadow: 0 16px 40px var(--shadow-color);
+    }
+
+    .card img {
+      width: 100%;
+      max-width: 260px;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 6px 16px var(--shadow-color);
+      transition: transform 0.4s ease;
+      object-fit: cover;
+      aspect-ratio: 4 / 3;
+    }
+
+    .card:hover img {
+      transform: scale(1.1);
+    }
+
+    .card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.6rem;
+      color: var(--main-yellow-dark);
+      text-align: center;
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      color: #6b5500;
+      text-align: center;
+      flex-grow: 1;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--main-yellow);
+      color: #fff;
+      text-align: center;
+      padding: 1.5rem 1rem;
+      margin-top: 3rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      font-size: 0.95rem;
+      box-shadow: inset 0 0 40px #d6a911;
+    }
+
+    footer p {
+      margin: 0.2rem 0;
+    }
+
+    /* Responsive typography */
+    @media (max-width: 600px) {
+      #hero h1 {
+        font-size: 2.5rem;
+      }
+      section h2 {
+        font-size: 2rem;
+      }
+      .card img {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero -->
+  <section id="hero">
+    <div class="container">
+      <h1>A Head for Business.<br/>A Heart for the World.</h1>
+      <p>Enactus FTU Hanoi - Nơi tụ hội của những trái tim trẻ đầy đam mê và khát vọng kiến tạo xã hội tốt đẹp hơn.</p>
+      <a href="#about" class="button">Tìm hiểu thêm</a>
+    </div>
+  </section>
+
+  <!-- Về Enactus -->
+  <section id="about" class="container">
+    <h2>Enactus FTU Hanoi là ai?</h2>
+    <p>
+      Thành lập từ năm 2008, Enactus FTU Hanoi là CLB chuyên môn về Kinh tế - Xã hội trực thuộc Đại học Ngoại thương. Với sứ mệnh "Trao cần câu - không trao cá", chúng mình hướng đến việc tạo ra các dự án kinh doanh xã hội bền vững, trao quyền cho cộng đồng yếu thế và lan tỏa tinh thần trách nhiệm xã hội qua từng thế hệ sinh viên.
+    </p>
+    <img src="https://images.unsplash.com/photo-1524253482453-3fed8d2fe12b?auto=format&fit=crop&w=800&q=80" alt="Enactus FTU Hanoi" style="width:100%; border-radius: 15px; box-shadow: 0 6px 20px var(--shadow-color); margin-top: 1rem;">
+  </section>
+
+  <!-- Các ban -->
+  <section id="teams" class="container" style="margin-top: 3rem;">
+    <h2>Các Ban Hoạt Động</h2>
+    <div class="card-grid">
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1551836022-39d8e064a8a3?auto=format&fit=crop&w=600&q=80" alt="Ban Dự Án" />
+        <h3>Ban Dự Án</h3>
+        <p>Đầu não sáng tạo và vận hành các dự án xã hội.</p>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80" alt="Ban Nhân Sự" />
+        <h3>Ban Nhân Sự</h3>
+        <p>Kết nối, tổ chức nội bộ và sự kiện gắn kết.</p>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=600&q=80" alt="Ban Đối Ngoại" />
+        <h3>Ban Đối Ngoại</h3>
+        <p>Gây quỹ, giữ mối quan hệ với đối tác & cựu thành viên.</p>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=600&q=80" alt="Ban Truyền Thông" />
+        <h3>Ban Truyền Thông</h3>
+        <p>Lan tỏa hình ảnh Enactus qua nội dung & thiết kế sáng tạo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dự án nổi bật -->
+  <section id="projects" class="container" style="margin-top: 3rem; margin-bottom: 3rem;">
+    <h2>Dự án tiêu biểu</h2>
+    <div class="card-grid">
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=700&q=80" alt="Dự án Y tế cộng đồng" />
+        <h3>Dự án Y tế Cộng đồng</h3>
+        <p>Giúp đỡ các vùng xa tiếp cận y tế chất lượng và giáo dục sức khỏe.</p>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=700&q=80" alt="Dự án Giáo dục" />
+        <h3>Dự án Giáo dục</h3>
+        <p>Cung cấp học bổng và đào tạo kỹ năng cho học sinh nghèo.</p>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=700&q=80" alt="Dự án Môi trường" />
+        <h3>Dự án Môi trường</h3>
+        <p>Tuyên truyền và thực hiện các hoạt động bảo vệ môi trường xanh sạch.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 Enactus FTU Hanoi. All rights reserved.</p>
+  </footer>
+</body>
+</html>
