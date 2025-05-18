@@ -15,7 +15,7 @@
     <h1 id="pageTitle" class="text-3xl font-bold text-blue-700">Đang tải...</h1>
     <div>
       <span id="userInfo" class="mr-4 text-gray-700"></span>
-      <button id="btnLogout" class="text-sm text-red-600 hover:underline">Đăng xuất</button>
+      <button id="btnLogout" class="text-sm text-red-600 hover:underline hidden">Đăng xuất</button>
     </div>
   </header>
 
@@ -70,10 +70,8 @@
   </main>
 
   <script>
-    // Cấu hình trang login redirect
     const LOGIN_PAGE = "https://enactusftuhanoi.github.io/vn/login.html";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
       authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -83,12 +81,10 @@
       appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
     };
 
-    // Khởi tạo Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Element references
     const pageTitle = document.getElementById("pageTitle");
     const userInfo = document.getElementById("userInfo");
     const btnLogout = document.getElementById("btnLogout");
@@ -107,14 +103,12 @@
     let currentUserData = null;
     let currentSession = null;
 
-    // Logout
     btnLogout.addEventListener("click", () => {
       auth.signOut().then(() => {
         window.location.href = LOGIN_PAGE;
       });
     });
 
-    // Hàm tải danh sách phiên (admin)
     async function loadSessions() {
       try {
         const snapshot = await db.collection("attendance_sessions").orderBy("startTime", "desc").get();
@@ -140,7 +134,6 @@
             <button class="text-red-600 hover:underline">Xóa</button>
           `;
 
-          // Xóa phiên
           div.querySelector("button").onclick = async () => {
             if (confirm(`Bạn có chắc muốn xóa phiên "${d.name}" không?`)) {
               try {
@@ -159,7 +152,6 @@
       }
     }
 
-    // Tạo phiên mới (admin)
     formCreateSession.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -195,9 +187,10 @@
       }
     });
 
-    // Kiểm tra phiên active hiện tại (member)
     async function checkActiveSession() {
       sessionStatus.textContent = "Đang kiểm tra phiên điểm danh...";
+      btnCheckIn.style.display = "none";
+      checkInResult.textContent = "";
 
       try {
         const now = firebase.firestore.Timestamp.now();
@@ -209,126 +202,120 @@
 
         if (q.empty) {
           sessionStatus.textContent = "Hiện không có phiên điểm danh nào đang diễn ra.";
-          btnCheckIn.style.display = "none";
-          checkInResult.textContent = "";
           currentSession = null;
           return;
         }
 
         const doc = q.docs[0];
         const data = doc.data();
-
         currentSession = doc;
 
         sessionStatus.textContent = `Phiên điểm danh: "${data.name}" (Từ ${data.startTime.toDate().toLocaleString()} đến ${data.endTime.toDate().toLocaleString()})`;
-            // Kiểm tra xem user đã điểm danh chưa
-    const recordQuery = await db.collection("attendance_records")
-      .where("sessionId", "==", doc.id)
-      .where("userId", "==", currentUser.uid)
-      .limit(1)
-      .get();
 
-    if (!recordQuery.empty) {
-      btnCheckIn.style.display = "none";
-      checkInResult.textContent = "✅ Bạn đã điểm danh cho phiên này.";
-    } else {
-      btnCheckIn.style.display = "inline-block";
-      checkInResult.textContent = "";
-    }
-  } catch (e) {
-    sessionStatus.textContent = "Lỗi kiểm tra phiên điểm danh.";
-    btnCheckIn.style.display = "none";
-    checkInResult.textContent = "";
-    console.error(e);
-  }
-}
+        // Kiểm tra user đã điểm danh chưa
+        const recordQuery = await db.collection("attendance_records")
+          .where("sessionId", "==", doc.id)
+          .where("userId", "==", currentUser.uid)
+          .limit(1)
+          .get();
 
-// Điểm danh (member)
-btnCheckIn.addEventListener("click", async () => {
-  if (!currentSession) return;
-
-  btnCheckIn.disabled = true;
-  checkInResult.textContent = "Đang điểm danh...";
-
-  try {
-    // Lấy thông tin user từ employees
-    const empDoc = await db.collection("employees").doc(currentUser.uid).get();
-    if (!empDoc.exists) {
-      alert("Không tìm thấy thông tin nhân viên.");
-      btnCheckIn.disabled = false;
-      checkInResult.textContent = "";
-      return;
+        if (!recordQuery.empty) {
+          btnCheckIn.style.display = "none";
+          checkInResult.textContent = "✅ Bạn đã điểm danh cho phiên này.";
+        } else {
+          btnCheckIn.style.display = "inline-block";
+          checkInResult.textContent = "";
+        }
+      } catch (e) {
+        sessionStatus.textContent = "Lỗi kiểm tra phiên điểm danh.";
+        console.error(e);
+      }
     }
 
-    const empData = empDoc.data();
+    btnCheckIn.addEventListener("click", async () => {
+      if (!currentSession) return;
 
-    await db.collection("attendance_records").add({
-      sessionId: currentSession.id,
-      userId: currentUser.uid,
-      name: empData.name || currentUser.displayName || "Không rõ tên",
-      department: empData.department || "Không rõ ban",
-      timestamp: firebase.firestore.Timestamp.now()
+      btnCheckIn.disabled = true;
+      checkInResult.textContent = "Đang điểm danh...";
+
+      try {
+        const empDoc = await db.collection("employees").doc(currentUser.uid).get();
+        if (!empDoc.exists) {
+          alert("Không tìm thấy thông tin nhân viên.");
+          btnCheckIn.disabled = false;
+          checkInResult.textContent = "";
+          return;
+        }
+
+        const empData = empDoc.data();
+
+        await db.collection("attendance_records").add({
+          sessionId: currentSession.id,
+          userId: currentUser.uid,
+          name: empData.name || currentUser.displayName || "Không rõ tên",
+          department: empData.department || "Không rõ ban",
+          timestamp: firebase.firestore.Timestamp.now()
+        });
+
+        checkInResult.textContent = "✅ Điểm danh thành công!";
+        btnCheckIn.style.display = "none";
+      } catch (e) {
+        alert("Lỗi khi điểm danh: " + e.message);
+        checkInResult.textContent = "";
+        btnCheckIn.disabled = false;
+      }
     });
 
-    checkInResult.textContent = "✅ Điểm danh thành công!";
-    btnCheckIn.style.display = "none";
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = LOGIN_PAGE;
+        return;
+      }
+      currentUser = user;
 
-  } catch (e) {
-    alert("Lỗi khi điểm danh: " + e.message);
-    checkInResult.textContent = "";
-    btnCheckIn.disabled = false;
-  }
-});
-
-// Main: Kiểm tra đăng nhập và phân quyền
-auth.onAuthStateChanged(async (user) => {
-  if (!user) {
-    window.location.href = LOGIN_PAGE;
-    return;
-  }
-  currentUser = user;
-
-  loading.style.display = "block";
-  adminUI.classList.add("hidden");
-  memberUI.classList.add("hidden");
-
-  try {
-    // Lấy dữ liệu nhân viên để lấy role
-    const empDoc = await db.collection("employees").doc(user.uid).get();
-    if (!empDoc.exists) {
-      alert("Bạn không có quyền truy cập.");
-      await auth.signOut();
-      window.location.href = LOGIN_PAGE;
-      return;
-    }
-
-    currentUserData = empDoc.data();
-
-    userInfo.textContent = `${currentUserData.name || user.displayName || "Người dùng"} (${currentUserData.role || "member"})`;
-
-    if (currentUserData.role === "admin") {
-      pageTitle.textContent = "Quản lý phiên điểm danh";
-      adminUI.classList.remove("hidden");
-      memberUI.classList.add("hidden");
-      await loadSessions();
-    } else if (currentUserData.role === "member") {
-      pageTitle.textContent = "Điểm danh nhanh";
+      loading.style.display = "block";
       adminUI.classList.add("hidden");
-      memberUI.classList.remove("hidden");
-      await checkActiveSession();
-    } else {
-      alert("Bạn không có quyền truy cập trang này.");
-      await auth.signOut();
-      window.location.href = LOGIN_PAGE;
-    }
-  } catch (e) {
-    alert("Lỗi hệ thống: " + e.message);
-    await auth.signOut();
-    window.location.href = LOGIN_PAGE;
-  } finally {
-    loading.style.display = "none";
-  }
-});
-</script> 
-</body> 
-</html> 
+      memberUI.classList.add("hidden");
+      btnLogout.classList.add("hidden");
+
+      try {
+        const empDoc = await db.collection("employees").doc(user.uid).get();
+        if (!empDoc.exists) {
+          alert("Bạn không có quyền truy cập.");
+          await auth.signOut();
+          window.location.href = LOGIN_PAGE;
+          return;
+        }
+
+        currentUserData = empDoc.data();
+
+        userInfo.textContent = `${currentUserData.name || user.displayName || "Người dùng"} (${currentUserData.role || "member"})`;
+        btnLogout.classList.remove("hidden");
+
+        if (currentUserData.role === "admin") {
+          pageTitle.textContent = "Quản lý phiên điểm danh";
+          adminUI.classList.remove("hidden");
+          memberUI.classList.add("hidden");
+          await loadSessions();
+        } else if (currentUserData.role === "member") {
+          pageTitle.textContent = "Điểm danh nhanh";
+          adminUI.classList.add("hidden");
+          memberUI.classList.remove("hidden");
+          await checkActiveSession();
+        } else {
+          alert("Bạn không có quyền truy cập trang này.");
+          await auth.signOut();
+          window.location.href = LOGIN_PAGE;
+        }
+      } catch (e) {
+        alert("Lỗi hệ thống: " + e.message);
+        await auth.signOut();
+        window.location.href = LOGIN_PAGE;
+      } finally {
+        loading.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
+
