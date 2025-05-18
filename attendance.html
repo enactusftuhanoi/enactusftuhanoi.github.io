@@ -2,20 +2,26 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Điểm danh</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-gray-100 font-sans">
-  <div class="max-w-md mx-auto mt-20 bg-white p-6 rounded-xl shadow-md text-center">
+<body class="bg-gray-100 font-sans min-h-screen flex items-center justify-center p-4">
+  <div class="max-w-md w-full bg-white p-6 rounded-xl shadow-md text-center">
     <h1 class="text-2xl font-bold text-blue-600 mb-4">Điểm danh buổi học</h1>
-    <p id="status" class="text-gray-700 text-sm">Đang kiểm tra phiên điểm danh...</p>
+    <div id="sessionInfo" class="mb-4 text-gray-700"></div>
+    <p id="status" class="text-gray-700 text-sm mb-6">Đang kiểm tra phiên điểm danh...</p>
+    <button id="btnAttendance" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition hidden">
+      Điểm danh ngay
+    </button>
+    <button id="btnLogout" class="mt-6 text-sm text-gray-500 underline hover:text-gray-700">Đăng xuất</button>
   </div>
 
   <script>
+    // Cấu hình Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
       authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -30,19 +36,20 @@
     const db = firebase.firestore();
 
     const statusEl = document.getElementById("status");
+    const sessionInfoEl = document.getElementById("sessionInfo");
+    const btnAttendance = document.getElementById("btnAttendance");
+    const btnLogout = document.getElementById("btnLogout");
 
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        statusEl.textContent = "Bạn chưa đăng nhập. Đang chuyển hướng...";
-        setTimeout(() => window.location.href = "login.html", 2000);
-        return;
-      }
+    let currentSession = null;
+    let currentUser = null;
 
-      const userName = user.displayName || "Không rõ tên";
-      const email = user.email;
+    btnLogout.addEventListener("click", () => {
+      auth.signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    });
 
-      statusEl.textContent = `Xin chào, ${userName}. Đang tìm buổi điểm danh...`;
-
+    async function checkAttendance() {
       try {
         const now = firebase.firestore.Timestamp.now();
         const sessionsRef = db.collection("attendance_sessions");
@@ -53,38 +60,80 @@
         const snapshot = await activeQuery.get();
 
         if (snapshot.empty) {
+          sessionInfoEl.textContent = "";
           statusEl.textContent = "⏳ Hiện không có buổi điểm danh nào đang diễn ra.";
+          btnAttendance.classList.add("hidden");
           return;
         }
 
-        const session = snapshot.docs[0];
-        const sessionId = session.id;
+        currentSession = snapshot.docs[0];
+        const sessionData = currentSession.data();
 
-        // Kiểm tra đã điểm danh chưa
+        // Hiển thị thông tin session
+        const startDate = sessionData.startTime.toDate();
+        const endDate = sessionData.endTime.toDate();
+        sessionInfoEl.innerHTML = `
+          <div><strong>Buổi điểm danh:</strong> ${sessionData.name || "Không có tên"}</div>
+          <div><strong>Bắt đầu:</strong> ${startDate.toLocaleString()}</div>
+          <div><strong>Kết thúc:</strong> ${endDate.toLocaleString()}</div>
+        `;
+
+        // Kiểm tra user đã điểm danh chưa
         const recordRef = db.collection("attendance_records")
-          .where("sessionId", "==", sessionId)
-          .where("userId", "==", user.uid);
+          .where("sessionId", "==", currentSession.id)
+          .where("userId", "==", currentUser.uid);
 
         const recordSnap = await recordRef.get();
         if (!recordSnap.empty) {
           statusEl.textContent = "✅ Bạn đã điểm danh cho buổi này.";
+          btnAttendance.classList.add("hidden");
           return;
         }
 
-        // Ghi điểm danh mới
+        // Nếu chưa điểm danh, cho phép điểm danh
+        statusEl.textContent = "Bạn chưa điểm danh. Nhấn nút dưới để điểm danh ngay.";
+        btnAttendance.classList.remove("hidden");
+      } catch (error) {
+        console.error(error);
+        statusEl.textContent = "❌ Lỗi khi kiểm tra điểm danh.";
+        btnAttendance.classList.add("hidden");
+      }
+    }
+
+    btnAttendance.addEventListener("click", async () => {
+      if (!currentSession || !currentUser) return;
+
+      btnAttendance.disabled = true;
+      statusEl.textContent = "Đang ghi điểm danh...";
+
+      try {
         await db.collection("attendance_records").add({
-          sessionId: sessionId,
-          userId: user.uid,
-          email: email,
-          name: userName,
-          timestamp: now
+          sessionId: currentSession.id,
+          userId: currentUser.uid,
+          email: currentUser.email,
+          name: currentUser.displayName || "Không rõ tên",
+          timestamp: firebase.firestore.Timestamp.now()
         });
 
         statusEl.textContent = "✅ Điểm danh thành công!";
+        btnAttendance.classList.add("hidden");
       } catch (error) {
         console.error(error);
         statusEl.textContent = "❌ Lỗi khi ghi điểm danh.";
+        btnAttendance.disabled = false;
       }
+    });
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        statusEl.textContent = "Bạn chưa đăng nhập. Đang chuyển hướng...";
+        setTimeout(() => window.location.href = "login.html", 1500);
+        return;
+      }
+      currentUser = user;
+
+      statusEl.textContent = `Xin chào, ${user.displayName || "Không rõ tên"}. Đang tìm buổi điểm danh...`;
+      await checkAttendance();
     });
   </script>
 </body>
