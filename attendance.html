@@ -1,76 +1,179 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Attendance Management</title>
-<style>
-  body { font-family: Arial, sans-serif; padding: 20px; }
-  #adminPanel, #scannerPanel { margin-top: 20px; }
-  #sessionsTable, #attendanceTable { border-collapse: collapse; width: 100%; margin-top: 10px;}
-  #sessionsTable th, #sessionsTable td, #attendanceTable th, #attendanceTable td {
-    border: 1px solid #ccc; padding: 8px; text-align: center;
-  }
-  button { padding: 8px 12px; margin: 5px; cursor: pointer; }
-  #qrCodeContainer div { margin-top: 10px; }
-  #scannerPanel { margin-top: 30px; }
-  #scanner { width: 300px; height: 300px; border: 1px solid #ccc; margin-top: 10px; }
-  #restartScanBtn { display: none; margin-top: 10px; }
-  #loginBtn, #logoutBtn { margin-top: 10px; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quản lý điểm danh - Admin</title>
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0 20px 40px;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      max-width: 900px;
+      padding: 20px 0;
+      text-align: center;
+      border-bottom: 2px solid #0078d4;
+      margin-bottom: 30px;
+    }
+    header h1 {
+      margin: 0;
+      color: #0078d4;
+      font-weight: 700;
+    }
+    main {
+      width: 100%;
+      max-width: 900px;
+      background: white;
+      padding: 25px 30px;
+      border-radius: 8px;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    button {
+      cursor: pointer;
+      background-color: #0078d4;
+      border: none;
+      color: white;
+      padding: 12px 22px;
+      border-radius: 5px;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+      margin-top: 10px;
+    }
+    button:hover:not(:disabled) {
+      background-color: #005a9e;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    form {
+      margin-bottom: 30px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    input[type="text"], input[type="datetime-local"] {
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      flex-grow: 1;
+      min-width: 200px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+      font-size: 15px;
+    }
+    th {
+      background-color: #0078d4;
+      color: white;
+      font-weight: 600;
+    }
+    .qr-code {
+      margin-top: 8px;
+      display: inline-block;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .qr-code:hover {
+      transform: scale(1.1);
+    }
+    #logoutBtn {
+      background-color: #e74c3c;
+      margin-left: 10px;
+    }
+    #logoutBtn:hover {
+      background-color: #c0392b;
+    }
+    .hidden {
+      display: none;
+    }
+    #login-container {
+      max-width: 400px;
+      margin-top: 80px;
+      text-align: center;
+      background: white;
+      padding: 30px 25px;
+      border-radius: 8px;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    #login-container h2 {
+      margin-bottom: 25px;
+      color: #0078d4;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Hệ thống Quản lý Điểm danh</h1>
+<header>
+  <h1>Quản lý Điểm danh - Admin</h1>
+</header>
 
-<div id="authPanel">
-  <button id="loginBtn">Đăng nhập bằng Google</button>
-  <button id="logoutBtn" style="display:none;">Đăng xuất</button>
-  <div id="userInfo"></div>
-</div>
-
-<div id="adminPanel" style="display:none;">
-  <h2>Quản lý Phiên điểm danh (Admin)</h2>
+<main id="admin-panel" class="hidden">
+  <div>
+    <button id="logoutBtn">Đăng xuất</button>
+  </div>
 
   <form id="createSessionForm">
-    <label>Tên phiên: <input type="text" id="sessionName" required></label><br><br>
-    <label>Thời gian bắt đầu: <input type="datetime-local" id="startTime" required></label><br><br>
-    <label>Thời gian kết thúc: <input type="datetime-local" id="endTime" required></label><br><br>
-    <button type="submit">Tạo Phiên Điểm danh</button>
+    <input type="text" id="sessionName" placeholder="Tên phiên điểm danh (bắt buộc)" required />
+    <input type="datetime-local" id="startTime" required />
+    <input type="datetime-local" id="endTime" required />
+    <button type="submit">Tạo phiên điểm danh mới</button>
   </form>
 
-  <h3>Danh sách Phiên điểm danh</h3>
-  <table id="sessionsTable">
+  <h2>Danh sách phiên điểm danh</h2>
+  <table id="sessionsTable" aria-label="Danh sách phiên điểm danh">
     <thead>
-      <tr><th>STT</th><th>Tên phiên</th><th>Thời gian bắt đầu</th><th>Thời gian kết thúc</th><th>QR Code</th></tr>
+      <tr>
+        <th>STT</th>
+        <th>Tên phiên</th>
+        <th>Thời gian bắt đầu</th>
+        <th>Thời gian kết thúc</th>
+        <th>QR Code</th>
+      </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="sessionsTbody"></tbody>
   </table>
-</div>
+</main>
 
-<div id="scannerPanel" style="display:none;">
-  <h2>Quét mã QR để điểm danh</h2>
-  <div id="scanner"></div>
-  <button id="restartScanBtn">Quét lại</button>
-  <div id="scanResult" style="margin-top:15px; font-weight:bold;"></div>
+<div id="login-container" class="hidden">
+  <h2>Đăng nhập để quản lý điểm danh</h2>
+  <button id="loginBtn">Đăng nhập với Google</button>
+  <p id="loginStatus" style="margin-top:15px;color:#e74c3c;"></p>
 </div>
-
-<div id="qrCodeContainer"></div>
 
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<!-- QRCode lib -->
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-
-<!-- Html5Qrcode lib -->
-<script src="https://unpkg.com/html5-qrcode"></script>
+<!-- QRCode library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <script>
-  // Firebase config - Thay config của bạn vào đây
-  firebaseConfig = {
+  // ==== CẤU HÌNH FIREBASE ==== //
+  const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
       authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
       projectId: "enactusftuhanoi-tracuu",
@@ -78,259 +181,241 @@
       messagingSenderId: "611356979403",
       appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
   };
-
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  let currentUser = null;
-  let isAdmin = false;
-  let html5QrcodeScanner = null;
-
-  // Phần đăng nhập bằng Google
+  // ==== ELEMENTS ==== //
+  const loginContainer = document.getElementById('login-container');
   const loginBtn = document.getElementById('loginBtn');
+  const loginStatus = document.getElementById('loginStatus');
+  const adminPanel = document.getElementById('admin-panel');
   const logoutBtn = document.getElementById('logoutBtn');
-  const userInfo = document.getElementById('userInfo');
 
-  async function getMemberByEmail(email) {
-    const membersRef = db.collection('members');
-    const querySnapshot = await membersRef.where('email', '==', email).get();
-    if (querySnapshot.empty) return null;
-    return querySnapshot.docs[0].data();
+  const createSessionForm = document.getElementById('createSessionForm');
+  const sessionsTbody = document.getElementById('sessionsTbody');
+
+  // ==== KIỂM TRA SESSION STORAGE ROLE ADMIN ==== //
+  function isAdmin() {
+    const role = sessionStorage.getItem('role');
+    return role === 'Admin';
   }
 
-  async function signInWithGoogle() {
+  // ==== HIỂN THỊ GIAO DIỆN THEO QUYỀN ==== //
+  function showAdminPanel() {
+    loginContainer.classList.add('hidden');
+    adminPanel.classList.remove('hidden');
+  }
+  function showLogin() {
+    loginContainer.classList.remove('hidden');
+    adminPanel.classList.add('hidden');
+  }
+
+  // ==== ĐĂNG NHẬP GOOGLE ==== //
+  loginBtn.addEventListener('click', () => {
     const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-      const result = await auth.signInWithPopup(provider);
-      const user = result.user;
-      const member = await getMemberByEmail(user.email);
-      if (!member) {
-        alert('Tài khoản của bạn không có quyền truy cập hệ thống');
-        await auth.signOut();
-        return;
-      }
-      currentUser = member;
-      isAdmin = member.role === 'Admin';
-      updateUIAfterLogin();
-    } catch (e) {
-      alert('Lỗi đăng nhập: ' + e.message);
-    }
-  }
+    auth.signInWithPopup(provider)
+      .then(async (result) => {
+        const user = result.user;
+        if (!user) {
+          loginStatus.textContent = "Không lấy được thông tin user!";
+          return;
+        }
+        const email = user.email;
 
-  function updateUIAfterLogin() {
-    if (currentUser) {
-      userInfo.textContent = `Xin chào, ${currentUser.name} (${currentUser.role})`;
-      loginBtn.style.display = 'none';
-      logoutBtn.style.display = 'inline-block';
-      if (isAdmin) {
-        document.getElementById('adminPanel').style.display = 'block';
-        document.getElementById('scannerPanel').style.display = 'none';
+        // Lấy thông tin user từ Firestore
+        const memberDoc = await db.collection('members').where('email', '==', email).get();
+        if (memberDoc.empty) {
+          loginStatus.textContent = "Tài khoản không có quyền truy cập.";
+          await auth.signOut();
+          return;
+        }
+        const memberData = memberDoc.docs[0].data();
+
+        // Lưu thông tin vào sessionStorage
+        sessionStorage.setItem('email', memberData.email);
+        sessionStorage.setItem('name', memberData.name);
+        sessionStorage.setItem('role', memberData.role);
+        sessionStorage.setItem('ban', memberData.ban);
+
+        if (memberData.role !== 'Admin') {
+          loginStatus.textContent = "Bạn không có quyền Admin để truy cập trang này.";
+          await auth.signOut();
+          return;
+        }
+
+        loginStatus.textContent = "";
+        showAdminPanel();
         loadSessions();
-      } else {
-        document.getElementById('scannerPanel').style.display = 'block';
-        document.getElementById('adminPanel').style.display = 'none';
-        startScanner();
-      }
-    } else {
-      userInfo.textContent = '';
-      loginBtn.style.display = 'inline-block';
-      logoutBtn.style.display = 'none';
-      document.getElementById('adminPanel').style.display = 'none';
-      document.getElementById('scannerPanel').style.display = 'none';
-      stopScanner();
-    }
-  }
-
-  loginBtn.onclick = signInWithGoogle;
-  logoutBtn.onclick = () => {
-    auth.signOut();
-  };
-
-  auth.onAuthStateChanged(async user => {
-    if (user) {
-      const member = await getMemberByEmail(user.email);
-      if (!member) {
-        await auth.signOut();
-        alert('Tài khoản không có quyền truy cập.');
-        return;
-      }
-      currentUser = member;
-      isAdmin = member.role === 'Admin';
-      updateUIAfterLogin();
-    } else {
-      currentUser = null;
-      isAdmin = false;
-      updateUIAfterLogin();
-    }
+      })
+      .catch(err => {
+        console.error(err);
+        loginStatus.textContent = "Đăng nhập thất bại: " + err.message;
+      });
   });
 
-  // Phần tạo phiên điểm danh (admin)
-  const createSessionForm = document.getElementById('createSessionForm');
-  const sessionsTableBody = document.querySelector('#sessionsTable tbody');
-  const qrCodeContainer = document.getElementById('qrCodeContainer');
+  // ==== ĐĂNG XUẤT ==== //
+  logoutBtn.addEventListener('click', () => {
+    auth.signOut();
+    sessionStorage.clear();
+    showLogin();
+  });
 
-  createSessionForm.onsubmit = async (e) => {
+  // ==== KIỂM TRA ĐĂNG NHẬP KHI LOAD TRANG ==== //
+  window.onload = async () => {
+    const storedRole = sessionStorage.getItem('role');
+    if (storedRole === 'Admin') {
+      showAdminPanel();
+      loadSessions();
+    } else {
+      showLogin();
+    }
+  };
+
+  // ==== TẠO PHIÊN ĐIỂM DANH MỚI ==== //
+  createSessionForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('sessionName').value.trim();
-    const start = new Date(document.getElementById('startTime').value);
-    const end = new Date(document.getElementById('endTime').value);
 
-    if (start >= end) {
-      alert('Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc.');
+    const name = document.getElementById('sessionName').value.trim();
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+
+    if (!name || !startTime || !endTime) {
+      alert('Vui lòng nhập đầy đủ thông tin!');
+      return;
+    }
+    if (new Date(endTime) <= new Date(startTime)) {
+      alert('Thời gian kết thúc phải lớn hơn thời gian bắt đầu!');
       return;
     }
 
     try {
-      const docRef = await db.collection('attendanceSessions').add({
-        sessionName: name,
-        startTime: firebase.firestore.Timestamp.fromDate(start),
-        endTime: firebase.firestore.Timestamp.fromDate(end),
-        createdAt: firebase.firestore.Timestamp.now()
+      await db.collection('attendanceSessions').add({
+        name,
+        startTime: firebase.firestore.Timestamp.fromDate(new Date(startTime)),
+        endTime: firebase.firestore.Timestamp.fromDate(new Date(endTime)),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       alert('Tạo phiên điểm danh thành công!');
       createSessionForm.reset();
       loadSessions();
-    } catch (e) {
-      alert('Lỗi tạo phiên: ' + e.message);
+    } catch (error) {
+      console.error('Lỗi tạo phiên điểm danh:', error);
+      alert('Có lỗi xảy ra, vui lòng thử lại.');
     }
-  };
+  });
 
+  // ==== HIỂN THỊ DANH SÁCH PHIÊN ĐIỂM DANH ==== //
   async function loadSessions() {
-    sessionsTableBody.innerHTML = '';
-    qrCodeContainer.innerHTML = '';
-    const snapshot = await db.collection('attendanceSessions').orderBy('createdAt', 'desc').get();
-    if (snapshot.empty) {
-      sessionsTableBody.innerHTML = '<tr><td colspan="5">Chưa có phiên điểm danh nào.</td></tr>';
-      return;
-    }
-    let i = 1;
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${i++}</td>
-        <td>${data.sessionName}</td>
-        <td>${data.startTime.toDate().toLocaleString()}</td>
-        <td>${data.endTime.toDate().toLocaleString()}</td>
-        <td><button data-id="${doc.id}" class="showQrBtn">Hiện QR</button></td>
-      `;
-      sessionsTableBody.appendChild(tr);
-    });
-    // Thêm sự kiện hiện QR
-    document.querySelectorAll('.showQrBtn').forEach(btn => {
-      btn.onclick = () => {
-        showQrCode(btn.getAttribute('data-id'));
-      };
-    });
-  }
-
-  function showQrCode(sessionId) {
-    qrCodeContainer.innerHTML = '<h3>Mã QR điểm danh cho phiên</h3>';
-    const qrDiv = document.createElement('div');
-    qrCodeContainer.appendChild(qrDiv);
-    new QRCode(qrDiv, {
-      text: sessionId,
-      width: 200,
-      height: 200
-    });
-  }
-
-  // Phần scan điểm danh
-  const scannerDiv = document.getElementById('scanner');
-  const scanResult = document.getElementById('scanResult');
-  const restartScanBtn = document.getElementById('restartScanBtn');
-
-  function startScanner() {
-    scanResult.textContent = '';
-    restartScanBtn.style.display = 'none';
-
-    if (html5QrcodeScanner) {
-      html5QrcodeScanner.clear().catch(() => {});
-    }
-    html5QrcodeScanner = new Html5Qrcode("scanner");
-
-    html5QrcodeScanner.start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: 250
-      },
-      qrCodeMessage => {
-        html5QrcodeScanner.stop();
-        onQRCodeScanned(qrCodeMessage);
-        restartScanBtn.style.display = 'inline-block';
-      },
-      errorMessage => {
-        // ignore scan errors
-      }
-    ).catch(err => {
-      scanResult.textContent = 'Lỗi không thể mở camera: ' + err;
-    });
-  }
-
-  restartScanBtn.onclick = () => {
-    scanResult.textContent = '';
-    restartScanBtn.style.display = 'none';
-    startScanner();
-  };
-
-  function stopScanner() {
-    if (html5QrcodeScanner) {
-      html5QrcodeScanner.clear().catch(() => {});
-      html5QrcodeScanner = null;
-    }
-  }
-
-  async function onQRCodeScanned(sessionId) {
-    if (!currentUser) {
-      scanResult.textContent = 'Bạn cần đăng nhập để điểm danh.';
-      return;
-    }
-    scanResult.textContent = 'Đang ghi nhận điểm danh...';
-
+    sessionsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Đang tải dữ liệu...</td></tr>';
     try {
-      // Lấy phiên điểm danh
-      const sessionDoc = await db.collection('attendanceSessions').doc(sessionId).get();
-      if (!sessionDoc.exists) {
-        scanResult.textContent = 'Phiên điểm danh không tồn tại hoặc đã hết hạn.';
+      const snapshot = await db.collection('attendanceSessions').orderBy('createdAt', 'desc').get();
+      if (snapshot.empty) {
+        sessionsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chưa có phiên điểm danh nào.</td></tr>';
         return;
       }
-      const sessionData = sessionDoc.data();
-      const now = firebase.firestore.Timestamp.now();
+      let idx = 1;
+      sessionsTbody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const id = doc.id;
 
-      if (now.seconds < sessionData.startTime.seconds || now.seconds > sessionData.endTime.seconds) {
-        scanResult.textContent = 'Phiên điểm danh chưa bắt đầu hoặc đã kết thúc.';
-        return;
-      }
+        const tr = document.createElement('tr');
 
-      // Kiểm tra đã điểm danh chưa
-      const attendanceRef = db.collection('attendance');
-      const attQuerySnapshot = await attendanceRef
-        .where('sessionId', '==', sessionId)
-        .where('userEmail', '==', currentUser.email)
-        .get();
+        const tdIdx = document.createElement('td');
+        tdIdx.textContent = idx++;
 
-      if (!attQuerySnapshot.empty) {
-        scanResult.textContent = 'Bạn đã điểm danh phiên này rồi!';
-        return;
-      }
+        const tdName = document.createElement('td');
+        tdName.textContent = data.name;
 
-      // Thêm điểm danh
-      await attendanceRef.add({
-        sessionId,
-        userEmail: currentUser.email,
-        userName: currentUser.name,
-        timestamp: now,
-        ban: currentUser.ban,
-        id: currentUser.id,
-        phone: currentUser.phone
+        const tdStart = document.createElement('td');
+        tdStart.textContent = data.startTime?.toDate().toLocaleString() || '-';
+
+        const tdEnd = document.createElement('td');
+        tdEnd.textContent = data.endTime?.toDate().toLocaleString() || '-';
+
+        const tdQR = document.createElement('td');
+        const qrBtn = document.createElement('button');
+        qrBtn.textContent = 'Hiển thị QR';
+        qrBtn.style.padding = '6px 10px';
+        qrBtn.style.fontSize = '14px';
+        qrBtn.style.backgroundColor = '#28a745';
+        qrBtn.style.margin = '0 auto';
+        qrBtn.style.display = 'block';
+        qrBtn.style.borderRadius = '5px';
+        qrBtn.style.border = 'none';
+        qrBtn.style.color = 'white';
+        qrBtn.style.cursor = 'pointer';
+
+        qrBtn.addEventListener('click', () => {
+          showQRCode(id, data.name);
+        });
+
+        tdQR.appendChild(qrBtn);
+
+        tr.appendChild(tdIdx);
+        tr.appendChild(tdName);
+        tr.appendChild(tdStart);
+        tr.appendChild(tdEnd);
+        tr.appendChild(tdQR);
+
+        sessionsTbody.appendChild(tr);
       });
-
-      scanResult.textContent = `Điểm danh thành công phiên "${sessionData.sessionName}" lúc ${new Date().toLocaleString()}`;
-    } catch (e) {
-      scanResult.textContent = 'Lỗi điểm danh: ' + e.message;
+    } catch (error) {
+      console.error('Lỗi tải phiên điểm danh:', error);
+      sessionsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:red;">Lỗi tải dữ liệu.</td></tr>';
     }
+  }
+
+  // ==== HIỂN THỊ QR CODE ====
+  function showQRCode(sessionId, sessionName) {
+    // Tạo modal đơn giản hiện QR Code
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.background = 'rgba(0,0,0,0.5)';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.style.zIndex = '9999';
+
+    const content = document.createElement('div');
+    content.style.background = 'white';
+    content.style.padding = '30px 25px';
+    content.style.borderRadius = '8px';
+    content.style.textAlign = 'center';
+    content.style.minWidth = '280px';
+
+    const title = document.createElement('h3');
+    title.textContent = `QR Code phiên: ${sessionName}`;
+    title.style.marginBottom = '20px';
+    title.style.color = '#0078d4';
+
+    const canvas = document.createElement('canvas');
+
+    content.appendChild(title);
+    content.appendChild(canvas);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Đóng';
+    closeBtn.style.marginTop = '20px';
+    closeBtn.style.backgroundColor = '#e74c3c';
+
+    closeBtn.addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+
+    content.appendChild(closeBtn);
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    // Nội dung QR code chính là sessionId
+    QRCode.toCanvas(canvas, sessionId, { width: 220 }, function (error) {
+      if (error) console.error(error);
+    });
   }
 </script>
 
