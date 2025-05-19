@@ -201,77 +201,7 @@
     return role === 'Admin';
   }
 
-  // ==== HIỂN THỊ GIAO DIỆN THEO QUYỀN ==== //
-  function showAdminPanel() {
-    loginContainer.classList.add('hidden');
-    adminPanel.classList.remove('hidden');
-  }
-  function showLogin() {
-    loginContainer.classList.remove('hidden');
-    adminPanel.classList.add('hidden');
-  }
-
-  // ==== ĐĂNG NHẬP GOOGLE ==== //
-  loginBtn.addEventListener('click', () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
-      .then(async (result) => {
-        const user = result.user;
-        if (!user) {
-          loginStatus.textContent = "Không lấy được thông tin user!";
-          return;
-        }
-        const email = user.email;
-
-        // Lấy thông tin user từ Firestore
-        const memberDoc = await db.collection('members').where('email', '==', email).get();
-        if (memberDoc.empty) {
-          loginStatus.textContent = "Tài khoản không có quyền truy cập.";
-          await auth.signOut();
-          return;
-        }
-        const memberData = memberDoc.docs[0].data();
-
-        // Lưu thông tin vào sessionStorage
-        sessionStorage.setItem('email', memberData.email);
-        sessionStorage.setItem('name', memberData.name);
-        sessionStorage.setItem('role', memberData.role);
-        sessionStorage.setItem('ban', memberData.ban);
-
-        if (memberData.role !== 'Admin') {
-          loginStatus.textContent = "Bạn không có quyền Admin để truy cập trang này.";
-          await auth.signOut();
-          return;
-        }
-
-        loginStatus.textContent = "";
-        showAdminPanel();
-        loadSessions();
-      })
-      .catch(err => {
-        console.error(err);
-        loginStatus.textContent = "Đăng nhập thất bại: " + err.message;
-      });
-  });
-
-  // ==== ĐĂNG XUẤT ==== //
-  logoutBtn.addEventListener('click', () => {
-    auth.signOut();
-    sessionStorage.clear();
-    showLogin();
-  });
-
-  // ==== KIỂM TRA ĐĂNG NHẬP KHI LOAD TRANG ==== //
-  window.onload = async () => {
-    const storedRole = sessionStorage.getItem('role');
-    if (storedRole === 'Admin') {
-      showAdminPanel();
-      loadSessions();
-    } else {
-      showLogin();
-    }
-  };
-
+ 
   // ==== TẠO PHIÊN ĐIỂM DANH MỚI ==== //
   createSessionForm.addEventListener('submit', async (e) => {
     e.preventDefault();
