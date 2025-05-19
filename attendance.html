@@ -8,7 +8,315 @@
     /* Reset & base */
     * {
       box-sizing: border-box;
+    }<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quản lý điểm danh - Admin</title>
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
     }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0 20px 40px;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      max-width: 900px;
+      padding: 20px 0;
+      text-align: center;
+      border-bottom: 2px solid #0078d4;
+      margin-bottom: 30px;
+    }
+    header h1 {
+      margin: 0;
+      color: #0078d4;
+      font-weight: 700;
+    }
+    main {
+      width: 100%;
+      max-width: 900px;
+      background: white;
+      padding: 25px 30px;
+      border-radius: 8px;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    button {
+      cursor: pointer;
+      background-color: #0078d4;
+      border: none;
+      color: white;
+      padding: 12px 22px;
+      border-radius: 5px;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+      margin-top: 10px;
+    }
+    button:hover:not(:disabled) {
+      background-color: #005a9e;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    form {
+      margin-bottom: 30px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    input[type="text"], input[type="datetime-local"] {
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      flex-grow: 1;
+      min-width: 200px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+      font-size: 15px;
+    }
+    th {
+      background-color: #0078d4;
+      color: white;
+      font-weight: 600;
+    }
+    .qr-code {
+      margin-top: 8px;
+      display: inline-block;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .qr-code:hover {
+      transform: scale(1.1);
+    }
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 8px;
+      max-width: 320px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      text-align: center;
+      position: relative;
+    }
+    .modal button.close-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Quản lý Điểm danh - Admin</h1>
+</header>
+
+<main id="admin-panel">
+  <form id="createSessionForm">
+    <input type="text" id="sessionName" placeholder="Tên phiên điểm danh (bắt buộc)" required />
+    <input type="datetime-local" id="startTime" required />
+    <input type="datetime-local" id="endTime" required />
+    <button type="submit">Tạo phiên điểm danh mới</button>
+  </form>
+
+  <h2>Danh sách phiên điểm danh</h2>
+  <table id="sessionsTable" aria-label="Danh sách phiên điểm danh">
+    <thead>
+      <tr>
+        <th>STT</th>
+        <th>Tên phiên</th>
+        <th>Thời gian bắt đầu</th>
+        <th>Thời gian kết thúc</th>
+        <th>QR Code</th>
+      </tr>
+    </thead>
+    <tbody id="sessionsTbody"></tbody>
+  </table>
+</main>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- QRCode library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<script>
+  // ==== CẤU HÌNH FIREBASE ==== //
+  const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const createSessionForm = document.getElementById('createSessionForm');
+  const sessionsTbody = document.getElementById('sessionsTbody');
+
+  // ==== TẠO PHIÊN ĐIỂM DANH MỚI ==== //
+  createSessionForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('sessionName').value.trim();
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+
+    if (!name || !startTime || !endTime) {
+      alert('Vui lòng nhập đầy đủ thông tin!');
+      return;
+    }
+    if (new Date(endTime) <= new Date(startTime)) {
+      alert('Thời gian kết thúc phải lớn hơn thời gian bắt đầu!');
+      return;
+    }
+
+    try {
+      await db.collection('attendanceSessions').add({
+        name,
+        startTime: firebase.firestore.Timestamp.fromDate(new Date(startTime)),
+        endTime: firebase.firestore.Timestamp.fromDate(new Date(endTime)),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      alert('Tạo phiên điểm danh thành công!');
+      createSessionForm.reset();
+      loadSessions();
+    } catch (error) {
+      console.error('Lỗi tạo phiên điểm danh:', error);
+      alert('Có lỗi xảy ra, vui lòng thử lại.');
+    }
+  });
+
+  // ==== HIỂN THỊ DANH SÁCH PHIÊN ĐIỂM DANH ==== //
+  async function loadSessions() {
+    sessionsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Đang tải dữ liệu...</td></tr>';
+    try {
+      const snapshot = await db.collection('attendanceSessions').orderBy('createdAt', 'desc').get();
+      if (snapshot.empty) {
+        sessionsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chưa có phiên điểm danh nào.</td></tr>';
+        return;
+      }
+      let idx = 1;
+      sessionsTbody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const id = doc.id;
+
+        const tr = document.createElement('tr');
+
+        const tdIdx = document.createElement('td');
+        tdIdx.textContent = idx++;
+
+        const tdName = document.createElement('td');
+        tdName.textContent = data.name;
+
+        const tdStart = document.createElement('td');
+        tdStart.textContent = data.startTime?.toDate().toLocaleString() || '-';
+
+        const tdEnd = document.createElement('td');
+        tdEnd.textContent = data.endTime?.toDate().toLocaleString() || '-';
+
+        const tdQR = document.createElement('td');
+        const qrBtn = document.createElement('button');
+        qrBtn.textContent = 'Hiển thị QR';
+        qrBtn.style.padding = '6px 10px';
+        qrBtn.style.fontSize = '14px';
+        qrBtn.style.backgroundColor = '#28a745';
+        qrBtn.style.border = 'none';
+        qrBtn.style.color = 'white';
+        qrBtn.style.borderRadius = '4px';
+
+        qrBtn.addEventListener('click', () => {
+          showQRCode(id);
+        });
+
+        tdQR.appendChild(qrBtn);
+
+        tr.append(tdIdx, tdName, tdStart, tdEnd, tdQR);
+        sessionsTbody.appendChild(tr);
+      });
+    } catch (error) {
+      sessionsTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Lỗi tải dữ liệu.</td></tr>';
+      console.error('Lỗi tải phiên điểm danh:', error);
+    }
+  }
+
+  // ==== HIỂN THỊ QR CODE TRONG MODAL ==== //
+  function showQRCode(sessionId) {
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', () => document.body.removeChild(modalOverlay));
+
+    const qrContainer = document.createElement('div');
+
+    modal.appendChild(closeBtn);
+    modal.appendChild(qrContainer);
+    modalOverlay.appendChild(modal);
+    document.body.appendChild(modalOverlay);
+
+    // Nội dung QR code là URL điểm danh có chứa sessionId
+    const qrData = `${window.location.origin}/checkin?sessionId=${sessionId}`;
+
+    QRCode.toCanvas(qrContainer, qrData, { width: 220 }, (error) => {
+      if (error) {
+        qrContainer.textContent = 'Lỗi tạo QR code.';
+        console.error(error);
+      }
+    });
+  }
+
+  // Load phiên điểm danh khi mở trang
+  loadSessions();
+
+</script>
+
+</body>
+</html>
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f5f7fa;
