@@ -62,9 +62,18 @@
 
     const resultEl = document.getElementById('result');
 
-    function handleScanSuccess(decodedText) {
+    // Khởi tạo máy quét QR (khai báo ngoài để có thể dừng)
+    const html5QrCode = new Html5Qrcode("scanner");
+
+    async function handleScanSuccess(decodedText) {
+      // Dừng quét để tránh gọi liên tục
+      await html5QrCode.stop();
+
       resultEl.textContent = 'Đang xử lý...';
       markAttendance(decodedText);
+
+      // Nếu bạn muốn tiếp tục quét sau khi điểm danh, có thể bật lại bằng dòng này:
+      // html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, handleScanSuccess);
     }
 
     async function markAttendance(sessionId) {
@@ -99,8 +108,7 @@
       }
     }
 
-    // Khởi tạo máy quét QR
-    const html5QrCode = new Html5Qrcode("scanner");
+    // Khởi động quét QR
     html5QrCode.start(
       { facingMode: "environment" },
       {
