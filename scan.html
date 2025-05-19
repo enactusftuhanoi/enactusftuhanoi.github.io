@@ -22,18 +22,19 @@
     #scanner {
       width: 300px;
       height: 300px;
+      background: #ccc;
       border: 4px solid #0078d4;
       border-radius: 10px;
       margin-bottom: 20px;
-      box-sizing: border-box;
-      overflow: hidden;
-      background: #ccc;
+      box-sizing: border-box; /* tránh tràn viền */
+      overflow: hidden; /* tránh tràn */
     }
     #result {
       font-size: 18px;
       font-weight: bold;
       color: green;
       min-height: 24px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -65,116 +66,89 @@
 
     const resultEl = document.getElementById('result');
 
-    // Lấy email user từ sessionStorage
-    const userEmail = sessionStorage.getItem('userEmail');
-
-    // Biến lưu thông tin nhân viên
-    window.currentUserData = null;
-
     async function loadUserInfo() {
-      if (!userEmail) {
+      const userEmail = sessionStorage.getItem('userEmail');
+      const normalizedEmail = userEmail ? userEmail.toLowerCase() : null;
+      console.log("Email lấy từ sessionStorage:", normalizedEmail);
+      if (!normalizedEmail) {
         resultEl.textContent = 'Chưa đăng nhập (sessionStorage userEmail không có)';
         resultEl.style.color = 'red';
         return;
       }
       try {
-        const empRef = db.collection('employees').doc(userEmail);
+        const empRef = db.collection('employees').doc(normalizedEmail);
         const empDoc = await empRef.get();
-
         if (!empDoc.exists) {
-          resultEl.textContent = 'Không tìm thấy thông tin nhân viên.';
+          resultEl.textContent = 'Không tìm thấy thông tin nhân viên';
           resultEl.style.color = 'red';
           return;
         }
-
         const empData = empDoc.data();
-
         window.currentUserData = {
           name: empData.name || 'Chưa có tên',
           ban: empData.ban || 'Chưa có ban',
-          email: userEmail
+          email: normalizedEmail
         };
-
         resultEl.textContent = `Chào bạn ${window.currentUserData.name} - Ban: ${window.currentUserData.ban}`;
         resultEl.style.color = 'black';
-
         startScanner();
-
       } catch (error) {
-        console.error('Lỗi khi lấy thông tin nhân viên:', error);
-        resultEl.textContent = 'Lỗi khi lấy thông tin nhân viên.';
+        console.error("Lỗi lấy nhân viên:", error);
+        resultEl.textContent = 'Lỗi khi lấy thông tin nhân viên';
         resultEl.style.color = 'red';
       }
     }
 
-    async function handleScanSuccess(decodedText) {
-      resultEl.style.color = 'black';
+    function handleScanSuccess(decodedText) {
       resultEl.textContent = 'Đang xử lý điểm danh...';
-      console.log('Quét QR code:', decodedText);
+      markAttendance(decodedText);
+    }
 
-      if (!window.currentUserData) {
-        resultEl.textContent = 'Chưa có thông tin nhân viên.';
-        resultEl.style.color = 'red';
-        return;
-      }
-
-      const { name, ban, email } = window.currentUserData;
-
+    async function markAttendance(sessionId) {
       try {
-        const sessionRef = db.collection('attendanceSessions').doc(decodedText);
+        const sessionRef = db.collection('attendanceSessions').doc(sessionId);
         const sessionDoc = await sessionRef.get();
-
         if (!sessionDoc.exists) {
-          resultEl.textContent = 'Mã QR không hợp lệ hoặc phiên điểm danh không tồn tại.';
+          resultEl.textContent = 'QR không hợp lệ!';
           resultEl.style.color = 'red';
           return;
         }
-
-        // Kiểm tra thời gian phiên điểm danh
-        const sessionData = sessionDoc.data();
-        const now = new Date();
-        if (now < sessionData.startTime.toDate() || now > sessionData.endTime.toDate()) {
-          resultEl.textContent = 'Phiên điểm danh chưa bắt đầu hoặc đã kết thúc.';
+        // Dùng dữ liệu user đã lấy từ trước
+        const user = window.currentUserData;
+        if (!user) {
+          resultEl.textContent = 'Chưa có thông tin nhân viên.';
           resultEl.style.color = 'red';
-          return;
-        }
-
-        // Kiểm tra xem user đã điểm danh chưa
-        const attendeeRef = sessionRef.collection('attendees').doc(email);
-        const attendeeDoc = await attendeeRef.get();
-
-        if (attendeeDoc.exists) {
-          resultEl.textContent = 'Bạn đã điểm danh rồi nhé!';
-          resultEl.style.color = 'orange';
           return;
         }
 
         // Lưu điểm danh
-        await attendeeRef.set({
-          name,
-          ban,
-          email,
+        await sessionRef.collection('attendees').doc(user.email).set({
+          name: user.name,
+          ban: user.ban,
           checkedInAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        resultEl.textContent = `Điểm danh thành công cho ${name}`;
+        resultEl.textContent = `Điểm danh thành công cho: ${user.name}`;
         resultEl.style.color = 'green';
 
       } catch (err) {
-        console.error('Lỗi khi điểm danh:', err);
-        resultEl.textContent = 'Có lỗi xảy ra khi điểm danh, vui lòng thử lại.';
+        console.error(err);
+        resultEl.textContent = 'Lỗi khi điểm danh.';
         resultEl.style.color = 'red';
       }
     }
 
-    // Khởi động máy quét QR
+    let html5QrCode;
     function startScanner() {
-      const html5QrCode = new Html5Qrcode("scanner");
+      if (html5QrCode) {
+        html5QrCode.stop().catch(() => {});
+      }
+      html5QrCode = new Html5Qrcode("scanner");
       html5QrCode.start(
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: { width: 280, height: 280 }
+          qrbox: { width: 250, height: 250 }
         },
         handleScanSuccess
       ).catch(err => {
@@ -183,9 +157,7 @@
       });
     }
 
-    // Khởi động lấy info user rồi start scanner
     loadUserInfo();
   </script>
-
 </body>
 </html>
