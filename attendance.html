@@ -367,6 +367,7 @@
   document.body.appendChild(modalOverlay);
 
   try {
+    // Lấy dữ liệu từ subcollection "attendees" trong document phiên điểm danh
     const attendeesSnapshot = await db.collection('attendanceSessions')
       .doc(sessionId)
       .collection('attendees')
@@ -378,24 +379,23 @@
       return;
     }
 
-    // Xóa dòng "Đang tải dữ liệu..."
-    attendanceListDiv.textContent = '';
-
     const ul = document.createElement('ul');
 
     attendeesSnapshot.forEach(doc => {
-      const data = doc.data();
+      const attendee = doc.data();
       const li = document.createElement('li');
 
-      // Giả sử trong 'attendees' có trường 'name' và 'timestamp'
-      const name = data.name || 'Không rõ tên';
-      const time = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Không rõ thời gian';
+      // Giả sử attendee có các trường: name, timestamp
+      const name = attendee.name || 'Người dùng ẩn danh';
+      const time = attendee.timestamp ? attendee.timestamp.toDate().toLocaleString() : 'Không rõ thời gian';
 
-      li.textContent = `${name} — Điểm danh lúc: ${time}`;
+      li.textContent = `${name} — ${time}`;
       ul.appendChild(li);
     });
 
+    attendanceListDiv.textContent = ''; // Xóa text "Đang tải dữ liệu..."
     attendanceListDiv.appendChild(ul);
+
   } catch (error) {
     attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
   }
