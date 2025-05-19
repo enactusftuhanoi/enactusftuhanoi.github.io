@@ -367,7 +367,6 @@
   document.body.appendChild(modalOverlay);
 
   try {
-    // Lấy dữ liệu từ subcollection "attendees" trong document phiên điểm danh
     const attendeesSnapshot = await db.collection('attendanceSessions')
       .doc(sessionId)
       .collection('attendees')
@@ -379,27 +378,28 @@
       return;
     }
 
-    // Tạo danh sách hiển thị người điểm danh
+    // Xóa dòng "Đang tải dữ liệu..."
+    attendanceListDiv.textContent = '';
+
     const ul = document.createElement('ul');
+
     attendeesSnapshot.forEach(doc => {
-      const attendee = doc.data();
+      const data = doc.data();
       const li = document.createElement('li');
 
-      // Giả sử mỗi người điểm danh có trường name và timestamp
-      const time = attendee.timestamp ? attendee.timestamp.toDate().toLocaleString() : 'Không rõ thời gian';
-      li.textContent = `${attendee.name || 'Người dùng không rõ tên'} - ${time}`;
+      // Giả sử trong 'attendees' có trường 'name' và 'timestamp'
+      const name = data.name || 'Không rõ tên';
+      const time = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Không rõ thời gian';
+
+      li.textContent = `${name} — Điểm danh lúc: ${time}`;
       ul.appendChild(li);
     });
 
-    attendanceListDiv.textContent = ''; // Xóa chữ "Đang tải dữ liệu..."
     attendanceListDiv.appendChild(ul);
-
   } catch (error) {
     attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
-    console.error('Lỗi khi lấy danh sách người điểm danh:', error);
   }
 }
-
 
   // === Khởi đầu ===
   loadSessions();
