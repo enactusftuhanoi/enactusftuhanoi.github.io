@@ -77,17 +77,17 @@
       return;
     }
     const userEmail = userEmailRaw.toLowerCase().trim();
-    console.log("Mail lấy từ sessionStorage:", userEmail);
+    console.log("Email lấy từ sessionStorage:", userEmail);
 
     try {
-      // Query employees collection theo trường mail
+      // Query employees collection theo trường email
       const querySnapshot = await db.collection('employees')
-        .where('mail', '==', userEmail)
+        .where('email', '==', userEmail)
         .limit(1)
         .get();
 
       if (querySnapshot.empty) {
-        resultEl.textContent = 'Không tìm thấy thông tin nhân viên với mail: ' + userEmail;
+        resultEl.textContent = 'Không tìm thấy thông tin nhân viên với email: ' + userEmail;
         resultEl.style.color = 'red';
         return;
       }
@@ -96,7 +96,7 @@
       const empData = empDoc.data();
 
       window.currentUser = {
-        mail: userEmail,
+        email: userEmail,
         name: empData.name || 'Chưa có tên',
         ban: empData.ban || 'Chưa có ban'
       };
@@ -154,7 +154,7 @@
       const attendeeDoc = await db.collection('attendanceSessions')
                                 .doc(sessionId)
                                 .collection('attendees')
-                                .doc(window.currentUser.mail)
+                                .doc(window.currentUser.email)
                                 .get();
 
       if (attendeeDoc.exists) {
@@ -167,11 +167,11 @@
       await db.collection('attendanceSessions')
               .doc(sessionId)
               .collection('attendees')
-              .doc(window.currentUser.mail)
+              .doc(window.currentUser.email)
               .set({
                 name: window.currentUser.name,
                 ban: window.currentUser.ban,
-                mail: window.currentUser.mail,
+                email: window.currentUser.email,
                 checkedInAt: firebase.firestore.FieldValue.serverTimestamp()
               });
 
