@@ -26,17 +26,22 @@
       border: 4px solid #0078d4;
       border-radius: 10px;
       margin-bottom: 20px;
+      display: none;
     }
     #result {
       font-size: 18px;
       font-weight: bold;
+      margin-top: 10px;
       color: green;
+      text-align: center;
+      max-width: 320px;
     }
   </style>
 </head>
 <body>
 
   <h1>Điểm danh thành viên</h1>
+
   <div id="scanner"></div>
   <p id="result"></p>
 
@@ -48,7 +53,7 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
   <script>
-    // Cấu hình Firebase
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
       authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -60,65 +65,103 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    const scannerDiv = document.getElementById('scanner');
     const resultEl = document.getElementById('result');
 
-    // Khởi tạo máy quét QR (khai báo ngoài để có thể dừng)
+    let currentUser = null;
+
+    async function loadUserFromSession() {
+      const email = sessionStorage.getItem('userEmail');
+      if (!email) {
+        resultEl.textContent = 'Chưa đăng nhập. Vui lòng đăng nhập trước khi điểm danh.';
+        resultEl.style.color = 'red';
+        return false;
+      }
+
+      try {
+        const userDoc = await db.collection('employees').doc(email).get();
+        if (!userDoc.exists) {
+          resultEl.textContent = 'Thông tin nhân viên không tồn tại.';
+          resultEl.style.color = 'red';
+          return false;
+        }
+        currentUser = userDoc.data();
+        currentUser.email = email;
+        resultEl.textContent = `Chào bạn, ${currentUser["Họ và tên"]} (${currentUser.Ban || 'Chưa có ban'})! Hãy quét QR để điểm danh.`;
+        resultEl.style.color = 'blue';
+        return true;
+      } catch (err) {
+        console.error(err);
+        resultEl.textContent = 'Lỗi khi tải thông tin nhân viên.';
+        resultEl.style.color = 'red';
+        return false;
+      }
+    }
+
     const html5QrCode = new Html5Qrcode("scanner");
 
     async function handleScanSuccess(decodedText) {
-      // Dừng quét để tránh gọi liên tục
       await html5QrCode.stop();
 
-      resultEl.textContent = 'Đang xử lý...';
-      markAttendance(decodedText);
+      resultEl.textContent = 'Đang xử lý điểm danh...';
+      resultEl.style.color = 'black';
 
-      // Nếu bạn muốn tiếp tục quét sau khi điểm danh, có thể bật lại bằng dòng này:
-      // html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, handleScanSuccess);
-    }
-
-    async function markAttendance(sessionId) {
       try {
-        const sessionRef = db.collection('attendanceSessions').doc(sessionId);
+        const sessionRef = db.collection('attendanceSessions').doc(decodedText);
         const sessionDoc = await sessionRef.get();
+
         if (!sessionDoc.exists) {
-          resultEl.textContent = 'QR không hợp lệ!';
+          resultEl.textContent = 'QR không hợp lệ hoặc phiên điểm danh không tồn tại!';
           resultEl.style.color = 'red';
           return;
         }
 
-        const name = prompt("Nhập tên của bạn để điểm danh:");
-        if (!name) {
-          resultEl.textContent = 'Hủy điểm danh.';
+        // Kiểm tra user đã điểm danh chưa
+        const attendeeRef = sessionRef.collection('attendees').doc(currentUser.email);
+        const attendeeDoc = await attendeeRef.get();
+
+        if (attendeeDoc.exists) {
+          resultEl.textContent = `Bạn đã điểm danh rồi, ${currentUser["Họ và tên"]}.`;
           resultEl.style.color = 'orange';
           return;
         }
 
-        await sessionRef.collection('attendees').doc(name).set({
-          name,
+        // Lưu điểm danh
+        await attendeeRef.set({
+          name: currentUser["Họ và tên"],
+          department: currentUser.Ban || '',
+          email: currentUser.email,
           checkedInAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        resultEl.textContent = `Điểm danh thành công cho: ${name}`;
+        resultEl.textContent = `Điểm danh thành công: ${currentUser["Họ và tên"]} (${currentUser.Ban || 'Chưa có ban'})`;
         resultEl.style.color = 'green';
 
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error('Lỗi khi điểm danh:', error);
         resultEl.textContent = 'Lỗi khi điểm danh.';
         resultEl.style.color = 'red';
       }
     }
 
-    // Khởi động quét QR
-    html5QrCode.start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: { width: 250, height: 250 }
-      },
-      handleScanSuccess
-    ).catch(err => {
-      resultEl.textContent = 'Không thể mở camera: ' + err;
-      resultEl.style.color = 'red';
+    async function startScanning() {
+      const loaded = await loadUserFromSession();
+      if (!loaded) {
+        return; // không mở camera nếu chưa login
+      }
+      scannerDiv.style.display = 'block';
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        handleScanSuccess
+      ).catch(err => {
+        resultEl.textContent = 'Không thể mở camera: ' + err;
+        resultEl.style.color = 'red';
+      });
+    }
+
+    window.addEventListener('load', () => {
+      startScanning();
     });
   </script>
 </body>
