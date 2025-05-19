@@ -280,34 +280,35 @@
 
   // ==== HIỂN THỊ QR CODE TRONG MODAL ==== //
   function showQRCode(sessionId) {
-    const modalOverlay = document.createElement('div');
-    modalOverlay.className = 'modal-overlay';
+  const modalOverlay = document.createElement('div');
+  modalOverlay.className = 'modal-overlay';
 
-    const modal = document.createElement('div');
-    modal.className = 'modal';
+  const modal = document.createElement('div');
+  modal.className = 'modal';
 
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '&times;';
-    closeBtn.addEventListener('click', () => document.body.removeChild(modalOverlay));
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'close-btn';
+  closeBtn.innerHTML = '&times;';
+  closeBtn.addEventListener('click', () => document.body.removeChild(modalOverlay));
 
-    const qrContainer = document.createElement('div');
+  const qrContainer = document.createElement('div');
 
-    modal.appendChild(closeBtn);
-    modal.appendChild(qrContainer);
-    modalOverlay.appendChild(modal);
-    document.body.appendChild(modalOverlay);
+  modal.appendChild(closeBtn);
+  modal.appendChild(qrContainer);
+  modalOverlay.appendChild(modal);
+  document.body.appendChild(modalOverlay);
 
-    // Nội dung QR code là URL điểm danh có chứa sessionId
-    const qrData = `${window.location.origin}/checkin?sessionId=${sessionId}`;
+  // Nội dung QR code là chính sessionId ngẫu nhiên
+  const qrData = sessionId;
 
-    QRCode.toCanvas(qrContainer, qrData, { width: 220 }, (error) => {
-      if (error) {
-        qrContainer.textContent = 'Lỗi tạo QR code.';
-        console.error(error);
-      }
-    });
-  }
+  QRCode.toCanvas(qrContainer, qrData, { width: 220 }, (error) => {
+    if (error) {
+      qrContainer.textContent = 'Lỗi tạo QR code.';
+      console.error(error);
+    }
+  });
+}
+
 
   // Load phiên điểm danh khi mở trang
   loadSessions();
