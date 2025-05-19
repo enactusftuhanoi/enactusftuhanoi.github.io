@@ -21,18 +21,15 @@
       margin-bottom: 20px;
     }
 
-    #scanner-wrapper {
+    #scanner {
+      width: 300px;
+      height: 300px;
+      position: relative;
       border: 4px solid #0078d4;
       border-radius: 10px;
       overflow: hidden;
       margin-bottom: 20px;
-      width: 300px;
-      height: 300px;
-    }
-
-    #scanner {
-      width: 100%;
-      height: 100%;
+      background: #eee;
     }
 
     #result {
@@ -45,21 +42,19 @@
 <body>
 
   <h1>Điểm danh thành viên</h1>
-  <div id="scanner-wrapper">
-    <div id="scanner"></div>
-  </div>
+  <div id="scanner"></div>
   <p id="result"></p>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- QR Scanner -->
+  <!-- QR Code Scanner -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
   <script>
-    // Firebase config A (dành cho employees)
-    const firebaseConfigA = {
+    // Firebase config
+    const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
       authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
       projectId: "enactusftuhanoi-tracuu",
@@ -68,93 +63,80 @@
       appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
     };
 
-    // Firebase config B (dành cho attendanceSessions)
-    const firebaseConfigB = {
-      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-      projectId: "enactusftuhanoi-tracuu",
-      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
-      messagingSenderId: "611356979403",
-      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
-    };
-
-    // Khởi tạo 2 app Firebase với alias khác nhau
-    const appA = firebase.initializeApp(firebaseConfigA, "appA");
-    const dbA = appA.firestore();
-
-    const appB = firebase.initializeApp(firebaseConfigB, "appB");
-    const dbB = appB.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
     const resultEl = document.getElementById('result');
 
     async function handleScanSuccess(sessionId) {
-      resultEl.textContent = 'Đang xử lý...';
-      resultEl.style.color = 'black';
+      resultEl.textContent = '🔄 Đang kiểm tra...';
+      resultEl.style.color = '#0078d4';
 
-      const userEmail = sessionStorage.getItem('userEmail');
+      const userEmail = sessionStorage.getItem('userEmail')?.trim().toLowerCase();
 
       if (!userEmail) {
-        resultEl.textContent = 'Bạn chưa đăng nhập.';
+        resultEl.textContent = '❌ Bạn chưa đăng nhập!';
         resultEl.style.color = 'red';
         return;
       }
 
       try {
-        // Lấy thông tin nhân viên từ project A
-        const employeeSnap = await dbA.collection('employees')
-          .where('mail', '==', userEmail)
+        // Lấy thông tin nhân viên từ collection 'employees'
+        const employeeSnap = await db.collection('employees')
+          .where('email', '==', userEmail)
           .get();
 
         if (employeeSnap.empty) {
-          resultEl.textContent = 'Không tìm thấy thông tin nhân viên.';
+          resultEl.textContent = `❌ Không tìm thấy nhân viên với email: ${userEmail}`;
           resultEl.style.color = 'red';
           return;
         }
 
-        const employeeData = employeeSnap.docs[0].data();
-        const name = employeeData.name || "Chưa có tên";
-        const ban = employeeData.ban || "Chưa có ban";
+        const employee = employeeSnap.docs[0].data();
+        const name = employee.name || 'Không rõ';
+        const ban = employee.ban || 'Không rõ';
 
-        // Kiểm tra QR có hợp lệ không (project B)
-        const sessionRef = dbB.collection('attendanceSessions').doc(sessionId);
+        // Kiểm tra phiên điểm danh
+        const sessionRef = db.collection('attendanceSessions').doc(sessionId);
         const sessionDoc = await sessionRef.get();
 
         if (!sessionDoc.exists) {
-          resultEl.textContent = 'QR không hợp lệ!';
+          resultEl.textContent = '❌ Mã QR không hợp lệ hoặc phiên điểm danh không tồn tại.';
           resultEl.style.color = 'red';
           return;
         }
 
-        // Ghi điểm danh vào collection attendanceSessions > [sessionId] > attendees
+        // Ghi điểm danh
         await sessionRef.collection('attendees').doc(userEmail).set({
           email: userEmail,
-          name,
-          ban,
+          name: name,
+          ban: ban,
           checkedInAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        resultEl.textContent = `✅ Đã điểm danh: ${name} (${ban})`;
+        resultEl.textContent = `✅ Điểm danh thành công cho: ${name} (${ban})`;
         resultEl.style.color = 'green';
 
-      } catch (error) {
-        console.error(error);
-        resultEl.textContent = 'Đã xảy ra lỗi khi điểm danh.';
+      } catch (err) {
+        console.error(err);
+        resultEl.textContent = '❌ Lỗi hệ thống khi điểm danh.';
         resultEl.style.color = 'red';
       }
     }
 
-    // Khởi tạo QR scanner
+    // Khởi tạo máy quét QR
     const html5QrCode = new Html5Qrcode("scanner");
     html5QrCode.start(
       { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 250 }
+      },
       handleScanSuccess
     ).catch(err => {
-      console.error(err);
-      resultEl.textContent = 'Không thể mở camera: ' + err;
+      resultEl.textContent = '❌ Không thể mở camera: ' + err;
       resultEl.style.color = 'red';
     });
   </script>
-
 </body>
 </html>
