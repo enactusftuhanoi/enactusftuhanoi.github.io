@@ -379,68 +379,27 @@
       return;
     }
 
-    // Tạo bảng để hiển thị danh sách với các cột: Timestamp, Họ tên, Ban
-    const table = document.createElement('table');
-    table.style.width = '100%';
-    table.style.borderCollapse = 'collapse';
-    table.style.marginTop = '10px';
-
-    // Tạo header bảng
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    ['Thời gian điểm danh', 'Họ và tên', 'Ban'].forEach(text => {
-      const th = document.createElement('th');
-      th.textContent = text;
-      th.style.borderBottom = '1px solid #ddd';
-      th.style.padding = '8px';
-      th.style.backgroundColor = '#0078d4';
-      th.style.color = 'white';
-      th.style.fontWeight = '600';
-      headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    // Tạo body bảng
-    const tbody = document.createElement('tbody');
-
+    // Tạo danh sách hiển thị người điểm danh
+    const ul = document.createElement('ul');
     attendeesSnapshot.forEach(doc => {
-      const data = doc.data();
-      const tr = document.createElement('tr');
+      const attendee = doc.data();
+      const li = document.createElement('li');
 
-      // Thời gian điểm danh (timestamp)
-      const tdTime = document.createElement('td');
-      const time = data.timestamp?.toDate();
-      tdTime.textContent = time ? time.toLocaleString() : '-';
-      tdTime.style.padding = '8px';
-      tdTime.style.borderBottom = '1px solid #ddd';
-
-      // Họ và tên
-      const tdName = document.createElement('td');
-      tdName.textContent = data.fullName || data.name || '-';
-      tdName.style.padding = '8px';
-      tdName.style.borderBottom = '1px solid #ddd';
-
-      // Ban
-      const tdDept = document.createElement('td');
-      tdDept.textContent = data.department || data.ban || '-';
-      tdDept.style.padding = '8px';
-      tdDept.style.borderBottom = '1px solid #ddd';
-
-      tr.append(tdTime, tdName, tdDept);
-      tbody.appendChild(tr);
+      // Giả sử mỗi người điểm danh có trường name và timestamp
+      const time = attendee.timestamp ? attendee.timestamp.toDate().toLocaleString() : 'Không rõ thời gian';
+      li.textContent = `${attendee.name || 'Người dùng không rõ tên'} - ${time}`;
+      ul.appendChild(li);
     });
 
-    table.appendChild(tbody);
-
-    // Xóa text "Đang tải dữ liệu" và thêm bảng vào div
-    attendanceListDiv.textContent = '';
-    attendanceListDiv.appendChild(table);
+    attendanceListDiv.textContent = ''; // Xóa chữ "Đang tải dữ liệu..."
+    attendanceListDiv.appendChild(ul);
 
   } catch (error) {
-    attendanceListDiv.textContent = 'Lỗi khi tải danh sách điểm danh: ' + error.message;
+    attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
+    console.error('Lỗi khi lấy danh sách người điểm danh:', error);
   }
 }
+
 
   // === Khởi đầu ===
   loadSessions();
