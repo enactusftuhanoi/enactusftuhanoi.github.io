@@ -293,15 +293,18 @@
 
   const qrContainer = document.createElement('div');
 
+  // Tạo canvas để vẽ QR code
+  const canvas = document.createElement('canvas');
+  qrContainer.appendChild(canvas);
+
   modal.appendChild(closeBtn);
   modal.appendChild(qrContainer);
   modalOverlay.appendChild(modal);
   document.body.appendChild(modalOverlay);
 
-  // Nội dung QR code là chính sessionId ngẫu nhiên
   const qrData = sessionId;
 
-  QRCode.toCanvas(qrContainer, qrData, { width: 220 }, (error) => {
+  QRCode.toCanvas(canvas, qrData, { width: 220 }, (error) => {
     if (error) {
       qrContainer.textContent = 'Lỗi tạo QR code.';
       console.error(error);
