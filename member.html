@@ -71,10 +71,45 @@
         height: 120px;
       }
     }
+    #cuteBtn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 12px 20px;
+    font-size: 16px;
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(120, 115, 245, 0.6);
+    user-select: none;
+    outline: none;
+  }
   </style>
 </head>
 
 <body>
+  <button id="cuteBtn">Điểm danh</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+  const btn = document.getElementById('cuteBtn');
+
+  // GSAP hover animation
+  btn.addEventListener('mouseenter', () => {
+    gsap.to(btn, { scale: 1.1, duration: 0.3, ease: "power2.out" });
+  });
+
+  btn.addEventListener('mouseleave', () => {
+    gsap.to(btn, { scale: 1, duration: 0.3, ease: "power2.out" });
+  });
+
+  // Click chuyển trang sang /scan
+  btn.addEventListener('click', () => {
+    window.location.href = '/scan';
+  });
+</script>
   <!-- Thêm vào trong <body> ngay sau thẻ mở <body> -->
   <div id="adminButton" style="position: absolute; top: 20px; right: 20px; display: none;">
   <button onclick="window.location.href='admin.html'" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
