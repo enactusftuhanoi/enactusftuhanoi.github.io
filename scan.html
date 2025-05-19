@@ -1,163 +1,194 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Điểm danh - Thành viên</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f7fa;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-    h1 {
-      color: #0078d4;
-      margin-bottom: 20px;
-    }
-    #scanner {
-      width: 300px;
-      height: 300px;
-      background: #ccc;
-      border: 4px solid #0078d4;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-sizing: border-box; /* tránh tràn viền */
-      overflow: hidden; /* tránh tràn */
-    }
-    #result {
-      font-size: 18px;
-      font-weight: bold;
-      color: green;
-      min-height: 24px;
-      margin-bottom: 10px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Điểm danh thành viên</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  h1 {
+    color: #0078d4;
+    margin-bottom: 20px;
+  }
+  #scanner {
+    width: 320px;
+    height: 320px;
+    border: 4px solid #0078d4;
+    border-radius: 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: #000;
+  }
+  #result {
+    font-size: 18px;
+    font-weight: 600;
+    min-height: 24px;
+    margin-bottom: 10px;
+    color: black;
+    text-align: center;
+  }
+</style>
 </head>
 <body>
 
-  <h1>Điểm danh thành viên</h1>
-  <div id="scanner"></div>
-  <p id="result"></p>
+<h1>Điểm danh thành viên</h1>
+<div id="scanner"></div>
+<p id="result"></p>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- QR Code Scanner -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<!-- html5-qrcode -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
-  <script>
-    // Cấu hình Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-      projectId: "enactusftuhanoi-tracuu",
-      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
-      messagingSenderId: "611356979403",
-      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+<script>
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+    authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+    projectId: "enactusftuhanoi-tracuu",
+    storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+    messagingSenderId: "611356979403",
+    appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+  };
 
-    const resultEl = document.getElementById('result');
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    async function loadUserInfo() {
-      const userEmail = sessionStorage.getItem('userEmail');
-      const normalizedEmail = userEmail ? userEmail.toLowerCase() : null;
-      console.log("Email lấy từ sessionStorage:", normalizedEmail);
-      if (!normalizedEmail) {
-        resultEl.textContent = 'Chưa đăng nhập (sessionStorage userEmail không có)';
+  const resultEl = document.getElementById('result');
+  let html5QrCode;
+
+  async function loadUserInfo() {
+    const userEmailRaw = sessionStorage.getItem('userEmail');
+    if (!userEmailRaw) {
+      resultEl.textContent = 'Chưa đăng nhập, vui lòng đăng nhập trước';
+      resultEl.style.color = 'red';
+      return;
+    }
+    const userEmail = userEmailRaw.toLowerCase().trim();
+    console.log("Mail lấy từ sessionStorage:", userEmail);
+
+    try {
+      // Query employees collection theo trường mail
+      const querySnapshot = await db.collection('employees')
+        .where('mail', '==', userEmail)
+        .limit(1)
+        .get();
+
+      if (querySnapshot.empty) {
+        resultEl.textContent = 'Không tìm thấy thông tin nhân viên với mail: ' + userEmail;
         resultEl.style.color = 'red';
         return;
       }
-      try {
-        const empRef = db.collection('employees').doc(normalizedEmail);
-        const empDoc = await empRef.get();
-        if (!empDoc.exists) {
-          resultEl.textContent = 'Không tìm thấy thông tin nhân viên';
-          resultEl.style.color = 'red';
-          return;
-        }
-        const empData = empDoc.data();
-        window.currentUserData = {
-          name: empData.name || 'Chưa có tên',
-          ban: empData.ban || 'Chưa có ban',
-          email: normalizedEmail
-        };
-        resultEl.textContent = `Chào bạn ${window.currentUserData.name} - Ban: ${window.currentUserData.ban}`;
-        resultEl.style.color = 'black';
+
+      const empDoc = querySnapshot.docs[0];
+      const empData = empDoc.data();
+
+      window.currentUser = {
+        mail: userEmail,
+        name: empData.name || 'Chưa có tên',
+        ban: empData.ban || 'Chưa có ban'
+      };
+
+      resultEl.textContent = `Chào bạn ${window.currentUser.name} - Ban: ${window.currentUser.ban}`;
+      resultEl.style.color = 'green';
+
+      startScanner();
+    } catch (err) {
+      console.error("Lỗi lấy thông tin nhân viên:", err);
+      resultEl.textContent = 'Lỗi lấy thông tin nhân viên, vui lòng thử lại.';
+      resultEl.style.color = 'red';
+    }
+  }
+
+  function startScanner() {
+    if (html5QrCode) {
+      html5QrCode.stop().catch(() => {});
+    }
+
+    html5QrCode = new Html5Qrcode("scanner");
+
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 280, height: 280 } },
+      qrCodeMessage => {
+        resultEl.textContent = 'Đang xử lý điểm danh...';
+        processAttendance(qrCodeMessage);
+        html5QrCode.stop();
+      }
+    ).catch(err => {
+      resultEl.textContent = 'Không thể mở camera, vui lòng kiểm tra quyền camera.';
+      resultEl.style.color = 'red';
+      console.error(err);
+    });
+  }
+
+  async function processAttendance(sessionId) {
+    if (!window.currentUser) {
+      resultEl.textContent = 'Chưa có thông tin nhân viên, không thể điểm danh.';
+      resultEl.style.color = 'red';
+      return;
+    }
+
+    try {
+      const sessionDoc = await db.collection('attendanceSessions').doc(sessionId).get();
+
+      if (!sessionDoc.exists) {
+        resultEl.textContent = 'Mã QR không hợp lệ hoặc phiên điểm danh không tồn tại.';
+        resultEl.style.color = 'red';
         startScanner();
-      } catch (error) {
-        console.error("Lỗi lấy nhân viên:", error);
-        resultEl.textContent = 'Lỗi khi lấy thông tin nhân viên';
-        resultEl.style.color = 'red';
+        return;
       }
-    }
 
-    function handleScanSuccess(decodedText) {
-      resultEl.textContent = 'Đang xử lý điểm danh...';
-      markAttendance(decodedText);
-    }
+      const attendeeDoc = await db.collection('attendanceSessions')
+                                .doc(sessionId)
+                                .collection('attendees')
+                                .doc(window.currentUser.mail)
+                                .get();
 
-    async function markAttendance(sessionId) {
-      try {
-        const sessionRef = db.collection('attendanceSessions').doc(sessionId);
-        const sessionDoc = await sessionRef.get();
-        if (!sessionDoc.exists) {
-          resultEl.textContent = 'QR không hợp lệ!';
-          resultEl.style.color = 'red';
-          return;
-        }
-        // Dùng dữ liệu user đã lấy từ trước
-        const user = window.currentUserData;
-        if (!user) {
-          resultEl.textContent = 'Chưa có thông tin nhân viên.';
-          resultEl.style.color = 'red';
-          return;
-        }
-
-        // Lưu điểm danh
-        await sessionRef.collection('attendees').doc(user.email).set({
-          name: user.name,
-          ban: user.ban,
-          checkedInAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        resultEl.textContent = `Điểm danh thành công cho: ${user.name}`;
-        resultEl.style.color = 'green';
-
-      } catch (err) {
-        console.error(err);
-        resultEl.textContent = 'Lỗi khi điểm danh.';
-        resultEl.style.color = 'red';
+      if (attendeeDoc.exists) {
+        resultEl.textContent = `Bạn đã điểm danh trước đó.`;
+        resultEl.style.color = 'blue';
+        startScanner();
+        return;
       }
-    }
 
-    let html5QrCode;
-    function startScanner() {
-      if (html5QrCode) {
-        html5QrCode.stop().catch(() => {});
-      }
-      html5QrCode = new Html5Qrcode("scanner");
-      html5QrCode.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
-        },
-        handleScanSuccess
-      ).catch(err => {
-        resultEl.textContent = 'Không thể mở camera: ' + err;
-        resultEl.style.color = 'red';
-      });
-    }
+      await db.collection('attendanceSessions')
+              .doc(sessionId)
+              .collection('attendees')
+              .doc(window.currentUser.mail)
+              .set({
+                name: window.currentUser.name,
+                ban: window.currentUser.ban,
+                mail: window.currentUser.mail,
+                checkedInAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
 
-    loadUserInfo();
-  </script>
+      resultEl.textContent = `Điểm danh thành công cho ${window.currentUser.name}`;
+      resultEl.style.color = 'green';
+
+    } catch (err) {
+      console.error('Lỗi khi điểm danh:', err);
+      resultEl.textContent = 'Lỗi khi điểm danh, vui lòng thử lại.';
+      resultEl.style.color = 'red';
+    } finally {
+      setTimeout(() => startScanner(), 3000);
+    }
+  }
+
+  loadUserInfo();
+</script>
+
 </body>
 </html>
