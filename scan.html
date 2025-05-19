@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Điểm danh</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+</head>
+<body>
+  <h2>Quét mã QR để điểm danh</h2>
+  <div id="reader" style="width: 300px;"></div>
+  <div id="confirmBox" style="display: none; margin-top: 20px;">
+    <p><strong>Họ và tên:</strong> <span id="fullname"></span></p>
+    <p><strong>Ban:</strong> <span id="department"></span></p>
+    <p><strong>Email:</strong> <span id="emailDisplay"></span></p>
+    <p><strong>Điểm danh lúc:</strong> <span id="timestamp"></span></p>
+    <p><strong>Phiên điểm danh:</strong> <span id="sessionName"></span></p>
+    <button onclick="confirmAttendance()">✅ Xác nhận</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let userData = null;
+    let currentSession = null;
+
+    const userEmail = sessionStorage.getItem("userEmail");
+
+    if (!userEmail) {
+      alert("Bạn chưa đăng nhập.");
+      window.location.href = "/login.html";
+    }
+
+    // B1. Lấy phiên điểm danh đang active
+    async function getCurrentSession() {
+      const q = query(collection(db, "sessions"), where("active", "==", true));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        alert("Chưa có phiên điểm danh đang diễn ra.");
+        return;
+      }
+
+      const doc = snapshot.docs[0];
+      currentSession = doc.data().name;
+    }
+
+    // B2. Lấy thông tin user từ "members"
+    async function getUserInfo() {
+      const q = query(collection(db, "members"), where("email", "==", userEmail));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        alert("Không tìm thấy thông tin người dùng.");
+        return;
+      }
+
+      userData = snapshot.docs[0].data();
+      userData.email = userEmail;
+    }
+
+    // B3. Bắt đầu quét QR
+    function startScanner() {
+      const qrScanner = new Html5Qrcode("reader");
+      qrScanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: 250
+        },
+        async (decodedText, decodedResult) => {
+          qrScanner.stop();
+
+          // Check nếu đã điểm danh
+          const q = query(
+            collection(db, "attendance"),
+            where("email", "==", userData.email),
+            where("session", "==", currentSession)
+          );
+          const snapshot = await getDocs(q);
+          if (!snapshot.empty) {
+            alert("Bạn đã điểm danh phiên này rồi.");
+            return;
+          }
+
+          showConfirmBox();
+        },
+        (error) => {}
+      );
+    }
+
+    // B4. Hiện box xác nhận
+    function showConfirmBox() {
+      const now = new Date();
+      const timeStr = now.toLocaleString("vi-VN");
+
+      document.getElementById("fullname").innerText = userData.fullname || "Chưa có";
+      document.getElementById("department").innerText = userData.department || "Chưa có";
+      document.getElementById("emailDisplay").innerText = userData.email;
+      document.getElementById("timestamp").innerText = timeStr;
+      document.getElementById("sessionName").innerText = currentSession;
+
+      userData.timestamp = now;
+
+      document.getElementById("confirmBox").style.display = "block";
+    }
+
+    // B5. Xác nhận điểm danh
+    async function confirmAttendance() {
+      try {
+        await addDoc(collection(db, "attendance"), {
+          email: userData.email,
+          fullname: userData.fullname,
+          department: userData.department,
+          timestamp: Timestamp.fromDate(userData.timestamp),
+          session: currentSession,
+        });
+        alert("✅ Điểm danh thành công!");
+        document.getElementById("confirmBox").style.display = "none";
+      } catch (e) {
+        console.error(e);
+        alert("❌ Có lỗi khi lưu điểm danh.");
+      }
+    }
+
+    // Bắt đầu
+    await getCurrentSession();
+    await getUserInfo();
+    if (currentSession && userData) startScanner();
+  </script>
+</body>
+</html>
