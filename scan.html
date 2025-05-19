@@ -101,12 +101,12 @@
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
 
-        const hoVaTen = userData.hoVaTen || userData['Họ và tên'] || "Chưa có tên";
+        const name = userData.name || userData['Họ và tên'] || "Chưa có tên";
         const ban = userData.ban || userData['Ban'] || "Chưa có ban";
 
         // Lưu lại dữ liệu user cho việc điểm danh
         window.currentUserData = {
-          hoVaTen,
+          name,
           ban,
           email
         };
