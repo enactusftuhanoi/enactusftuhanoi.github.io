@@ -1,54 +1,65 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Điểm danh hệ thống</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý điểm danh</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <style>
-    #adminUI, #memberUI { display: none; }
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    .hidden { display: none; }
+    table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 8px; }
+    table { width: 100%; margin-top: 1rem; }
+    .form-group { margin-bottom: 1rem; }
   </style>
 </head>
-<body class="bg-gray-100 font-sans p-6">
-  <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold">Hệ thống điểm danh</h1>
-      <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded">Đăng xuất</button>
-    </div>
+<body>
+  <h1>Trang Quản Lý Điểm Danh</h1>
 
-    <div id="adminUI">
-      <h2 class="text-xl font-semibold mb-4">Giao diện Quản trị viên (Admin)</h2>
-      <!-- Form tạo phiên điểm danh -->
-      <form id="createSessionForm" class="space-y-4 max-w-md">
-        <div>
-          <label for="sessionName" class="block font-medium mb-1">Tên phiên điểm danh:</label>
-          <input type="text" id="sessionName" required class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label for="startTime" class="block font-medium mb-1">Thời gian bắt đầu:</label>
-          <input type="datetime-local" id="startTime" required class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label for="endTime" class="block font-medium mb-1">Thời gian kết thúc:</label>
-          <input type="datetime-local" id="endTime" required class="w-full border rounded px-3 py-2" />
-        </div>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Tạo phiên điểm danh</button>
-      </form>
-      <p id="adminMsg" class="mt-4 text-green-600"></p>
+  <div id="admin-section" class="hidden">
+    <h2>Tạo phiên điểm danh mới</h2>
+    <div class="form-group">
+      <label>Tên phiên:</label>
+      <input type="text" id="sessionName">
     </div>
+    <div class="form-group">
+      <label>Ban:</label>
+      <input type="text" id="sessionBan">
+    </div>
+    <div class="form-group">
+      <label>Giờ bắt đầu:</label>
+      <input type="datetime-local" id="startTime">
+    </div>
+    <div class="form-group">
+      <label>Giờ kết thúc:</label>
+      <input type="datetime-local" id="endTime">
+    </div>
+    <button onclick="createSession()">Tạo phiên</button>
 
-    <div id="memberUI">
-      <h2 class="text-xl font-semibold mb-4">Giao diện Thành viên - Điểm danh</h2>
-      <p id="attendanceStatus" class="mb-4">Đang kiểm tra phiên điểm danh...</p>
-      <button id="checkInBtn" class="bg-green-600 text-white px-4 py-2 rounded" disabled>Điểm danh</button>
+    <h2>Danh sách các phiên điểm danh</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Tên phiên</th><th>Ban</th><th>Bắt đầu</th><th>Kết thúc</th><th>Xem</th>
+        </tr>
+      </thead>
+      <tbody id="sessionList"></tbody>
+    </table>
+
+    <div id="logDetails" class="hidden">
+      <h3>Chi tiết điểm danh</h3>
+      <table>
+        <thead>
+          <tr><th>Timestamp</th><th>Họ và tên</th><th>Ban</th><th>Tình trạng</th></tr>
+        </thead>
+        <tbody id="logTable"></tbody>
+      </table>
     </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
       authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -57,151 +68,68 @@
       messagingSenderId: "611356979403",
       appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
     };
+    
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    // Lấy userEmail và userRole từ sessionStorage
-    const userEmail = sessionStorage.getItem('userEmail');
-    const userRole = sessionStorage.getItem('userRole');
-
-    if (!userEmail || !userRole) {
-      alert('Bạn chưa đăng nhập hoặc không có quyền truy cập.');
-      window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
-    }
-
-    const adminUI = document.getElementById('adminUI');
-    const memberUI = document.getElementById('memberUI');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    // Đăng xuất
-    logoutBtn.onclick = () => {
-      sessionStorage.clear();
-      auth.signOut();
-      window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
-    };
-
-    if (userRole.toLowerCase() === "admin") {
-      adminUI.style.display = "block";
-    } else {
-      memberUI.style.display = "block";
-      startMemberAttendance();
-    }
-
-    // --- Admin tạo phiên điểm danh ---
-    const createSessionForm = document.getElementById('createSessionForm');
-    const adminMsg = document.getElementById('adminMsg');
-
-    createSessionForm.addEventListener('submit', async e => {
-      e.preventDefault();
-
-      const sessionName = document.getElementById('sessionName').value.trim();
-      const startTimeStr = document.getElementById('startTime').value;
-      const endTimeStr = document.getElementById('endTime').value;
-
-      if (!sessionName || !startTimeStr || !endTimeStr) {
-        alert("Vui lòng nhập đầy đủ thông tin!");
-        return;
-      }
-
-      const startTime = new Date(startTimeStr);
-      const endTime = new Date(endTimeStr);
-
-      if (startTime >= endTime) {
-        alert("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc!");
-        return;
-      }
-
-      try {
-        await db.collection("attendance_sessions").add({
-          name: sessionName,
-          startTime: firebase.firestore.Timestamp.fromDate(startTime),
-          endTime: firebase.firestore.Timestamp.fromDate(endTime),
-          createdBy: userEmail,
-          createdAt: firebase.firestore.Timestamp.now()
-        });
-
-        adminMsg.textContent = "Tạo phiên điểm danh thành công!";
-        createSessionForm.reset();
-      } catch (error) {
-        console.error("Lỗi tạo phiên điểm danh:", error);
-        adminMsg.textContent = "Lỗi khi tạo phiên điểm danh.";
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return window.location.href = "login.html";
+      const doc = await db.collection("employees").doc(user.uid).get();
+      if (doc.exists && doc.data().role === "Admin") {
+        document.getElementById("admin-section").classList.remove("hidden");
+        loadSessions();
+      } else {
+        alert("Chỉ Admin mới có quyền truy cập trang này.");
+        window.location.href = "member.html";
       }
     });
 
-    // --- Member điểm danh ---
-    function startMemberAttendance() {
-      const attendanceStatus = document.getElementById('attendanceStatus');
-      const checkInBtn = document.getElementById('checkInBtn');
+    async function createSession() {
+      const name = document.getElementById("sessionName").value;
+      const ban = document.getElementById("sessionBan").value;
+      const start = new Date(document.getElementById("startTime").value);
+      const end = new Date(document.getElementById("endTime").value);
+      const sessionRef = await db.collection("attendance_sessions").add({
+        sessionName: name,
+        ban: ban,
+        timestampStart: firebase.firestore.Timestamp.fromDate(start),
+        timestampEnd: firebase.firestore.Timestamp.fromDate(end),
+        createdBy: auth.currentUser.uid
+      });
+      alert("Tạo phiên thành công!");
+      loadSessions();
+    }
 
-      // Kiểm tra có phiên điểm danh đang diễn ra không
-      async function checkActiveSession() {
-        attendanceStatus.textContent = "Đang kiểm tra phiên điểm danh...";
-        checkInBtn.disabled = true;
+    async function loadSessions() {
+      const tbody = document.getElementById("sessionList");
+      tbody.innerHTML = "";
+      const snap = await db.collection("attendance_sessions").orderBy("timestampStart", "desc").get();
+      snap.forEach(doc => {
+        const d = doc.data();
+        const row = `<tr>
+          <td>${d.sessionName}</td>
+          <td>${d.ban}</td>
+          <td>${d.timestampStart.toDate().toLocaleString()}</td>
+          <td>${d.timestampEnd.toDate().toLocaleString()}</td>
+          <td><button onclick="viewLogs('${doc.id}', ${d.timestampEnd.seconds})">Xem</button></td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
 
-        const now = firebase.firestore.Timestamp.now();
-        const sessionsRef = db.collection("attendance_sessions");
-        const activeQuery = sessionsRef
-          .where("startTime", "<=", now)
-          .where("endTime", ">=", now);
-
-        try {
-          const snapshot = await activeQuery.get();
-
-          if (snapshot.empty) {
-            attendanceStatus.textContent = "⏳ Hiện không có phiên điểm danh nào đang diễn ra.";
-            checkInBtn.disabled = true;
-            return;
-          }
-
-          const sessionDoc = snapshot.docs[0];
-          const sessionId = sessionDoc.id;
-
-          // Kiểm tra xem user đã điểm danh chưa
-          const recordRef = db.collection("attendance_records")
-            .where("sessionId", "==", sessionId)
-            .where("email", "==", userEmail);
-
-          const recordSnap = await recordRef.get();
-
-          if (!recordSnap.empty) {
-            attendanceStatus.textContent = "✅ Bạn đã điểm danh cho phiên này.";
-            checkInBtn.disabled = true;
-            return;
-          }
-
-          attendanceStatus.textContent = "Bạn chưa điểm danh. Nhấn nút để điểm danh.";
-          checkInBtn.disabled = false;
-
-          // Xử lý điểm danh khi click
-          checkInBtn.onclick = async () => {
-            try {
-              await db.collection("attendance_records").add({
-                sessionId: sessionId,
-                email: userEmail,
-                name: sessionStorage.getItem('userName') || "Không rõ tên",
-                ban: sessionStorage.getItem('userBan') || "Không rõ ban",
-                timestamp: firebase.firestore.Timestamp.now()
-              });
-              attendanceStatus.textContent = "✅ Điểm danh thành công!";
-              checkInBtn.disabled = true;
-            } catch (error) {
-              console.error("Lỗi khi điểm danh:", error);
-              attendanceStatus.textContent = "❌ Lỗi khi điểm danh. Vui lòng thử lại.";
-            }
-          };
-
-        } catch (error) {
-          console.error("Lỗi kiểm tra phiên điểm danh:", error);
-          attendanceStatus.textContent = "❌ Lỗi khi kiểm tra phiên điểm danh.";
-          checkInBtn.disabled = true;
-        }
-      }
-
-      checkActiveSession();
-
-      // Có thể set interval để check lại sau 1 khoảng thời gian nếu muốn:
-      // setInterval(checkActiveSession, 60000);
+    async function viewLogs(sessionId, deadline) {
+      document.getElementById("logDetails").classList.remove("hidden");
+      const logTable = document.getElementById("logTable");
+      logTable.innerHTML = "";
+      const logs = await db.collection("attendance_sessions").doc(sessionId).collection("logs").orderBy("timestamp", "asc").get();
+      logs.forEach(doc => {
+        const d = doc.data();
+        const ts = d.timestamp.toDate().toLocaleString();
+        const status = d.timestamp.seconds > deadline ? "Muộn" : "Đúng giờ";
+        const row = `<tr><td>${ts}</td><td>${d.name}</td><td>${d.ban}</td><td>${status}</td></tr>`;
+        logTable.innerHTML += row;
+      });
     }
   </script>
 </body>
