@@ -333,7 +333,7 @@
     document.body.appendChild(modalOverlay);
 
     // Dữ liệu QR code (chỉ ví dụ là sessionId)
-    const qrData = `https://yourdomain.com/attendance?sessionId=${sessionId}`;
+    const qrData = sessionId;
 
     QRCode.toCanvas(qrCanvas, qrData, { width: 220 }, function (error) {
       if (error) console.error(error);
