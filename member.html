@@ -80,6 +80,7 @@
   <button onclick="window.location.href='admin.html'" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
     🔒 Admin
   </button>
+    <button id="btnCheckIn">📷 Điểm danh</button>
 </div>
   <div id="profileContainer"></div>
   <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
@@ -164,5 +165,46 @@
 
 }
   </script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+  document.getElementById("btnCheckIn").addEventListener("click", () => {
+    const qrDiv = document.createElement("div");
+    qrDiv.id = "qr-reader";
+    document.body.appendChild(qrDiv);
+
+    const qrScanner = new Html5Qrcode("qr-reader");
+
+    qrScanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      async (qrMessage) => {
+        qrScanner.stop();
+        qrDiv.remove();
+
+        // Parse QR (giả sử mã QR là ID phiên điểm danh)
+        const sessionId = qrMessage;
+        const user = firebase.auth().currentUser;
+        const userDoc = await db.collection("employees").doc(user.uid).get();
+        const userData = userDoc.data();
+
+        await db.collection("attendance_sessions")
+          .doc(sessionId)
+          .collection("logs")
+          .add({
+            uid: user.uid,
+            name: userData.name,
+            ban: userData.ban,
+            timestamp: firebase.firestore.Timestamp.now()
+          });
+
+        alert("Điểm danh thành công!");
+      },
+      (err) => {
+        console.warn("Lỗi quét QR:", err);
+      }
+    );
+  });
+</script>
+
 </body>
 </html>
