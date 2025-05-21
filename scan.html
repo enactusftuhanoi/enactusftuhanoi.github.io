@@ -138,6 +138,22 @@
     });
   }
 
+  async function sendAttendanceToSheet(data) {
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbyFaqP3EN-y45QzVBIOogvUChuiIfohuQ-JIfK3LmjRDWQlo_ZrmmBY81NAwbi_UzU9jw/exec', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      const text = await response.text();
+      console.log('Response from Google Sheet script:', text);
+    } catch (error) {
+      console.error('Error sending attendance to Google Sheet:', error);
+    }
+  }
+
   async function processAttendance(sessionId) {
     if (!window.currentUser) {
       resultEl.textContent = 'Chưa có thông tin nhân viên, không thể điểm danh.';
@@ -182,6 +198,15 @@
 
       resultEl.textContent = `Điểm danh thành công cho ${window.currentUser.name}`;
       resultEl.style.color = 'green';
+
+      // --- CHÈN GỬI DỮ LIỆU SANG GOOGLE SHEET ---
+      sendAttendanceToSheet({
+        sessionId: sessionId,
+        name: window.currentUser.name,
+        email: window.currentUser.email,
+        uid: window.currentUser.email, // Nếu có UID khác thì đổi ở đây
+        ban: window.currentUser.ban
+      });
 
     } catch (err) {
       console.error('Lỗi khi điểm danh:', err);
