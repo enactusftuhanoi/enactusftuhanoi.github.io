@@ -342,6 +342,7 @@
   }
 
   // ==== HIỂN THỊ DANH SÁCH NGƯỜI ĐIỂM DANH ==== //
+// ==== HIỂN THỊ DANH SÁCH NGƯỜI ĐIỂM DANH ==== //
 async function showAttendanceList(sessionId) {
   if (!sessionId) {
     console.error("Lỗi: sessionId không hợp lệ.");
@@ -356,7 +357,7 @@ async function showAttendanceList(sessionId) {
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'close-btn';
-  closeBtn.innerHTML = '&times;';
+  closeBtn.innerHTML = '×';
   closeBtn.addEventListener('click', () => {
     document.body.removeChild(modalOverlay);
   });
@@ -373,41 +374,38 @@ async function showAttendanceList(sessionId) {
   document.body.appendChild(modalOverlay);
 
   try {
-    // Kiểm tra truy vấn Firestore
     console.log("Truy vấn Firebase với sessionId:", sessionId);
-    const attendeesSnapshot = await db.collection('attendanceSessions')
+    const snapshot = await db
+      .collection('attendanceSessions')
       .doc(sessionId)
       .collection('attendees')
       .orderBy('timestamp', 'desc')
       .get();
 
-    if (attendeesSnapshot.empty) {
+    if (snapshot.empty) {
       attendanceListDiv.textContent = 'Chưa có ai điểm danh phiên này.';
       return;
     }
 
     const ul = document.createElement('ul');
-
-    attendeesSnapshot.forEach(doc => {
+    snapshot.forEach(doc => {
       const attendee = doc.data();
-      if (!attendee) return;
-
+      console.log(attendee); // Kiểm tra dữ liệu trong console
       const li = document.createElement('li');
       const name = attendee.name || 'Người dùng ẩn danh';
-      const time = attendee.timestamp ? attendee.timestamp.toDate().toLocaleString() : 'Không rõ thời gian';
-
+      const time = attendee.timestamp?.toDate?.().toLocaleString?.() || 'Không rõ thời gian';
       li.textContent = `${name} — ${time}`;
       ul.appendChild(li);
     });
 
-    attendanceListDiv.textContent = ''; // Xóa text "Đang tải dữ liệu..."
+    attendanceListDiv.textContent = '';
     attendanceListDiv.appendChild(ul);
-
   } catch (error) {
     console.error("Lỗi khi tải dữ liệu:", error);
     attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
   }
 }
+
 
   // === Khởi đầu ===
   loadSessions();
