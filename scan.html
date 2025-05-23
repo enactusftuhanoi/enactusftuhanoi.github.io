@@ -1,43 +1,43 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Điểm danh thành viên</title>
-<style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f5f7fa;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-  }
-  h1 {
-    color: #0078d4;
-    margin-bottom: 20px;
-  }
-  #scanner {
-    width: 320px;
-    height: 320px;
-    border: 4px solid #0078d4;
-    border-radius: 12px;
-    box-sizing: border-box;
-    overflow: hidden;
-    margin-bottom: 20px;
-    background: #000;
-  }
-  #result {
-    font-size: 18px;
-    font-weight: 600;
-    min-height: 24px;
-    margin-bottom: 10px;
-    color: black;
-    text-align: center;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Điểm danh thành viên</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      color: #0078d4;
+      margin-bottom: 20px;
+    }
+    #scanner {
+      width: 320px;
+      height: 320px;
+      border: 4px solid #0078d4;
+      border-radius: 12px;
+      box-sizing: border-box;
+      overflow: hidden;
+      margin-bottom: 20px;
+      background: #000;
+    }
+    #result {
+      font-size: 18px;
+      font-weight: 600;
+      min-height: 24px;
+      margin-bottom: 10px;
+      color: black;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
 
@@ -53,7 +53,6 @@
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
 <script>
-  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
     authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -77,7 +76,6 @@
       return;
     }
     const userEmail = userEmailRaw.toLowerCase().trim();
-    console.log("Email lấy từ sessionStorage:", userEmail);
 
     try {
       const querySnapshot = await db.collection('employees')
@@ -122,15 +120,11 @@
       { facingMode: "environment" },
       { fps: 10, qrbox: { width: 280, height: 280 } },
       qrCodeMessage => {
-        // Tạm dừng quét khi nhận được QR code để xử lý
         html5QrCode.pause();
         resultEl.textContent = 'Đang xử lý điểm danh...';
         processAttendance(qrCodeMessage);
       },
-      errorMessage => {
-        // Có thể log lỗi quét QR không thành công (bình thường)
-        // console.log("Lỗi quét QR:", errorMessage);
-      }
+      errorMessage => {}
     ).catch(err => {
       resultEl.textContent = 'Không thể mở camera, vui lòng kiểm tra quyền camera.';
       resultEl.style.color = 'red';
@@ -142,9 +136,7 @@
     try {
       const response = await fetch('https://script.google.com/macros/s/AKfycbyFaqP3EN-y45QzVBIOogvUChuiIfohuQ-JIfK3LmjRDWQlo_ZrmmBY81NAwbi_UzU9jw/exec', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       const text = await response.text();
@@ -172,11 +164,21 @@
         return;
       }
 
+      const sessionData = sessionDoc.data();
+      const endTime = sessionData.endTime?.toDate?.();
+
+      if (endTime && new Date() > endTime) {
+        resultEl.textContent = 'Phiên điểm danh đã kết thúc. Mã QR không còn hiệu lực.';
+        resultEl.style.color = 'red';
+        html5QrCode.resume();
+        return;
+      }
+
       const attendeeDoc = await db.collection('attendanceSessions')
-                                .doc(sessionId)
-                                .collection('attendees')
-                                .doc(window.currentUser.email)
-                                .get();
+        .doc(sessionId)
+        .collection('attendees')
+        .doc(window.currentUser.email)
+        .get();
 
       if (attendeeDoc.exists) {
         resultEl.textContent = `Bạn đã điểm danh trước đó.`;
@@ -186,25 +188,24 @@
       }
 
       await db.collection('attendanceSessions')
-              .doc(sessionId)
-              .collection('attendees')
-              .doc(window.currentUser.email)
-              .set({
-                name: window.currentUser.name,
-                ban: window.currentUser.ban,
-                email: window.currentUser.email,
-                checkedInAt: firebase.firestore.FieldValue.serverTimestamp()
-              });
+        .doc(sessionId)
+        .collection('attendees')
+        .doc(window.currentUser.email)
+        .set({
+          name: window.currentUser.name,
+          ban: window.currentUser.ban,
+          email: window.currentUser.email,
+          checkedInAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
       resultEl.textContent = `Điểm danh thành công cho ${window.currentUser.name}`;
       resultEl.style.color = 'green';
 
-      // --- CHÈN GỬI DỮ LIỆU SANG GOOGLE SHEET ---
       sendAttendanceToSheet({
         sessionId: sessionId,
         name: window.currentUser.name,
         email: window.currentUser.email,
-        uid: window.currentUser.email, // Nếu có UID khác thì đổi ở đây
+        uid: window.currentUser.email,
         ban: window.currentUser.ban
       });
 
