@@ -373,39 +373,59 @@ async function showAttendanceList(sessionId) {
   document.body.appendChild(modalOverlay);
 
   try {
-    console.log("Truy vấn Firebase với sessionId:", sessionId);
     const snapshot = await db
       .collection('attendanceSessions')
       .doc(sessionId)
       .collection('attendees')
-      .get(); // Không cần orderBy nếu không có timestamp chuẩn
+      .get();
 
     if (snapshot.empty) {
       attendanceListDiv.textContent = 'Chưa có ai điểm danh phiên này.';
       return;
     }
 
-    const ul = document.createElement('ul');
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const tbody = document.createElement('tbody');
+
+    thead.innerHTML = `
+      <tr>
+        <th>STT</th>
+        <th>Họ tên</th>
+        <th>Email</th>
+        <th>Ban</th>
+        <th>Thời gian điểm danh</th>
+      </tr>
+    `;
+
+    let index = 1;
     snapshot.forEach(doc => {
       const data = doc.data();
       const name = data.name || 'Ẩn danh';
       const email = data.email || doc.id;
       const ban = data.ban || 'Không rõ';
-      const time = data.checkedInAt?.toDate?.().toLocaleString?.() || 'Không rõ thời gian';
+      const time = data.checkedInAt?.toDate?.().toLocaleString?.() || 'Không rõ';
 
-      const li = document.createElement('li');
-      li.textContent = `${name} (${email}) — Ban: ${ban} — Thời gian: ${time}`;
-      ul.appendChild(li);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index++}</td>
+        <td>${name}</td>
+        <td>${email}</td>
+        <td>${ban}</td>
+        <td>${time}</td>
+      `;
+      tbody.appendChild(row);
     });
 
+    table.appendChild(thead);
+    table.appendChild(tbody);
     attendanceListDiv.textContent = '';
-    attendanceListDiv.appendChild(ul);
+    attendanceListDiv.appendChild(table);
   } catch (error) {
     console.error("Lỗi khi tải dữ liệu:", error);
     attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
   }
 }
-
   // === Khởi đầu ===
   loadSessions();
 </script>
