@@ -213,31 +213,6 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-  firebase.auth().onAuthStateChanged(async (user) => {
-  if (!user) {
-    alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.");
-    window.location.href = "login.html"; // hoặc trang login của bạn
-    return;
-  }
-
-  try {
-    const userDoc = await db.collection('users').doc(user.uid).get();
-    const userData = userDoc.data();
-
-    if (!userData || userData.role !== 'admin') {
-      alert("Bạn không có quyền truy cập trang này.");
-      window.location.href = "index.html"; // redirect về trang không phải admin
-      return;
-    }
-
-    // Nếu là admin thì mới chạy loadSessions
-    loadSessions();
-  } catch (error) {
-    console.error("Lỗi kiểm tra quyền:", error);
-    alert("Có lỗi xảy ra khi kiểm tra quyền truy cập.");
-    window.location.href = "index.html";
-  }
-});
 
   const createSessionForm = document.getElementById('createSessionForm');
   const sessionsTbody = document.getElementById('sessionsTbody');
@@ -297,7 +272,7 @@
         tdIdx.textContent = idx++;
 
         const tdName = document.createElement('td');
-        tdName.textContent = data.name.charAt(0) + data.name.slice(1).toLowerCase() + (isLocked ? ' 🔒' : '');
+        tdName.textContent = data.name.charAt(0).toUpperCase() + data.name.slice(1).toLowerCase() + (isLocked ? ' 🔒' : '');
 
         const tdStart = document.createElement('td');
         tdStart.textContent = data.startTime?.toDate().toLocaleString() || '-';
