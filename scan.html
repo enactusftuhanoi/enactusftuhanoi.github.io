@@ -5,43 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Điểm danh thành viên</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f7fa;
+      background: linear-gradient(to bottom right, #e3f2fd, #ffffff);
       margin: 0;
       padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: flex-start;
       min-height: 100vh;
     }
+
     h1 {
       color: #0078d4;
       margin-bottom: 20px;
+      text-align: center;
+      font-size: 1.8rem;
     }
+
     #scanner {
-      width: 320px;
-      height: 320px;
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 1;
       border: 4px solid #0078d4;
       border-radius: 12px;
-      box-sizing: border-box;
       overflow: hidden;
-      margin-bottom: 20px;
       background: #000;
+      margin-bottom: 20px;
+      display: none;
     }
+
     #result {
-      font-size: 18px;
+      font-size: 1rem;
       font-weight: 600;
       min-height: 24px;
       margin-bottom: 10px;
       color: black;
       text-align: center;
+      padding: 0 10px;
+      word-wrap: break-word;
+    }
+
+    #start-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    #start-btn:hover {
+      background-color: #005ea2;
+    }
+
+    #start-btn img {
+      width: 24px;
+      height: 24px;
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      #result {
+        font-size: 0.95rem;
+      }
     }
   </style>
 </head>
 <body>
 
 <h1>Điểm danh thành viên</h1>
+
+<button id="start-btn">
+  <img src="icon.png" alt="Scan Icon" />
+  Bắt đầu điểm danh
+</button>
+
 <div id="scanner"></div>
 <p id="result"></p>
 
@@ -66,7 +119,15 @@
   const db = firebase.firestore();
 
   const resultEl = document.getElementById('result');
+  const scannerEl = document.getElementById('scanner');
+  const startBtn = document.getElementById('start-btn');
   let html5QrCode;
+
+  startBtn.addEventListener('click', () => {
+    startBtn.style.display = 'none';
+    scannerEl.style.display = 'block';
+    loadUserInfo();
+  });
 
   async function loadUserInfo() {
     const userEmailRaw = sessionStorage.getItem('userEmail');
@@ -198,30 +259,4 @@
           checkedInAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-      resultEl.textContent = `Điểm danh thành công cho ${window.currentUser.name}`;
-      resultEl.style.color = 'green';
-
-      sendAttendanceToSheet({
-        sessionId: sessionId,
-        name: window.currentUser.name,
-        email: window.currentUser.email,
-        uid: window.currentUser.email,
-        ban: window.currentUser.ban
-      });
-
-    } catch (err) {
-      console.error('Lỗi khi điểm danh:', err);
-      resultEl.textContent = 'Lỗi khi điểm danh, vui lòng thử lại.';
-      resultEl.style.color = 'red';
-    } finally {
-      setTimeout(() => {
-        html5QrCode.resume();
-      }, 3000);
-    }
-  }
-
-  loadUserInfo();
-</script>
-
-</body>
-</html>
+      resultEl.textContent =
