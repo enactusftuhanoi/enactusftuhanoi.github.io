@@ -213,47 +213,32 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  firebase.auth().onAuthStateChanged(async (user) => {
+  if (!user) {
+    alert("Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.");
+    window.location.href = "login.html"; // hoặc trang login của bạn
+    return;
+  }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
+  try {
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    const userData = userDoc.data();
 
-      const userEmail = user.email;
-      if (!userEmail) {
-        alert("Tài khoản chưa có email, không thể xác thực quyền admin.");
-        window.location.href = "login.html";
-        return;
-      }
+    if (!userData || userData.role !== 'admin') {
+      alert("Bạn không có quyền truy cập trang này.");
+      window.location.href = "index.html"; // redirect về trang không phải admin
+      return;
+    }
 
-      try {
-        const q = query(collection(db, "employees"), where("email", "==", userEmail));
-        const snapshot = await getDocs(q);
+    // Nếu là admin thì mới chạy loadSessions
+    loadSessions();
+  } catch (error) {
+    console.error("Lỗi kiểm tra quyền:", error);
+    alert("Có lỗi xảy ra khi kiểm tra quyền truy cập.");
+    window.location.href = "index.html";
+  }
+});
 
-        if (snapshot.empty) {
-          alert("Không tìm thấy thông tin người dùng.");
-          window.location.href = "login.html";
-          return;
-        }
-
-        const userData = snapshot.docs[0].data();
-        if (userData.role === "Admin") {
-          document.getElementById("adminPage").classList.remove("hidden");
-          await loadEmployees();
-        } else {
-          alert("Bạn không có quyền truy cập trang này.");
-          window.location.href = "login.html";
-        }
-      } catch (error) {
-        console.error("Lỗi khi kiểm tra quyền admin:", error);
-        alert("Có lỗi xảy ra. Vui lòng thử lại sau.");
-        window.location.href = "login.html";
-      }
-    });
   const createSessionForm = document.getElementById('createSessionForm');
   const sessionsTbody = document.getElementById('sessionsTbody');
 
