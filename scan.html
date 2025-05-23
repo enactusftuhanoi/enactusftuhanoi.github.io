@@ -135,21 +135,34 @@
 
   async function sendAttendanceToSheet(data) {
   try {
+    console.log("Đang gửi dữ liệu điểm danh:", data);
+
     const response = await fetch('https://script.google.com/macros/s/AKfycbxoS2GmvEw4hoSLekTiPF5CqsTsyPXBOkqzbkVwSNggOAMgqzFHKgG4_JTl-dwMBL116Q/exec', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    sessionId: 'abc123',
-    name: 'Nguyễn Văn A',
-    email: 'a@example.com',
-    uid: 'a@example.com',
-    ban: 'Truyền thông'
-  })
-});
-}
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Phản hồi từ Google Apps Script:', result);
+
+    if (result.status === "success") {
+      alert("✅ Điểm danh thành công!");
+    } else {
+      alert("⚠️ Gửi dữ liệu thất bại: " + (result.message || "Không rõ nguyên nhân"));
+    }
+
+  } catch (error) {
+    console.error('❌ Lỗi khi gửi dữ liệu điểm danh:', error);
+    alert("❌ Không thể gửi dữ liệu điểm danh. Vui lòng thử lại.");
   }
+}
 
   async function processAttendance(sessionId) {
     if (!window.currentUser) {
