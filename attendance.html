@@ -1,9 +1,11 @@
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Quản lý điểm danh - Admin</title>
+  <title>Quản lý Điểm danh</title>
   <link rel="icon" href="icon.png" type="image/png">
   <style>
     /* Reset & base */
@@ -136,16 +138,24 @@
       max-height: 60vh;
       overflow-y: auto;
     }
-    .attendance-list ul {
-      padding-left: 20px;
-      margin: 0;
-      list-style: disc;
+    .attendance-list table {
+      width: 100%;
+      border-collapse: collapse;
     }
-    .attendance-list li {
-      margin-bottom: 8px;
+    .attendance-list th, .attendance-list td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
       font-size: 14px;
     }
-    /* Small button style for new buttons */
+    .attendance-list th {
+      background-color: #0078d4;
+      color: white;
+      font-weight: 600;
+    }
+    .attendance-list td {
+      font-size: 14px;
+    }
     .btn-small {
       padding: 6px 12px;
       font-size: 13px;
@@ -181,7 +191,8 @@
         <th>Thời gian bắt đầu</th>
         <th>Thời gian kết thúc</th>
         <th>QR Code</th>
-        <th>Người điểm danh</th> <!-- cột mới -->
+        <th>Người điểm danh</th>
+        <th>Hành động</th>
       </tr>
     </thead>
     <tbody id="sessionsTbody"></tbody>
@@ -246,11 +257,11 @@
 
   // ==== HIỂN THỊ DANH SÁCH PHIÊN ĐIỂM DANH ==== //
   async function loadSessions() {
-    sessionsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">Đang tải dữ liệu...</td></tr>';
+    sessionsTbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Đang tải dữ liệu...</td></tr>';
     try {
       const snapshot = await db.collection('attendanceSessions').orderBy('createdAt', 'desc').get();
       if (snapshot.empty) {
-        sessionsTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">Chưa có phiên điểm danh nào.</td></tr>';
+        sessionsTbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Chưa có phiên điểm danh nào.</td></tr>';
         return;
       }
       let idx = 1;
@@ -258,6 +269,7 @@
       snapshot.forEach(doc => {
         const data = doc.data();
         const id = doc.id;
+        const isLocked = data.locked === true;
 
         const tr = document.createElement('tr');
 
@@ -265,7 +277,7 @@
         tdIdx.textContent = idx++;
 
         const tdName = document.createElement('td');
-        tdName.textContent = data.name;
+        tdName.textContent = data.name.charAt(0).toUpperCase() + data.name.slice(1).toLowerCase() + (isLocked ? ' 🔒' : '');
 
         const tdStart = document.createElement('td');
         tdStart.textContent = data.startTime?.toDate().toLocaleString() || '-';
@@ -273,37 +285,54 @@
         const tdEnd = document.createElement('td');
         tdEnd.textContent = data.endTime?.toDate().toLocaleString() || '-';
 
+        // QR Code
         const tdQR = document.createElement('td');
         const qrBtn = document.createElement('button');
         qrBtn.textContent = 'Hiển thị QR';
-        qrBtn.style.padding = '6px 10px';
-        qrBtn.style.fontSize = '14px';
-        qrBtn.style.backgroundColor = '#28a745';
-        qrBtn.style.border = 'none';
-        qrBtn.style.color = 'white';
-        qrBtn.style.borderRadius = '4px';
-
-        qrBtn.addEventListener('click', () => {
-          showQRCode(id);
-        });
-
+        qrBtn.className = 'btn-small';
+        qrBtn.disabled = isLocked;
+        qrBtn.addEventListener('click', () => showQRCode(id));
         tdQR.appendChild(qrBtn);
 
-        // Cột "Người điểm danh"
+        // Người điểm danh
         const tdAttendance = document.createElement('td');
         const attendanceBtn = document.createElement('button');
         attendanceBtn.textContent = 'Xem người điểm danh';
         attendanceBtn.className = 'btn-small';
-        attendanceBtn.addEventListener('click', () => {
-          showAttendanceList(id);
-        });
+        attendanceBtn.addEventListener('click', () => showAttendanceList(id));
         tdAttendance.appendChild(attendanceBtn);
 
-        tr.append(tdIdx, tdName, tdStart, tdEnd, tdQR, tdAttendance);
+        // Hành động
+        const tdActions = document.createElement('td');
+
+        // Chỉnh sửa
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Chỉnh sửa';
+        editBtn.className = 'btn-small';
+        editBtn.disabled = isLocked;
+        editBtn.addEventListener('click', () => editSession(id, data));
+        tdActions.appendChild(editBtn);
+
+        // Khóa/Mở khóa
+        const lockBtn = document.createElement('button');
+        lockBtn.textContent = isLocked ? 'Mở khóa' : 'Khóa';
+        lockBtn.className = 'btn-small';
+        lockBtn.addEventListener('click', () => toggleLockSession(id, isLocked));
+        tdActions.appendChild(lockBtn);
+
+        // Xóa
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Xóa';
+        deleteBtn.className = 'btn-small';
+        deleteBtn.disabled = isLocked;
+        deleteBtn.addEventListener('click', () => deleteSession(id));
+        tdActions.appendChild(deleteBtn);
+
+        tr.append(tdIdx, tdName, tdStart, tdEnd, tdQR, tdAttendance, tdActions);
         sessionsTbody.appendChild(tr);
       });
     } catch (error) {
-      sessionsTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Lỗi tải dữ liệu: ${error.message}</td></tr>`;
+      sessionsTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">Lỗi tải dữ liệu: ${error.message}</td></tr>`;
     }
   }
 
@@ -341,91 +370,134 @@
     });
   }
 
-// ==== HIỂN THỊ DANH SÁCH NGƯỜI ĐIỂM DANH ==== //
-async function showAttendanceList(sessionId) {
-  if (!sessionId) {
-    console.error("Lỗi: sessionId không hợp lệ.");
-    return;
-  }
-
-  const modalOverlay = document.createElement('div');
-  modalOverlay.className = 'modal-overlay';
-
-  const modal = document.createElement('div');
-  modal.className = 'modal';
-
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'close-btn';
-  closeBtn.innerHTML = '×';
-  closeBtn.addEventListener('click', () => {
-    document.body.removeChild(modalOverlay);
-  });
-
-  const title = document.createElement('h3');
-  title.textContent = 'Danh sách người điểm danh';
-
-  const attendanceListDiv = document.createElement('div');
-  attendanceListDiv.className = 'attendance-list';
-  attendanceListDiv.textContent = 'Đang tải dữ liệu...';
-
-  modal.append(closeBtn, title, attendanceListDiv);
-  modalOverlay.appendChild(modal);
-  document.body.appendChild(modalOverlay);
-
-  try {
-    const snapshot = await db
-      .collection('attendanceSessions')
-      .doc(sessionId)
-      .collection('attendees')
-      .get();
-
-    if (snapshot.empty) {
-      attendanceListDiv.textContent = 'Chưa có ai điểm danh phiên này.';
+  // ==== HIỂN THỊ DANH SÁCH NGƯỜI ĐIỂM DANH ==== //
+  async function showAttendanceList(sessionId) {
+    if (!sessionId) {
+      console.error("Lỗi: sessionId không hợp lệ.");
       return;
     }
 
-    const table = document.createElement('table');
-    const thead = document.createElement('thead');
-    const tbody = document.createElement('tbody');
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
 
-    thead.innerHTML = `
-      <tr>
-        <th>STT</th>
-        <th>Họ tên</th>
-        <th>Email</th>
-        <th>Ban</th>
-        <th>Thời gian điểm danh</th>
-      </tr>
-    `;
+    const modal = document.createElement('div');
+    modal.className = 'modal';
 
-    let index = 1;
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const name = data.name || 'Ẩn danh';
-      const email = data.email || doc.id;
-      const ban = data.ban || 'Không rõ';
-      const time = data.checkedInAt?.toDate?.().toLocaleString?.() || 'Không rõ';
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${index++}</td>
-        <td>${name}</td>
-        <td>${email}</td>
-        <td>${ban}</td>
-        <td>${time}</td>
-      `;
-      tbody.appendChild(row);
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', () => {
+      document.body.removeChild(modalOverlay);
     });
 
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    attendanceListDiv.textContent = '';
-    attendanceListDiv.appendChild(table);
-  } catch (error) {
-    console.error("Lỗi khi tải dữ liệu:", error);
-    attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
+    const title = document.createElement('h3');
+    title.textContent = 'Danh sách người điểm danh';
+
+    const attendanceListDiv = document.createElement('div');
+    attendanceListDiv.className = 'attendance-list';
+    attendanceListDiv.textContent = 'Đang tải dữ liệu...';
+
+    modal.append(closeBtn, title, attendanceListDiv);
+    modalOverlay.appendChild(modal);
+    document.body.appendChild(modalOverlay);
+
+    try {
+      const snapshot = await db
+        .collection('attendanceSessions')
+        .doc(sessionId)
+        .collection('attendees')
+        .get();
+
+      if (snapshot.empty) {
+        attendanceListDiv.textContent = 'Chưa có ai điểm danh phiên này.';
+        return;
+      }
+
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const tbody = document.createElement('tbody');
+
+      thead.innerHTML = `
+        <tr>
+          <th>STT</th>
+          <th>Họ tên</th>
+          <th>Email</th>
+          <th>Ban</th>
+          <th>Thời gian điểm danh</th>
+        </tr>
+      `;
+
+      let index = 1;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const name = data.name.charAt(0).toUpperCase() + data.name.slice(1).toLowerCase() || 'Ẩn danh';
+        const email = data.email || doc.id;
+        const ban = data.ban || 'Không rõ';
+        const time = data.checkedInAt?.toDate?.().toLocaleString?.() || 'Không rõ';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index++}</td>
+          <td>${name}</td>
+          <td>${email}</td>
+          <td>${ban}</td>
+          <td>${time}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      attendanceListDiv.textContent = '';
+      attendanceListDiv.appendChild(table);
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu:", error);
+      attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
+    }
   }
-}
+
+  // ==== CHỈNH SỬA PHIÊN ĐIỂM DANH ==== //
+  function editSession(sessionId, data) {
+    const newName = prompt("Nhập tên mới cho phiên điểm danh:", data.name);
+    if (newName && newName.trim() !== "") {
+      db.collection('attendanceSessions').doc(sessionId).update({
+        name: newName.trim()
+      }).then(() => {
+        alert("Cập nhật tên phiên điểm danh thành công!");
+        loadSessions();
+      }).catch(error => {
+        console.error("Lỗi cập nhật tên phiên điểm danh:", error);
+        alert("Có lỗi xảy ra, vui lòng thử lại.");
+      });
+    }
+  }
+
+  // ==== KHÓA/MỞ KHÓA PHIÊN ĐIỂM DANH ==== //
+  function toggleLockSession(sessionId, isLocked) {
+    db.collection('attendanceSessions').doc(sessionId).update({
+      locked: !isLocked
+    }).then(() => {
+      alert(isLocked ? "Mở khóa phiên điểm danh thành công!" : "Khóa phiên điểm danh thành công!");
+      loadSessions();
+    }).catch(error => {
+      console.error("Lỗi cập nhật trạng thái khóa:", error);
+      alert("Có lỗi xảy ra, vui lòng thử lại.");
+    });
+  }
+
+  // ==== XÓA PHIÊN ĐIỂM DANH ==== //
+  function deleteSession(sessionId) {
+    if (confirm("Bạn có chắc chắn muốn xóa phiên điểm danh này?")) {
+      db.collection('attendanceSessions').doc(sessionId).delete().then(() => {
+        alert("Xóa phiên điểm danh thành công!");
+        loadSessions();
+      }).catch(error => {
+        console.error("Lỗi xóa phiên điểm danh:", error);
+        alert("Có lỗi xảy ra, vui lòng thử lại.");
+      });
+    }
+  }
+
   // === Khởi đầu ===
   loadSessions();
 </script>
