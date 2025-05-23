@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -494,6 +495,28 @@
 
   // === Khởi đầu ===
   loadSessions();
+</script>
+
+
+<script>
+  // Kiểm tra quyền admin
+  async function checkAdmin() {
+    const userEmailRaw = sessionStorage.getItem('userEmail');
+    if (!userEmailRaw) {
+      alert('Bạn không có quyền truy cập');
+      window.location.href = 'login.html';
+      return;
+    }
+    const userEmail = userEmailRaw.toLowerCase().trim();
+    const userDoc = await db.collection('users').doc(userEmail).get();
+    if (!userDoc.exists || userDoc.data().role !== 'admin') {
+      alert('Bạn không có quyền truy cập');
+      window.location.href = 'login.html';
+    }
+  }
+
+  // Gọi hàm kiểm tra quyền admin khi tải trang
+  checkAdmin();
 </script>
 
 </body>
