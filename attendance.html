@@ -341,7 +341,6 @@
     });
   }
 
-  // ==== HIỂN THỊ DANH SÁCH NGƯỜI ĐIỂM DANH ==== //
 // ==== HIỂN THỊ DANH SÁCH NGƯỜI ĐIỂM DANH ==== //
 async function showAttendanceList(sessionId) {
   if (!sessionId) {
@@ -379,8 +378,7 @@ async function showAttendanceList(sessionId) {
       .collection('attendanceSessions')
       .doc(sessionId)
       .collection('attendees')
-      .orderBy('timestamp', 'desc')
-      .get();
+      .get(); // Không cần orderBy nếu không có timestamp chuẩn
 
     if (snapshot.empty) {
       attendanceListDiv.textContent = 'Chưa có ai điểm danh phiên này.';
@@ -389,12 +387,14 @@ async function showAttendanceList(sessionId) {
 
     const ul = document.createElement('ul');
     snapshot.forEach(doc => {
-      const attendee = doc.data();
-      console.log(attendee); // Kiểm tra dữ liệu trong console
+      const data = doc.data();
+      const name = data.name || 'Ẩn danh';
+      const email = data.email || doc.id;
+      const ban = data.ban || 'Không rõ';
+      const time = data.checkedInAt?.toDate?.().toLocaleString?.() || 'Không rõ thời gian';
+
       const li = document.createElement('li');
-      const name = attendee.name || 'Người dùng ẩn danh';
-      const time = attendee.timestamp?.toDate?.().toLocaleString?.() || 'Không rõ thời gian';
-      li.textContent = `${name} — ${time}`;
+      li.textContent = `${name} (${email}) — Ban: ${ban} — Thời gian: ${time}`;
       ul.appendChild(li);
     });
 
@@ -405,7 +405,6 @@ async function showAttendanceList(sessionId) {
     attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
   }
 }
-
 
   // === Khởi đầu ===
   loadSessions();
