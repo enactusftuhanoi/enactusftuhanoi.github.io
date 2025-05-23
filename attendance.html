@@ -420,17 +420,17 @@
       thead.innerHTML = `
         <tr>
           <th>STT</th>
-          <th>Họ tên</th>
-          <th>Email</th>
-          <th>Ban</th>
           <th>Thời gian điểm danh</th>
+          <th>Họ tên</th>
+          <th>Ban</th>
+          <th>Email</th>
         </tr>
       `;
 
       let index = 1;
       snapshot.forEach(doc => {
         const data = doc.data();
-        const name = data.name.charAt(0).toUpperCase() + data.name.slice(1).toLowerCase() || 'Ẩn danh';
+        const name = data.name || 'Ẩn danh';
         const email = data.email || doc.id;
         const ban = data.ban || 'Không rõ';
         const time = data.checkedInAt?.toDate?.().toLocaleString?.() || 'Không rõ';
@@ -438,10 +438,10 @@
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${index++}</td>
-          <td>${name}</td>
-          <td>${email}</td>
-          <td>${ban}</td>
           <td>${time}</td>
+          <td>${name}</td>
+          <td>${ban}</td>
+          <td>${email}</td>
         `;
         tbody.appendChild(row);
       });
@@ -455,7 +455,6 @@
       attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
     }
   }
-
   // ==== CHỈNH SỬA PHIÊN ĐIỂM DANH ==== //
   function editSession(sessionId, data) {
     const newName = prompt("Nhập tên mới cho phiên điểm danh:", data.name);
