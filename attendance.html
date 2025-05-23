@@ -341,7 +341,12 @@
   }
 
   // ==== HIỂN THỊ DANH SÁCH NGƯỜI ĐIỂM DANH ==== //
-  async function showAttendanceList(sessionId) {
+async function showAttendanceList(sessionId) {
+  if (!sessionId) {
+    console.error("Lỗi: sessionId không hợp lệ.");
+    return;
+  }
+
   const modalOverlay = document.createElement('div');
   modalOverlay.className = 'modal-overlay';
 
@@ -367,7 +372,8 @@
   document.body.appendChild(modalOverlay);
 
   try {
-    // Lấy dữ liệu từ subcollection "attendees" trong document phiên điểm danh
+    // Kiểm tra truy vấn Firestore
+    console.log("Truy vấn Firebase với sessionId:", sessionId);
     const attendeesSnapshot = await db.collection('attendanceSessions')
       .doc(sessionId)
       .collection('attendees')
@@ -383,9 +389,9 @@
 
     attendeesSnapshot.forEach(doc => {
       const attendee = doc.data();
-      const li = document.createElement('li');
+      if (!attendee) return;
 
-      // Giả sử attendee có các trường: name, timestamp
+      const li = document.createElement('li');
       const name = attendee.name || 'Người dùng ẩn danh';
       const time = attendee.timestamp ? attendee.timestamp.toDate().toLocaleString() : 'Không rõ thời gian';
 
@@ -397,6 +403,7 @@
     attendanceListDiv.appendChild(ul);
 
   } catch (error) {
+    console.error("Lỗi khi tải dữ liệu:", error);
     attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
   }
 }
