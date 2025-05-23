@@ -272,7 +272,7 @@
         tdIdx.textContent = idx++;
 
         const tdName = document.createElement('td');
-        tdName.textContent = data.name.charAt(0).toUpperCase() + data.name.slice(1).toLowerCase() + (isLocked ? ' 🔒' : '');
+        tdName.textContent = data.name.charAt(0) + data.name.slice(1).toLowerCase() + (isLocked ? ' 🔒' : '');
 
         const tdStart = document.createElement('td');
         tdStart.textContent = data.startTime?.toDate().toLocaleString() || '-';
