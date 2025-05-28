@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thông Tin Thành Viên</title>
+  <link rel="icon" href="icon.png" type="image/png" />
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .profile-card {
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 800px;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      flex-direction: column;
+    }
+
+    .profile-image {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #ddd;
+    }
+
+    .profile-info {
+      flex: 1;
+      text-align: center;
+    }
+
+    .profile-info h2 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      color: #222;
+    }
+
+    .profile-info p {
+      margin: 6px 0;
+      font-size: 16px;
+      color: #555;
+    }
+
+    .footer-text {
+      position: absolute;
+      bottom: 20px;
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .edit-button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .back-button {
+      background: #ff6ec4;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .form-container {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .form-container input {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      width: 100%;
+    }
+
+    .form-container button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .profile-card {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .profile-image {
+        width: 120px;
+        height: 120px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="adminButton" style="position: absolute; top: 20px; right: 20px; display: none;">
+    <button onclick="window.location.href='admin.html'" class="edit-button">🔒 Admin</button>
+    <button onclick="window.location.href='attendance.html'" class="edit-button">➕ Tạo phiên điểm danh</button>
+  </div>
+  <div style="position: absolute; top: 20px; left: 20px;">
+    <button onclick="window.location.href='scan.html'" class="back-button">📸 Điểm danh</button>
+  </div>
+  <div id="profileContainer"></div>
+  <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    window.onload = async function () {
+      const userEmail = sessionStorage.getItem('userEmail');
+      const userRole = sessionStorage.getItem('userRole');
+      
+      if (!userEmail) {
+        window.location.href = "login.html";
+      } else {
+        if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
+          document.getElementById("adminButton").style.display = "block";
+        }
+        await getUserData(userEmail);
+      }
+    };
+
+    async function getUserData(email) {
+      const employeesRef = collection(db, "employees");
+      const q = query(employeesRef, where("email", "==", email));
+
+      try {
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
+          userData.id = querySnapshot.docs[0].id; // Lấy ID của document
+
+          // Lấy role từ dữ liệu
+          const role = userData.role || "user"; // Nếu không có thì mặc định là "user"
+          sessionStorage.setItem('userRole', role);
+
+          // Hiện nút Admin nếu role là admin
+          if (role.toLowerCase() === "admin") {
+            document.getElementById("adminButton").style.display = "block";
+          }
+
+          displayUserData(userData);
+        } else {
+          alert("Không tìm thấy thông tin người dùng trong hệ thống!");
+        }
+      } catch (error) {
+        console.error("Lỗi khi truy vấn dữ liệu:", error);
+        alert("Lỗi hệ thống, vui lòng thử lại.");
+      }
+    }
+
+    function displayUserData(userData) {
+      const container = document.getElementById("profileContainer");
+
+      const photoURL = userData.photoURL || "https://i.imgur.com/GZwfGjd.png"; // Placeholder nếu không có ảnh
+
+      container.innerHTML = `
+        <div class="profile-card">
+          <img class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
+          <div class="profile-info">
+            <h2>${userData.name || "Chưa cập nhật"}</h2>
+            <p><strong>ID:</strong> ${userData.id}</p>
+            <p><strong>Ban:</strong> ${userData.ban}</p>
+            <p><strong>Email:</strong> ${userData.email}</p>
+            <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
+            <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
+            <p><strong>OTP:</strong> ${userData.otp}</p>
+            <button class="edit-button" onclick="editProfile()">Chỉnh sửa</button>
+            <button class="back-button" onclick="window.location.href='${userData.ban}.html'">← Quay lại Ban</button>
+          </div>
+          <div class="form-container" id="formContainer">
+            <input type="file" id="photoInput" accept="image/*"/>
+            <input type="text" id="nameInput" placeholder="Tên" value="${userData.name || ""}"/>
+            <input type="email" id="emailInput" placeholder="Email" value="${userData.email || ""}"/>
+            <input type="date" id="dobInput" placeholder="Ngày sinh" value="${userData.dob || ""}"/>
+            <input type="text" id="phoneInput" placeholder="SĐT" value="${userData.phone || ""}"/>
+            <button onclick="saveProfile('${userData.id}')">Lưu</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function editProfile() {
+      document.getElementById("formContainer").style.display = "flex";
+    }
+
+    async function saveProfile(userId) {
+      const name = document.getElementById("nameInput").value;
+      const email = document.getElementById("emailInput").value;
+      const dob = document.getElementById("dobInput").value;
+      const phone = document.getElementById("phoneInput").value;
+      const photoInput = document.getElementById("photoInput");
+
+      let photoURL = null;
+      if (photoInput.files.length > 0) {
+        const file = photoInput.files[0];
+        const storageRef = ref(storage, `avatars/${userId}`);
+        await uploadBytes(storageRef, file);
+        photoURL = await getDownloadURL(storageRef);
+      }
+
+      const userRef = doc(db, "employees", userId);
+      const updatedData = {
+        name,
+        email,
+        dob,
+        phone,
+        photoURL: photoURL || userData.photoURL
+      };
+
+      try {
+        await updateDoc(userRef, updatedData);
+        alert("Cập nhật thông tin thành công!");
+        window.location.reload();
+      } catch (error) {
+        console.error("Lỗi khi cập nhật dữ liệu:", error);
+        alert("Lỗi hệ thống, vui lòng thử lại.");
+      }
+    }
+  </script>
+
+</body>
+</html>
