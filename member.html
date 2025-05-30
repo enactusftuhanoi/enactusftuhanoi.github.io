@@ -108,6 +108,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     window.onload = async function () {
       const userEmail = sessionStorage.getItem('userEmail');
@@ -159,7 +160,7 @@
       container.innerHTML = `
         <div class="profile-card">
           <img id="profileImage" class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
-          <input type="file" id="imageUpload" accept="image/*" style="margin-top: 10px;" />
+          <input type="file" id="imageUpload" accept="image/*" style="margin-top: 10px;" onchange="previewImage(event)" />
           <div class="profile-info">
             <h2>${userData.name || "Chưa cập nhật"}</h2>
             <p><strong>ID:</strong> ${userData.id}</p>
@@ -172,6 +173,15 @@
           </div>
         </div>
       `;
+    }
+
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        const output = document.getElementById('profileImage');
+        output.src = reader.result;
+      };
+      reader.readAsDataURL(event.target.files[0]);
     }
 
     async function saveChanges(userId) {
@@ -189,7 +199,6 @@
         let photoURL = querySnapshot.docs[0].data().photoURL;
 
         if (imageFile) {
-          const storage = getStorage();
           const storageRef = ref(storage, `avatars/${userId}_${Date.now()}.jpg`);
           await uploadBytes(storageRef, imageFile);
           photoURL = await getDownloadURL(storageRef);
