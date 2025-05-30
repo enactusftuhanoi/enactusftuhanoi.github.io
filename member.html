@@ -24,6 +24,9 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       width: 90%;
       max-width: 800px;
+      display: flex;
+      align-items: center;
+      gap: 30px;
     }
 
     .profile-image {
@@ -32,27 +35,22 @@
       border-radius: 50%;
       object-fit: cover;
       border: 4px solid #ddd;
-      margin-bottom: 20px;
     }
 
-    .profile-info input {
-      width: 100%;
-      padding: 10px;
+    .profile-info {
+      flex: 1;
+    }
+
+    .profile-info h2 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      color: #222;
+    }
+
+    .profile-info p {
       margin: 6px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
       font-size: 16px;
-    }
-
-    .save-btn {
-      margin-top: 10px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
+      color: #555;
     }
 
     .footer-text {
@@ -61,18 +59,42 @@
       font-size: 14px;
       color: #aaa;
     }
+
+    @media (max-width: 600px) {
+      .profile-card {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .profile-image {
+        width: 120px;
+        height: 120px;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <div class="profile-card" id="profileContainer">
-    <!-- Nội dung sẽ được chèn bằng JavaScript -->
-  </div>
+ 
+  <!-- Thêm vào trong <body> ngay sau thẻ mở <body> -->
+  <div id="adminButton" style="position: absolute; top: 20px; right: 20px; display: none;">
+  <button onclick="window.location.href='admin.html'" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+    🔒 Admin
+  </button>
+    <button onclick="window.location.href='attendance.html'" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+    ➕ Tạo phiên điểm danh
+  </button>
+</div>
+  <div style="position: absolute; top: 20px; left: 20px;">
+  <button onclick="window.location.href='scan.html'" style="background: #ff6ec4; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+     📸 Điểm danh
+  </button>
+</div>
+  <div id="profileContainer"></div>
   <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -86,12 +108,19 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
     window.onload = async function () {
       const userEmail = sessionStorage.getItem('userEmail');
-      if (!userEmail) return window.location.href = "login.html";
-      await getUserData(userEmail);
+      const userRole = sessionStorage.getItem('userRole');
+      
+      if (!userEmail) {
+        window.location.href = "login.html";
+      } else {
+        if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
+          document.getElementById("adminButton").style.display = "block";
+        }
+        await getUserData(userEmail);
+      }
     };
 
     async function getUserData(email) {
@@ -101,63 +130,85 @@
       try {
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
-          const docSnap = querySnapshot.docs[0];
-          const userData = docSnap.data();
-          userData.docId = docSnap.id;
-          displayEditableForm(userData);
+          const userData = querySnapshot.docs[0].data();
+
+          // Lấy role từ dữ liệu
+          const role = userData.role || "user"; // Nếu không có thì mặc định là "user"
+          sessionStorage.setItem('userRole', role);
+
+          // Hiện nút Admin nếu role là admin
+          if (role.toLowerCase() === "admin") {
+            document.getElementById("adminButton").style.display = "block";
+          }
+
+          displayUserData(userData);
         } else {
-          alert("Không tìm thấy thông tin người dùng!");
+          alert("Không tìm thấy thông tin người dùng trong hệ thống!");
         }
-      } catch (err) {
-        console.error("Lỗi truy vấn:", err);
-        alert("Lỗi hệ thống!");
+      } catch (error) {
+        console.error("Lỗi khi truy vấn dữ liệu:", error);
+        alert("Lỗi hệ thống, vui lòng thử lại.");
       }
     }
 
-    function displayEditableForm(user) {
+    function displayUserData(userData) {
       const container = document.getElementById("profileContainer");
 
+      const photoURL = userData.photoURL || "https://i.imgur.com/GZwfGjd.png"; // Placeholder nếu không có ảnh
+
       container.innerHTML = `
-        <div style="text-align:center">
-          <img id="avatarPreview" class="profile-image" src="${user.photoURL || 'https://i.imgur.com/GZwfGjd.png'}" />
-          <input type="file" id="avatarInput" accept="image/*" />
-        </div>
-        <div class="profile-info">
-          <p><strong>Email:</strong><br/><input id="emailInput" value="${user.email || ''}" /></p>
-          <p><strong>Phone:</strong><br/><input id="phoneInput" value="${user.phone || ''}" /></p>
-          <p><strong>Ngày sinh:</strong><br/><input type="date" id="dobInput" value="${user.dob || ''}" /></p>
-          <button class="save-btn" onclick="saveChanges('${user.docId}')">💾 Lưu thay đổi</button>
+        <div class="profile-card">
+          <img id="profileImage" class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
+          <input type="file" id="imageUpload" accept="image/*" style="margin-top: 10px;" />
+          <div class="profile-info">
+            <h2>${userData.name || "Chưa cập nhật"}</h2>
+            <p><strong>ID:</strong> ${userData.id}</p>
+            <p><strong>Ban:</strong> ${userData.ban}</p>
+            <p><strong>Email:</strong> <input type="email" id="emailInput" value="${userData.email}" /></p>
+            <p><strong>Ngày sinh:</strong> <input type="date" id="dobInput" value="${userData.dob || ""}" /></p>
+            <p><strong>SĐT:</strong> <input type="text" id="phoneInput" value="${userData.phone || ""}" /></p>
+            <p><strong>OTP:</strong> ${userData.otp}</p>
+            <button onclick="saveChanges('${userData.id}')" style="margin-top: 10px; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">💾 Lưu thay đổi</button>
+          </div>
         </div>
       `;
-
-      document.getElementById("avatarInput").addEventListener("change", async function () {
-        const file = this.files[0];
-        if (file) {
-          const storageRef = ref(storage, 'avatars/' + user.docId);
-          await uploadBytes(storageRef, file);
-          const downloadURL = await getDownloadURL(storageRef);
-          document.getElementById("avatarPreview").src = downloadURL;
-          await updateDoc(doc(db, "employees", user.docId), { photoURL: downloadURL });
-          alert("Ảnh đại diện đã cập nhật!");
-        }
-      });
     }
 
-    window.saveChanges = async function (docId) {
+    async function saveChanges(userId) {
       const email = document.getElementById("emailInput").value;
-      const phone = document.getElementById("phoneInput").value;
       const dob = document.getElementById("dobInput").value;
+      const phone = document.getElementById("phoneInput").value;
+      const imageFile = document.getElementById("imageUpload").files[0];
 
-      try {
-        await updateDoc(doc(db, "employees", docId), {
-          email, phone, dob
+      const employeesRef = collection(db, "employees");
+      const q = query(employeesRef, where("id", "==", userId));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const docRef = querySnapshot.docs[0].ref;
+        let photoURL = querySnapshot.docs[0].data().photoURL;
+
+        if (imageFile) {
+          const storage = getStorage();
+          const storageRef = ref(storage, `avatars/${userId}_${Date.now()}.jpg`);
+          await uploadBytes(storageRef, imageFile);
+          photoURL = await getDownloadURL(storageRef);
+        }
+
+        await updateDoc(docRef, {
+          email,
+          dob,
+          phone,
+          photoURL
         });
-        alert("Thông tin đã được cập nhật thành công!");
-      } catch (err) {
-        console.error("Lỗi cập nhật:", err);
-        alert("Không thể cập nhật. Vui lòng thử lại.");
+
+        alert("Thông tin đã được cập nhật!");
+        location.reload();
+      } else {
+        alert("Không tìm thấy người dùng để cập nhật.");
       }
-    };
+    }
   </script>
+
 </body>
 </html>
