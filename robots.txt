@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://enactusftuhanoi.github.io/sitemap.xml
+Sitemap: https://enactusftuhanoi.github.io/vn/sitemap.xml
