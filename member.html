@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thông Tin Thành Viên</title>
+  <link rel="icon" href="icon.png" type="image/png" />
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .profile-card {
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 800px;
+    }
+
+    .profile-image {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #ddd;
+      margin-bottom: 20px;
+    }
+
+    .profile-info input {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .save-btn {
+      margin-top: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .footer-text {
+      position: absolute;
+      bottom: 20px;
+      font-size: 14px;
+      color: #aaa;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="profile-card" id="profileContainer">
+    <!-- Nội dung sẽ được chèn bằng JavaScript -->
+  </div>
+  <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    window.onload = async function () {
+      const userEmail = sessionStorage.getItem('userEmail');
+      if (!userEmail) return window.location.href = "login.html";
+      await getUserData(userEmail);
+    };
+
+    async function getUserData(email) {
+      const employeesRef = collection(db, "employees");
+      const q = query(employeesRef, where("email", "==", email));
+
+      try {
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const docSnap = querySnapshot.docs[0];
+          const userData = docSnap.data();
+          userData.docId = docSnap.id;
+          displayEditableForm(userData);
+        } else {
+          alert("Không tìm thấy thông tin người dùng!");
+        }
+      } catch (err) {
+        console.error("Lỗi truy vấn:", err);
+        alert("Lỗi hệ thống!");
+      }
+    }
+
+    function displayEditableForm(user) {
+      const container = document.getElementById("profileContainer");
+
+      container.innerHTML = `
+        <div style="text-align:center">
+          <img id="avatarPreview" class="profile-image" src="${user.photoURL || 'https://i.imgur.com/GZwfGjd.png'}" />
+          <input type="file" id="avatarInput" accept="image/*" />
+        </div>
+        <div class="profile-info">
+          <p><strong>Email:</strong><br/><input id="emailInput" value="${user.email || ''}" /></p>
+          <p><strong>Phone:</strong><br/><input id="phoneInput" value="${user.phone || ''}" /></p>
+          <p><strong>Ngày sinh:</strong><br/><input type="date" id="dobInput" value="${user.dob || ''}" /></p>
+          <button class="save-btn" onclick="saveChanges('${user.docId}')">💾 Lưu thay đổi</button>
+        </div>
+      `;
+
+      document.getElementById("avatarInput").addEventListener("change", async function () {
+        const file = this.files[0];
+        if (file) {
+          const storageRef = ref(storage, 'avatars/' + user.docId);
+          await uploadBytes(storageRef, file);
+          const downloadURL = await getDownloadURL(storageRef);
+          document.getElementById("avatarPreview").src = downloadURL;
+          await updateDoc(doc(db, "employees", user.docId), { photoURL: downloadURL });
+          alert("Ảnh đại diện đã cập nhật!");
+        }
+      });
+    }
+
+    window.saveChanges = async function (docId) {
+      const email = document.getElementById("emailInput").value;
+      const phone = document.getElementById("phoneInput").value;
+      const dob = document.getElementById("dobInput").value;
+
+      try {
+        await updateDoc(doc(db, "employees", docId), {
+          email, phone, dob
+        });
+        alert("Thông tin đã được cập nhật thành công!");
+      } catch (err) {
+        console.error("Lỗi cập nhật:", err);
+        alert("Không thể cập nhật. Vui lòng thử lại.");
+      }
+    };
+  </script>
+</body>
+</html>
