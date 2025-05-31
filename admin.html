@@ -1,11 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Enactus FTU Hanoi | Dashboard</title>
-<link rel="icon" href="icon.png" type="image/png">
+<title>Quản lý Nhân sự - Enactus FTU Hanoi</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
 
@@ -143,13 +141,13 @@
 </head>
 <body>
   <div class="container" id="adminPage">
-    <h1>Enactus FTU Hanoi</h1>
+    <h1>Quản lý Nhân sự - Enactus FTU Hanoi</h1>
 
-    <h2>Quản lý nhân sự</h2>
+    <h2>Thêm / Sửa nhân sự</h2>
     <div class="form-row">
       <input id="id" placeholder="ID" />
-      <input id="ban" placeholder="Ban (ví dụ: MD, HR, ER, PD)" />
-      <input id="name" placeholder="Họ và tên" />
+      <input id="ban" placeholder="Ban (ví dụ: MD, HR, IT)" />
+      <input id="name" placeholder="Họ tên" />
       <input id="dob" type="date" placeholder="Ngày sinh" />
       <select id="process">
         <option value="Active">Active</option>
@@ -181,7 +179,7 @@
 
     <hr>
 
-    <h2>DANH SÁCH NHÂN SỰ</h2>
+    <h2>Danh sách nhân sự hiện có</h2>
     <table>
       <thead>
         <tr>
@@ -316,37 +314,31 @@
     };
 
     window.editEmployee = function (docId, id, ban, name, dob, process, otp, email, phone, role) {
-  document.getElementById("id").value = id;
-  document.getElementById("ban").value = ban;
-  document.getElementById("name").value = name;
-  document.getElementById("dob").value = dob;
-  document.getElementById("process").value = process;
-  document.getElementById("email").value = email;
-  document.getElementById("phone").value = phone;
-  document.getElementById("role").value = role;
-
-  const saveButton = document.getElementById("saveButton");
-  saveButton.style.display = "inline-block"; // Hiện nút Lưu
-
-  saveButton.onclick = async function () {
-    await updateDoc(doc(db, "employees", docId), {
-      id: document.getElementById("id").value.trim(),
-      ban: document.getElementById("ban").value.trim(),
-      name: document.getElementById("name").value.trim(),
-      dob: document.getElementById("dob").value,
-      process: document.getElementById("process").value,
-      otp,
-      email: document.getElementById("email").value.trim(),
-      phone: document.getElementById("phone").value.trim(),
-      role: document.getElementById("role").value
-    });
-    alert("Cập nhật thành công!");
-    clearForm();
-    loadEmployees();
-    saveButton.style.display = "none"; // Ẩn lại nút Lưu
-  };
-};
-
+      document.getElementById("id").value = id;
+      document.getElementById("ban").value = ban;
+      document.getElementById("name").value = name;
+      document.getElementById("dob").value = dob;
+      document.getElementById("process").value = process;
+      document.getElementById("email").value = email;
+      document.getElementById("phone").value = phone;
+      document.getElementById("role").value = role;
+      document.getElementById("saveButton").onclick = async function () {
+        await updateDoc(doc(db, "employees", docId), {
+          id: document.getElementById("id").value.trim(),
+          ban: document.getElementById("ban").value.trim(),
+          name: document.getElementById("name").value.trim(),
+          dob: document.getElementById("dob").value,
+          process: document.getElementById("process").value,
+          otp,
+          email: document.getElementById("email").value.trim(),
+          phone: document.getElementById("phone").value.trim(),
+          role: document.getElementById("role").value
+        });
+        alert("Cập nhật thành công!");
+        clearForm();
+        loadEmployees();
+      };
+    };
 
     window.deleteEmployee = async function (id) {
       if (!confirm("Bạn có chắc muốn xóa nhân sự này?")) return;
@@ -368,7 +360,7 @@
     }
 
     // ==================== CSV Import with Preview + Validation ===================
-    const requiredHeaders = ["id","ban","name","dob","process","email","phone","role","photoURL"];
+    const requiredHeaders = ["id","ban","name","dob","process","email","phone","role"];
 
     window.parseCSV = function (text) {
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
