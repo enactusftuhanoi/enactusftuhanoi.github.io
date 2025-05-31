@@ -144,9 +144,6 @@
 <body>
   <div class="container" id="adminPage">
     <h1>Enactus FTU Hanoi</h1>
-    <div style="text-align:center; margin-bottom: 20px;">
-      <img src="logo.png" alt="Logo Enactus" style="max-height: 100px;">
-    </div>
 
     <h2>Quản lý nhân sự</h2>
     <div class="form-row">
@@ -187,7 +184,6 @@
     <h2>DANH SÁCH NHÂN SỰ</h2>
     <table>
       <thead>
-    <th>Ảnh</th>
         <tr>
           <th>ID</th>
           <th>BAN</th>
@@ -372,7 +368,7 @@
     }
 
     // ==================== CSV Import with Preview + Validation ===================
-    const requiredHeaders = ["id","ban","name","dob","process","email","phone","role"];
+    const requiredHeaders = ["id","ban","name","dob","process","email","phone","role","photoURL"];
 
     window.parseCSV = function (text) {
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
@@ -463,11 +459,9 @@
           return;
         }
 
-        let html = `<table><thead>
-    <th>Ảnh</th><tr>
+        let html = `<table><thead><tr>
           <th>ID</th><th>BAN</th><th>Name</th><th>DOB</th><th>Process</th><th>Email</th><th>Phone</th><th>Role</th>
-          </tr></thead><tbody>
-    <td><img src="${emp.photoURL || 'default-avatar.png'}" alt="Ảnh" style="height: 50px; border-radius: 50%;"></td>`;
+          </tr></thead><tbody>`;
         for (const r of dataRows) {
           html += `<tr>
             <td>${r.id}</td><td>${r.ban}</td><td>${r.name}</td><td>${r.dob}</td><td>${r.process}</td><td>${r.email}</td><td>${r.phone}</td><td>${r.role}</td>
