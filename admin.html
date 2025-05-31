@@ -159,6 +159,7 @@
       <select id="role">
         <option value="Member">Member</option>
         <option value="Admin">Admin</option>
+        <input id="Photo" placeholder="Ảnh Profile" />
       </select>
     </div>
     <div style="text-align:center; margin-bottom: 30px;">
@@ -185,6 +186,7 @@
       <thead>
         <tr>
           <th>ID</th>
+          <th>Ảnh</th>
           <th>BAN</th>
           <th>Họ tên</th>
           <th>Ngày sinh</th>
@@ -275,6 +277,7 @@
         tableBody.innerHTML += `
           <tr>
             <td>${emp.id}</td>
+            <td>${emp.photo}</td>
             <td>${emp.ban}</td>
             <td>${emp.name}</td>
             <td>${formatDate(emp.dob)}</td>
@@ -282,7 +285,7 @@
             <td>${emp.otp}</td>
             <td>${emp.role}</td>
             <td>
-              <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
+              <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.photo}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
               <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
             </td>
           </tr>
@@ -300,6 +303,7 @@
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       await addDoc(collection(db, "employees"), {
         id: document.getElementById("id").value.trim(),
+        photo: document.getElementById("photo").value.trim(),
         ban: document.getElementById("ban").value.trim(),
         name: document.getElementById("name").value.trim(),
         dob: document.getElementById("dob").value,
@@ -314,8 +318,9 @@
       loadEmployees();
     };
 
-    window.editEmployee = function (docId, id, ban, name, dob, process, otp, email, phone, role) {
+    window.editEmployee = function (docId, id, photo, ban, name, dob, process, otp, email, phone, role) {
       document.getElementById("id").value = id;
+      document.getElementById("photo").value = photo;
       document.getElementById("ban").value = ban;
       document.getElementById("name").value = name;
       document.getElementById("dob").value = dob;
@@ -326,6 +331,7 @@
       document.getElementById("saveButton").onclick = async function () {
         await updateDoc(doc(db, "employees", docId), {
           id: document.getElementById("id").value.trim(),
+          photo: document.getElementById("photo").value.trim(),
           ban: document.getElementById("ban").value.trim(),
           name: document.getElementById("name").value.trim(),
           dob: document.getElementById("dob").value,
@@ -350,6 +356,7 @@
 
     function clearForm() {
       document.getElementById("id").value = "";
+      document.getElementById("photo").value = "";
       document.getElementById("ban").value = "";
       document.getElementById("name").value = "";
       document.getElementById("dob").value = "";
@@ -361,7 +368,7 @@
     }
 
     // ==================== CSV Import with Preview + Validation ===================
-    const requiredHeaders = ["id","ban","name","dob","process","email","phone","role"];
+    const requiredHeaders = ["id","photo","ban","name","dob","process","email","phone","role"];
 
     window.parseCSV = function (text) {
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
@@ -408,6 +415,7 @@
         }
         dataRows.push({
           id: values[idxMap.id],
+          photo: values[idxMap.photo],
           ban: values[idxMap.ban],
           name: values[idxMap.name],
           dob: values[idxMap.dob],
@@ -453,11 +461,11 @@
         }
 
         let html = `<table><thead><tr>
-          <th>ID</th><th>BAN</th><th>Name</th><th>DOB</th><th>Process</th><th>Email</th><th>Phone</th><th>Role</th>
+          <th>ID</th><th>Ảnh</th><th>BAN</th><th>Name</th><th>DOB</th><th>Process</th><th>Email</th><th>Phone</th><th>Role</th>
           </tr></thead><tbody>`;
         for (const r of dataRows) {
           html += `<tr>
-            <td>${r.id}</td><td>${r.ban}</td><td>${r.name}</td><td>${r.dob}</td><td>${r.process}</td><td>${r.email}</td><td>${r.phone}</td><td>${r.role}</td>
+            <td>${r.id}</td><td>${r.photo}</td><td>${r.ban}</td><td>${r.name}</td><td>${r.dob}</td><td>${r.process}</td><td>${r.email}</td><td>${r.phone}</td><td>${r.role}</td>
           </tr>`;
         }
         html += "</tbody></table>";
