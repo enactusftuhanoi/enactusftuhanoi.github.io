@@ -7,6 +7,14 @@
   <link rel="icon" href="icon.png" type="image/png">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Poppins:wght@400;500&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+    <!-- Add icon library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet">
   <style>
     :root {
       --main-yellow: #f7b733;
@@ -234,6 +242,54 @@
       <a href="#about" class="button">Tìm hiểu thêm</a>
     </div>
   </section>
+  <div class="container" style="margin-top:100px;">
+      <div class="row-1">
+        <div class="column-1">
+          <h1 class="display-2 about" data-aos="fade-right" style="font-weight:bold !important;"><span style="color:#515356;">WHAT <br>IS </span><span style="color:#FFC222;">ENACTUS</span></h1>
+        </div>
+        <div class="column-2">
+          <p data-aos="fade-left">
+            Enactus is the world’s largest experiential learning platform dedicated to creating a better world while developing the next generation of entrepreneurial leaders and social innovators. The Enactus network of global business, academic and student leaders are unified by our vision—to create a better, more sustainable world. Enactus has its roots in over 37 countries with more than 72,000 student members. Enactus is the largest experiential learning platform developing NextGen Leaders with a head for business and a heart for the world.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="webinar">
+      <img src="mission2.jpg" alt="" class="webinar-image">
+    </div>
+
+    <div class="container">
+      <div class="row-1">
+        <div class="column-1">
+          <h1 class="display-2 about" data-aos="fade-right" style="font-weight:bold !important;"><span style="color:#515356;">ABOUT SRM<br></span><span style="color:#FFC222;">ENACTUS</span></h1>
+        </div>
+        <div class="column-2">
+          <p data-aos="fade-left" style="padding-top:30px;">
+            Enactus SRM is the social entrepreneurship club of SRM IST which aims towards uplifting rural communities and achieving UN SDGs with the spirit of entrepreneurship. <br><br> We currently have 3 active projects including Project Prakrit, Project Jaladhi and Project FlyLife.
+          </p>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="webinar">
+      <img src="8.jpeg" alt="" class="webinar-image">
+    </div>
+
+
+    <div class="container">
+      <div class="row-1">
+        <div class="column-1">
+          <h1 class="display-2 about" data-aos="fade-right" style="font-weight:bold !important;"><span style="color:#515356;">OUR<br></span><span style="color:#FFC222;">MISSION</span></h1>
+        </div>
+        <div class="column-2">
+          <p data-aos="fade-left">
+            At Enactus SRM, we believe in making the most out of what we’re offered. We aim to develop ourselves so that we can think out of the box and build a path which helps the society as well as our economy. Making ground breaking ideas out of general problems, and using them to generate revenue to ultimately help people is what we strive for. <br><br> We dedicate ourselves to creating future entrepreneurs that understand a situation and make feasible plans that help the people connected to the problem and them as well. Now is the time to implement this ideology in the youth as much as possible so that together, we can change this world for the best.
+          </p>
+        </div>
+      </div>
+    </div>
 
   <!-- Về Enactus -->
   <section id="about" class="container">
@@ -388,6 +444,33 @@
       delay: 0.3,
       ease: "power2.out"
     });
-  </script>
-</body>
+ <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+    function animateValue(obj, start, end, duration) {
+let startTimestamp = null;
+const step = (timestamp) => {
+  if (!startTimestamp) startTimestamp = timestamp;
+  const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+  obj.innerHTML = Math.floor(progress * (end - start) + start);
+  if (progress < 1) {
+    window.requestAnimationFrame(step);
+  }
+};
+window.requestAnimationFrame(step);
+}
+
+const obj = document.getElementById("value");
+animateValue(obj, 0, 100, 5000);
+const obj1 = document.getElementById("value1");
+animateValue(obj1, 0, 5, 5000);
+const obj2 = document.getElementById("value2");
+animateValue(obj2, 0, 10000, 5000);
+const obj3 = document.getElementById("value3");
+animateValue(obj3, 0, 50, 5000);
+    </script>
+    <script>
+  AOS.init();
+</script>
+  </body>
 </html>
