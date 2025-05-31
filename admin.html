@@ -303,7 +303,7 @@
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       await addDoc(collection(db, "employees"), {
         id: document.getElementById("id").value.trim(),
-        photo: document.getElementById("photo").value.trim(),
+        photo: document.getElementById("Photo").value.trim(),
         ban: document.getElementById("ban").value.trim(),
         name: document.getElementById("name").value.trim(),
         dob: document.getElementById("dob").value,
