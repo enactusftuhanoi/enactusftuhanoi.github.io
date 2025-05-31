@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -159,7 +160,7 @@
       <select id="role">
         <option value="Member">Member</option>
         <option value="Admin">Admin</option>
-        <input id="Photo" placeholder="Ảnh Profile" />
+        <input id="photo" placeholder="Ảnh Profile" />
       </select>
     </div>
     <div style="text-align:center; margin-bottom: 30px;">
@@ -303,7 +304,7 @@
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       await addDoc(collection(db, "employees"), {
         id: document.getElementById("id").value.trim(),
-        photo: document.getElementById("Photo").value.trim(),
+        photo: document.getElementById("photo").value.trim(),
         ban: document.getElementById("ban").value.trim(),
         name: document.getElementById("name").value.trim(),
         dob: document.getElementById("dob").value,
