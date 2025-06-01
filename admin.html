@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 
 <html lang="vi">
@@ -179,6 +177,20 @@
 <div id="csvPreviewTable"></div>
 <hr/>
 <h2>Danh sách nhân sự hiện có</h2>
+  <div class="form-row" style="margin-bottom: 20px;">
+  <input id="searchInput" placeholder="Tìm theo tên hoặc email..." oninput="filterEmployees()" />
+  <select id="filterBan" onchange="filterEmployees()">
+    <option value="">Tất cả Ban</option>
+    <option value="MD">MD</option>
+    <option value="HR">HR</option>
+    <option value="IT">IT</option>
+  </select>
+  <select id="filterRole" onchange="filterEmployees()">
+    <option value="">Tất cả Vai trò</option>
+    <option value="Member">Member</option>
+    <option value="Admin">Admin</option>
+  </select>
+</div>
 <table>
 <thead>
 <tr>
