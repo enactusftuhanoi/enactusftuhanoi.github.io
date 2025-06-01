@@ -1,12 +1,13 @@
 
 
 <!DOCTYPE html>
+
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>Quản lý Nhân sự - Enactus FTU Hanoi</title>
-<link rel="icon" href="icon.png" type="image/png">
+<link href="icon.png" rel="icon" type="image/png"/>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
 
@@ -143,82 +144,60 @@
 </style>
 </head>
 <body>
-  <div class="container" id="adminPage">
-    <h1>Quản lý Nhân sự - Enactus FTU Hanoi</h1>
+<div class="container" id="adminPage">
+<h1>Quản lý Nhân sự - Enactus FTU Hanoi</h1>
+<h2>Thêm / Sửa nhân sự</h2>
+<div class="form-row">
+<input id="id" placeholder="ID"/>
+<input id="ban" placeholder="Ban (ví dụ: MD, HR, IT)"/>
+<input id="name" placeholder="Họ tên"/>
+<input id="dob" placeholder="Ngày sinh" type="date"/>
+<select id="process">
+<option value="Active">Active</option>
+<option value="Inactive">Inactive</option>
+</select>
+<input id="email" placeholder="Email" type="email"/>
+<input id="phone" placeholder="Số điện thoại"/>
+<select id="role">
+<option value="Member">Member</option>
+<option value="Admin">Admin</option>
 
-    <h2>Thêm / Sửa nhân sự</h2>
-    <div class="form-row">
-      <input id="id" placeholder="ID" />
-      <input id="ban" placeholder="Ban (ví dụ: MD, HR, IT)" />
-      <input id="name" placeholder="Họ tên" />
-      <input id="dob" type="date" placeholder="Ngày sinh" />
-      <select id="process">
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
-      </select>
-      <input id="email" placeholder="Email" type="email" />
-      <input id="phone" placeholder="Số điện thoại" />
-      <select id="role">
-        <option value="Member">Member</option>
-        <option value="Admin">Admin</option>
-        <input id="photo" placeholder="Ảnh Profile" />
-      </select>
-    </div>
-    <div style="text-align:center; margin-bottom: 30px;">
-      <button onclick="addEmployee()">Thêm nhân sự</button>
-      <button id="saveButton" style="display:none;">Lưu thay đổi</button>
-    </div>
-
-    <hr>
-
-    <h2>Import nhân sự từ CSV</h2>
-    <div class="form-row" style="align-items:center;">
-      <input type="file" id="csvFileInput" accept=".csv" />
-      <button onclick="previewCSV()">Xem trước CSV</button>
-      <button onclick="importCSV()">Import CSV</button>
-    </div>
-
-    <div id="errorMessages"></div>
-    <div id="csvPreviewTable"></div>
-
-    <hr>
-
-    <h2>Danh sách nhân sự hiện có</h2>
-    
-<div class="form-row" style="margin-bottom: 20px;">
-  <input id="searchInput" placeholder="Tìm theo tên hoặc email..." oninput="filterEmployees()" />
-  <select id="filterBan" onchange="filterEmployees()">
-    <option value="">Tất cả Ban</option>
-    <option value="MD">MD</option>
-    <option value="HR">HR</option>
-    <option value="IT">IT</option>
-  </select>
-  <select id="filterRole" onchange="filterEmployees()">
-    <option value="">Tất cả Vai trò</option>
-    <option value="Member">Member</option>
-    <option value="Admin">Admin</option>
-  </select>
+</select><input id="photo" placeholder="Ảnh Profile"/>
 </div>
+<div style="text-align:center; margin-bottom: 30px;">
+<button onclick="addEmployee()">Thêm nhân sự</button>
+<button id="saveButton" style="display:none;">Lưu thay đổi</button>
+</div>
+<hr/>
+<h2>Import nhân sự từ CSV</h2>
+<div class="form-row" style="align-items:center;">
+<input accept=".csv" id="csvFileInput" type="file"/>
+<button onclick="previewCSV()">Xem trước CSV</button>
+<button onclick="importCSV()">Import CSV</button>
+</div>
+<div id="errorMessages"></div>
+<div id="csvPreviewTable"></div>
+<hr/>
+<h2>Danh sách nhân sự hiện có</h2>
 <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Ảnh</th>
-          <th>BAN</th>
-          <th>Họ tên</th>
-          <th>Ngày sinh</th>
-          <th>Process</th>
-          <th>OTP</th>
-          <th>Role</th>
-          <th>Hành động</th>
-        </tr>
-      </thead>
-      <tbody id="employeeTableBody">
-        <!-- Dữ liệu load từ Firestore -->
-      </tbody>
-    </table>
-  </div>
-
+<thead>
+<tr>
+<th>ID</th>
+<th>Ảnh</th>
+<th>BAN</th>
+<th>Họ tên</th>
+<th>Ngày sinh</th>
+<th>Process</th>
+<th>OTP</th>
+<th>Role</th>
+<th>Hành động</th>
+</tr>
+</thead>
+<tbody id="employeeTableBody">
+<!-- Dữ liệu load từ Firestore -->
+</tbody>
+</table>
+</div>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -477,22 +456,7 @@
           return;
         }
 
-        let html = `
-<div class="form-row" style="margin-bottom: 20px;">
-  <input id="searchInput" placeholder="Tìm theo tên hoặc email..." oninput="filterEmployees()" />
-  <select id="filterBan" onchange="filterEmployees()">
-    <option value="">Tất cả Ban</option>
-    <option value="MD">MD</option>
-    <option value="HR">HR</option>
-    <option value="IT">IT</option>
-  </select>
-  <select id="filterRole" onchange="filterEmployees()">
-    <option value="">Tất cả Vai trò</option>
-    <option value="Member">Member</option>
-    <option value="Admin">Admin</option>
-  </select>
-</div>
-<table><thead><tr>
+        let html = `<table><thead><tr>
           <th>ID</th><th>Ảnh</th><th>BAN</th><th>Name</th><th>DOB</th><th>Process</th><th>Email</th><th>Phone</th><th>Role</th>
           </tr></thead><tbody>`;
         for (const r of dataRows) {
@@ -565,63 +529,6 @@
       };
       reader.readAsText(file);
     };
-  
-window.filterEmployees = async function () {
-  const search = document.getElementById("searchInput").value.toLowerCase();
-  const ban = document.getElementById("filterBan").value;
-  const role = document.getElementById("filterRole").value;
+  </script>
 
-  const querySnapshot = await getDocs(collection(db, "employees"));
-  const tableBody = document.getElementById("employeeTableBody");
-  tableBody.innerHTML = "";
-
-  querySnapshot.forEach((docSnap) => {
-    const emp = docSnap.data();
-    const matchSearch = emp.name.toLowerCase().includes(search) || emp.email.toLowerCase().includes(search);
-    const matchBan = !ban || emp.ban === ban;
-    const matchRole = !role || emp.role === role;
-
-    if (matchSearch && matchBan && matchRole) {
-      tableBody.innerHTML += `
-        <tr>
-          <td>${emp.id}</td>
-          <td>${emp.photo}</td>
-          <td>${emp.ban}</td>
-          <td>${emp.name}</td>
-          <td>${formatDate(emp.dob)}</td>
-          <td>${emp.process}</td>
-          <td>${emp.otp}</td>
-          <td>${emp.role}</td>
-          <td>
-            <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.photo}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
-            <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
-          </td>
-        </tr>
-      `;
-    }
-  });
-};
-
-window.editEmployee = function (docId, id, photo, ban, name, dob, process, otp, email, phone, role) {
-  document.getElementById("saveButton").style.display = "inline-block"; // Hiển thị nút Lưu thay đổi
-  document.getElementById("saveButton").onclick = async function () {
-    const updatedEmployee = {
-      id: id,
-      photo: photo,
-      ban: ban,
-      name: name,
-      dob: dob,
-      process: process,
-      otp: otp,
-      email: email,
-      phone: phone,
-      role: role
-    };
-    await updateDoc(doc(db, "employees", docId), updatedEmployee);
-    document.getElementById("saveButton").style.display = "none"; // Ẩn nút Lưu thay đổi sau khi lưu
-    filterEmployees(); // Cập nhật danh sách nhân sự sau khi lưu
-  };
-};
-</script>
-</head>
-</html>
+</body></html>
