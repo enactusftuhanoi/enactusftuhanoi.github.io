@@ -376,23 +376,28 @@ table tr:hover {
   });
 
   const banOrder = { MD: 1, HR: 2, PD: 3, ER: 4 };
+
   employees.sort((a, b) => {
+    // Ưu tiên Active
     if (a.process !== b.process) return a.process === "Active" ? -1 : 1;
 
-    const hasPhotoA = a.photo && a.photo.trim() !== "";
-    const hasPhotoB = b.photo && b.photo.trim() !== "";
-    if (hasPhotoA !== hasPhotoB) return hasPhotoA ? -1 : 1;
+    // Ưu tiên có ảnh (không phải ảnh mặc định)
+    const isDefaultA = !a.photo || a.photo.includes("default_avatar");
+    const isDefaultB = !b.photo || b.photo.includes("default_avatar");
+    if (isDefaultA !== isDefaultB) return isDefaultA ? 1 : -1;
 
+    // Ưu tiên theo ban
     const orderA = banOrder[a.ban] || 99;
     const orderB = banOrder[b.ban] || 99;
     return orderA - orderB;
   });
 
   for (const emp of employees) {
+    const photoURL = emp.photo || "default_avatar.png";
     tableBody.innerHTML += `
       <tr>
         <td>${emp.id}</td>
-        <td>${emp.photo}</td>
+        <td><img src="${photoURL}" class="profile-image" onerror="this.onerror=null;this.src='default_avatar.png';" /></td>
         <td>${emp.ban}</td>
         <td>${emp.name}</td>
         <td>${formatDate(emp.dob)}</td>
