@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -183,7 +184,22 @@
     <hr>
 
     <h2>Danh sách nhân sự hiện có</h2>
-    <table>
+    
+<div class="form-row" style="margin-bottom: 20px;">
+  <input id="searchInput" placeholder="Tìm theo tên hoặc email..." oninput="filterEmployees()" />
+  <select id="filterBan" onchange="filterEmployees()">
+    <option value="">Tất cả Ban</option>
+    <option value="MD">MD</option>
+    <option value="HR">HR</option>
+    <option value="IT">IT</option>
+  </select>
+  <select id="filterRole" onchange="filterEmployees()">
+    <option value="">Tất cả Vai trò</option>
+    <option value="Member">Member</option>
+    <option value="Admin">Admin</option>
+  </select>
+</div>
+<table>
       <thead>
         <tr>
           <th>ID</th>
@@ -461,7 +477,22 @@
           return;
         }
 
-        let html = `<table><thead><tr>
+        let html = `
+<div class="form-row" style="margin-bottom: 20px;">
+  <input id="searchInput" placeholder="Tìm theo tên hoặc email..." oninput="filterEmployees()" />
+  <select id="filterBan" onchange="filterEmployees()">
+    <option value="">Tất cả Ban</option>
+    <option value="MD">MD</option>
+    <option value="HR">HR</option>
+    <option value="IT">IT</option>
+  </select>
+  <select id="filterRole" onchange="filterEmployees()">
+    <option value="">Tất cả Vai trò</option>
+    <option value="Member">Member</option>
+    <option value="Admin">Admin</option>
+  </select>
+</div>
+<table><thead><tr>
           <th>ID</th><th>Ảnh</th><th>BAN</th><th>Name</th><th>DOB</th><th>Process</th><th>Email</th><th>Phone</th><th>Role</th>
           </tr></thead><tbody>`;
         for (const r of dataRows) {
@@ -534,6 +565,63 @@
       };
       reader.readAsText(file);
     };
-  </script>
+  
+window.filterEmployees = async function () {
+  const search = document.getElementById("searchInput").value.toLowerCase();
+  const ban = document.getElementById("filterBan").value;
+  const role = document.getElementById("filterRole").value;
+
+  const querySnapshot = await getDocs(collection(db, "employees"));
+  const tableBody = document.getElementById("employeeTableBody");
+  tableBody.innerHTML = "";
+
+  querySnapshot.forEach((docSnap) => {
+    const emp = docSnap.data();
+    const matchSearch = emp.name.toLowerCase().includes(search) || emp.email.toLowerCase().includes(search);
+    const matchBan = !ban || emp.ban === ban;
+    const matchRole = !role || emp.role === role;
+
+    if (matchSearch && matchBan && matchRole) {
+      tableBody.innerHTML += `
+        <tr>
+          <td>${emp.id}</td>
+          <td>${emp.photo}</td>
+          <td>${emp.ban}</td>
+          <td>${emp.name}</td>
+          <td>${formatDate(emp.dob)}</td>
+          <td>${emp.process}</td>
+          <td>${emp.otp}</td>
+          <td>${emp.role}</td>
+          <td>
+            <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.photo}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
+            <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
+          </td>
+        </tr>
+      `;
+    }
+  });
+};
+
+window.editEmployee = function (docId, id, photo, ban, name, dob, process, otp, email, phone, role) {
+  document.getElementById("saveButton").style.display = "inline-block"; // Hiển thị nút Lưu thay đổi
+  document.getElementById("saveButton").onclick = async function () {
+    const updatedEmployee = {
+      id: id,
+      photo: photo,
+      ban: ban,
+      name: name,
+      dob: dob,
+      process: process,
+      otp: otp,
+      email: email,
+      phone: phone,
+      role: role
+    };
+    await updateDoc(doc(db, "employees", docId), updatedEmployee);
+    document.getElementById("saveButton").style.display = "none"; // Ẩn nút Lưu thay đổi sau khi lưu
+    filterEmployees(); // Cập nhật danh sách nhân sự sau khi lưu
+  };
+};
+</script>
 </head>
 </html>
