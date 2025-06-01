@@ -222,12 +222,12 @@ table tr:hover {
 </style></head>
 <body>
 <div class="container" id="adminPage">
-<h1>Quản lý Nhân sự - Enactus FTU Hanoi</h1>
-<h2>Thêm / Sửa nhân sự</h2>
+<h1>Enactus FTU Hanoi</h1>
+<h2>Quản lý nhân sự</h2>
 <div class="form-row">
 <input id="id" placeholder="ID"/>
-<input id="ban" placeholder="Ban (ví dụ: MD, HR, IT)"/>
-<input id="name" placeholder="Họ tên"/>
+<input id="ban" placeholder="Ban (ví dụ: BCT, MD, HR, PD, ER)"/>
+<input id="name" placeholder="Họ và tên"/>
 <input id="dob" placeholder="Ngày sinh" type="date"/>
 <select id="process">
 <option value="Active">Active</option>
@@ -238,11 +238,11 @@ table tr:hover {
 <select id="role">
 <option value="Member">Member</option>
 <option value="Admin">Admin</option>
-<input id="photo" placeholder="Ảnh Profile"/>
+<input id="photo" placeholder="File ảnh"/>
 </select>
 </div>
 <div style="text-align:center; margin-bottom: 30px;">
-<button onclick="addEmployee()">Thêm nhân sự</button>
+<button onclick="addEmployee()">Thêm thành viên</button>
 <button id="saveButton" onclick="saveChanges()" style="display: none;">Lưu thay đổi</button>
 <button id="saveButton" style="display:none;">Lưu thay đổi</button>
 </div>
@@ -256,11 +256,12 @@ table tr:hover {
 <div id="errorMessages"></div>
 <div id="csvPreviewTable"></div>
 <hr/>
-<h2>Danh sách nhân sự hiện có</h2>
+<h2>Danh sách nhân sự</h2>
 <div class="form-row" style="margin-bottom: 10px;">
 <input id="filterNameEmail" placeholder="Lọc theo tên hoặc email"/>
 <select id="filterBan">
 <option value="">Tất cả ban</option>
+<option value="BCT">BCT</option>
 <option value="MD">MD</option>
 <option value="HR">HR</option>
 <option value="ER">ER</option>
@@ -283,8 +284,8 @@ table tr:hover {
 <tr>
 <th>ID</th>
 <th>Ảnh</th>
-<th>BAN</th>
-<th>Họ tên</th>
+<th>Ban</th>
+<th>Họ và Tên</th>
 <th>Ngày sinh</th>
 <th>Process</th>
 <th>OTP</th>
@@ -375,7 +376,7 @@ table tr:hover {
     employees.push(emp);
   });
 
-  const banOrder = { MD: 1, HR: 2, PD: 3, ER: 4 };
+  const banOrder = { BCT: 1, MD: 2, HR: 3, PD: 4, ER: 5 };
   employees.sort((a, b) => {
     if (a.process !== b.process) return a.process === "Active" ? -1 : 1;
 
