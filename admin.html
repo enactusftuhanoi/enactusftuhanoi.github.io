@@ -1,12 +1,11 @@
 
 <!DOCTYPE html>
-
 <html lang="vi">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Quản lý Nhân sự - Enactus FTU Hanoi</title>
-<link href="icon.png" rel="icon" type="image/png"/>
+<link rel="icon" href="icon.png" type="image/png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
 
@@ -141,164 +140,180 @@
   }
 
 </style>
+
 <style>
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f8fafc;
-    color: #2E2E2E;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-h1, h2, h3 {
-    color: #2E2E2E;
-}
-
-form {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-input[type="text"], input[type="email"], input[type="file"], select {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #6E6E6E;
-    border-radius: 4px;
-}
-
-button {
-    background-color: #F97316;
-    color: #ffffff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #FBBF24;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-table, th, td {
-    border: 1px solid #6E6E6E;
-}
-
-th, td {
-    padding: 10px;
-    text-align: left;
-}
-
-th {
-    background-color: #F97316;
-    color: #ffffff;
-}
-
-tr:nth-child(even) {
-    background-color: #FEF08A;
-}
-
-tr:hover {
-    background-color: #FBBF24;
-}
-
-img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-}
-</style></head>
+    body {
+        font-family: 'Open Sans', sans-serif;
+        background-color: #f8fafc;
+        color: #2E2E2E;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: #2E2E2E;
+    }
+    .form-section {
+        background-color: #FFFFFF;
+        border: 1px solid #6E6E6E;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .form-section h2 {
+        color: #F97316;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #2E2E2E;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #6E6E6E;
+        border-radius: 4px;
+    }
+    .form-group input[type="file"] {
+        padding: 3px;
+    }
+    .form-group button {
+        background-color: #F97316;
+        color: #FFFFFF;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .form-group button:hover {
+        background-color: #FBBF24;
+    }
+    .table-section {
+        background-color: #FFFFFF;
+        border: 1px solid #6E6E6E;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .table-section h2 {
+        color: #F97316;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    table th, table td {
+        padding: 10px;
+        border: 1px solid #6E6E6E;
+        text-align: left;
+    }
+    table th {
+        background-color: #F97316;
+        color: #FFFFFF;
+    }
+    table tr:nth-child(even) {
+        background-color: #FEF08A;
+    }
+    table tr:hover {
+        background-color: #FBBF24;
+    }
+    .profile-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+</style>
+</head>
 <body>
-<div class="container" id="adminPage">
-<h1>Quản lý Nhân sự - Enactus FTU Hanoi</h1>
-<h2>Thêm / Sửa nhân sự</h2>
-<div class="form-row">
-<input id="id" placeholder="ID"/>
-<input id="ban" placeholder="Ban (ví dụ: MD, HR, IT)"/>
-<input id="name" placeholder="Họ tên"/>
-<input id="dob" placeholder="Ngày sinh" type="date"/>
-<select id="process">
-<option value="Active">Active</option>
-<option value="Inactive">Inactive</option>
-</select>
-<input id="email" placeholder="Email" type="email"/>
-<input id="phone" placeholder="Số điện thoại"/>
-<select id="role">
-<option value="Member">Member</option>
-<option value="Admin">Admin</option>
-<input id="photo" placeholder="Ảnh Profile"/>
-</select>
-</div>
-<div style="text-align:center; margin-bottom: 30px;">
-<button onclick="addEmployee()">Thêm nhân sự</button>
+  <div class="container" id="adminPage">
+    <h1>Quản lý Nhân sự - Enactus FTU Hanoi</h1>
+
+    <h2>Thêm / Sửa nhân sự</h2>
+    <div class="form-row">
+      <input id="id" placeholder="ID" />
+      <input id="ban" placeholder="Ban (ví dụ: MD, HR, IT)" />
+      <input id="name" placeholder="Họ tên" />
+      <input id="dob" type="date" placeholder="Ngày sinh" />
+      <select id="process">
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+      <input id="email" placeholder="Email" type="email" />
+      <input id="phone" placeholder="Số điện thoại" />
+      <select id="role">
+        <option value="Member">Member</option>
+        <option value="Admin">Admin</option>
+        <input id="photo" placeholder="Ảnh Profile" />
+      </select>
+    </div>
+    <div style="text-align:center; margin-bottom: 30px;">
+      <button onclick="addEmployee()">Thêm nhân sự</button>
 <button id="saveButton" onclick="saveChanges()" style="display: none;">Lưu thay đổi</button>
-<button id="saveButton" style="display:none;">Lưu thay đổi</button>
+      <button id="saveButton" style="display:none;">Lưu thay đổi</button>
+    </div>
+
+    <hr>
+
+    <h2>Import nhân sự từ CSV</h2>
+    <div class="form-row" style="align-items:center;">
+      <input type="file" id="csvFileInput" accept=".csv" />
+      <button onclick="previewCSV()">Xem trước CSV</button>
+      <button onclick="importCSV()">Import CSV</button>
+    </div>
+
+    <div id="errorMessages"></div>
+    <div id="csvPreviewTable"></div>
+
+    <hr>
+
+    <h2>Danh sách nhân sự hiện có</h2>
+    <div class="form-row" style="margin-bottom: 10px;">
+  <input id="filterNameEmail" placeholder="Lọc theo tên hoặc email" />
+  <select id="filterBan">
+    <option value="">Tất cả ban</option>
+    <option value="MD">MD</option>
+    <option value="HR">HR</option>
+    <option value="ER">ER</option>
+    <option value="PD">PD</option>
+  </select>
+  <select id="filterProcess">
+    <option value="">Tất cả trạng thái</option>
+    <option value="Active">Active</option>
+    <option value="Inactive">Inactive</option>
+  </select>
+  <select id="filterRole">
+    <option value="">Tất cả vai trò</option>
+    <option value="Admin">Admin</option>
+    <option value="Member">Member</option>
+  </select>
+  <button onclick="applyFilters()">Lọc</button>
 </div>
-<hr/>
-<h2>Import nhân sự từ CSV</h2>
-<div class="form-row" style="align-items:center;">
-<input accept=".csv" id="csvFileInput" type="file"/>
-<button onclick="previewCSV()">Xem trước CSV</button>
-<button onclick="importCSV()">Import CSV</button>
-</div>
-<div id="errorMessages"></div>
-<div id="csvPreviewTable"></div>
-<hr/>
-<h2>Danh sách nhân sự hiện có</h2>
-<div class="form-row" style="margin-bottom: 10px;">
-<input id="filterNameEmail" placeholder="Lọc theo tên hoặc email"/>
-<select id="filterBan">
-<option value="">Tất cả ban</option>
-<option value="MD">MD</option>
-<option value="HR">HR</option>
-<option value="ER">ER</option>
-<option value="PD">PD</option>
-</select>
-<select id="filterProcess">
-<option value="">Tất cả trạng thái</option>
-<option value="Active">Active</option>
-<option value="Inactive">Inactive</option>
-</select>
-<select id="filterRole">
-<option value="">Tất cả vai trò</option>
-<option value="Admin">Admin</option>
-<option value="Member">Member</option>
-</select>
-<button onclick="applyFilters()">Lọc</button>
-</div>
-<table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Ảnh</th>
-<th>BAN</th>
-<th>Họ tên</th>
-<th>Ngày sinh</th>
-<th>Process</th>
-<th>OTP</th>
-<th>Role</th>
-<th>Hành động</th>
-</tr>
-</thead>
-<tbody id="employeeTableBody">
-<!-- Dữ liệu load từ Firestore -->
-</tbody>
-</table>
-</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Ảnh</th>
+          <th>BAN</th>
+          <th>Họ tên</th>
+          <th>Ngày sinh</th>
+          <th>Process</th>
+          <th>OTP</th>
+          <th>Role</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="employeeTableBody">
+        <!-- Dữ liệu load từ Firestore -->
+      </tbody>
+    </table>
+  </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -688,4 +703,92 @@ img {
 
   </script>
 
-</body></html>
+<style>
+    body {
+        font-family: 'Open Sans', sans-serif;
+        background-color: #f8fafc;
+        color: #2E2E2E;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: #2E2E2E;
+    }
+    .form-section {
+        background-color: #FFFFFF;
+        border: 1px solid #6E6E6E;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .form-section h2 {
+        color: #F97316;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #2E2E2E;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #6E6E6E;
+        border-radius: 4px;
+    }
+    .form-group input[type="file"] {
+        padding: 3px;
+    }
+    .form-group button {
+        background-color: #F97316;
+        color: #FFFFFF;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .form-group button:hover {
+        background-color: #FBBF24;
+    }
+    .table-section {
+        background-color: #FFFFFF;
+        border: 1px solid #6E6E6E;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .table-section h2 {
+        color: #F97316;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    table th, table td {
+        padding: 10px;
+        border: 1px solid #6E6E6E;
+        text-align: left;
+    }
+    table th {
+        background-color: #F97316;
+        color: #FFFFFF;
+    }
+    table tr:nth-child(even) {
+        background-color: #FEF08A;
+    }
+    table tr:hover {
+        background-color: #FBBF24;
+    }
+    .profile-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+</style>
+</head>
+</html>
