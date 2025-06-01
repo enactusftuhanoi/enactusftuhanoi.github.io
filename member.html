@@ -154,8 +154,7 @@
     function displayUserData(userData) {
   const container = document.getElementById("profileContainer");
 
-  const photoFile = userData.photo || "default_avatar.png";
-const photoURL = "teams/photo/" + photoFile;
+  const photoURL = ("teams/photo/" + userData.photo) || "assets/default_avatar.png";
 
 container.innerHTML = `
   <div class="profile-card">
@@ -177,7 +176,7 @@ const img = container.querySelector(".profile-image");
 img.src = photoURL;
 img.onerror = function () {
   this.onerror = null; // tránh lặp vô hạn nếu ảnh fallback cũng lỗi
-  this.src = "teams/photo/default_avatar.png";
+  this.src = "assets/default_avatar.png";
 };
 
 }
