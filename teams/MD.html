@@ -265,50 +265,65 @@
     .where("process", "==", "Active")
     .get()
     .then((querySnapshot) => {
-      var memberCards = document.getElementById("member-cards");
-      querySnapshot.forEach((doc) => {
-        var data = doc.data();
-        var card = document.createElement("div");
-        card.className = "card";
-        card.setAttribute("data-aos", "flip-left");
-        card.setAttribute("data-aos-delay", "200");
-        card.setAttribute("data-aos-duration", "1000");
+  var memberCards = document.getElementById("member-cards");
+  var members = [];
 
-        var img = document.createElement("img");
-        img.alt = data.name;
-        img.setAttribute("data-aos", "zoom-in");
-        img.setAttribute("data-aos-delay", "600");
-        img.setAttribute("data-aos-duration", "1200");
-        img.src = "photo/" + data.photo;
-        img.onerror = function () {
-            this.onerror = null;
-            this.src = "photo/default_avatar.png";
-        };
+  // Thu thập dữ liệu vào mảng
+  querySnapshot.forEach((doc) => {
+    var data = doc.data();
+    members.push(data);
+  });
 
-        card.appendChild(img);
+  // Sắp xếp: thành viên có ảnh (khác default) lên trước
+  members.sort((a, b) => {
+    const hasPhotoA = a.photo && a.photo !== "default_avatar.png";
+    const hasPhotoB = b.photo && b.photo !== "default_avatar.png";
+    return hasPhotoB - hasPhotoA;
+  });
 
-        var h3 = document.createElement("h3");
-        h3.setAttribute("data-aos", "fade-up");
-        h3.setAttribute("data-aos-delay", "400");
-        h3.setAttribute("data-aos-duration", "800");
-        h3.textContent = data.name;
-        card.appendChild(h3);
+  // Tạo thẻ thành viên
+  members.forEach((data) => {
+    var card = document.createElement("div");
+    card.className = "card";
+    card.setAttribute("data-aos", "flip-left");
+    card.setAttribute("data-aos-delay", "200");
+    card.setAttribute("data-aos-duration", "1000");
 
-        var p = document.createElement("p");
-        p.textContent = data.role;
-        card.appendChild(p);
+    var img = document.createElement("img");
+    img.alt = data.name;
+    img.setAttribute("data-aos", "zoom-in");
+    img.setAttribute("data-aos-delay", "600");
+    img.setAttribute("data-aos-duration", "1200");
+    img.src = "photo/" + data.photo;
+    img.onerror = function () {
+      this.onerror = null;
+      this.src = "photo/default_avatar.png";
+    };
+    card.appendChild(img);
 
-        if (data.email) {
-          var emailButton = document.createElement("a");
-          emailButton.href = "mailto:" + data.email;
-          emailButton.className = "btn-gradient";
-          emailButton.textContent = "Liên hệ";
-          card.appendChild(emailButton);
-        }
+    var h3 = document.createElement("h3");
+    h3.setAttribute("data-aos", "fade-up");
+    h3.setAttribute("data-aos-delay", "400");
+    h3.setAttribute("data-aos-duration", "800");
+    h3.textContent = data.name;
+    card.appendChild(h3);
 
-        memberCards.appendChild(card);
-      });
-    })
+    var p = document.createElement("p");
+    p.textContent = data.role;
+    card.appendChild(p);
+
+    if (data.email) {
+      var emailButton = document.createElement("a");
+      emailButton.href = "mailto:" + data.email;
+      emailButton.className = "btn-gradient";
+      emailButton.textContent = "Liên hệ";
+      card.appendChild(emailButton);
+    }
+
+    memberCards.appendChild(card);
+  });
+})
+
     .catch((error) => {
       console.log("Error getting documents: ", error);
     });
