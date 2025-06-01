@@ -364,29 +364,50 @@ table tr:hover {
     });
 
     async function loadEmployees() {
-      const querySnapshot = await getDocs(collection(db, "employees"));
-      const tableBody = document.getElementById("employeeTableBody");
-      tableBody.innerHTML = "";
-      querySnapshot.forEach((docSnap) => {
-        const emp = docSnap.data();
-        tableBody.innerHTML += `
-          <tr>
-            <td>${emp.id}</td>
-            <td>${emp.photo}</td>
-            <td>${emp.ban}</td>
-            <td>${emp.name}</td>
-            <td>${formatDate(emp.dob)}</td>
-            <td>${emp.process}</td>
-            <td>${emp.otp}</td>
-            <td>${emp.role}</td>
-            <td>
-              <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.photo}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
-              <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
-            </td>
-          </tr>
-        `;
-      });
-    }
+  const querySnapshot = await getDocs(collection(db, "employees"));
+  const tableBody = document.getElementById("employeeTableBody");
+  tableBody.innerHTML = "";
+
+  const employees = [];
+  querySnapshot.forEach((docSnap) => {
+    const emp = docSnap.data();
+    emp._docId = docSnap.id;
+    employees.push(emp);
+  });
+
+  const banOrder = { MD: 1, HR: 2, PD: 3, ER: 4 };
+  employees.sort((a, b) => {
+    if (a.process !== b.process) return a.process === "Active" ? -1 : 1;
+
+    const hasPhotoA = a.photo && a.photo.trim() !== "";
+    const hasPhotoB = b.photo && b.photo.trim() !== "";
+    if (hasPhotoA !== hasPhotoB) return hasPhotoA ? -1 : 1;
+
+    const orderA = banOrder[a.ban] || 99;
+    const orderB = banOrder[b.ban] || 99;
+    return orderA - orderB;
+  });
+
+  for (const emp of employees) {
+    tableBody.innerHTML += `
+      <tr>
+        <td>${emp.id}</td>
+        <td>${emp.photo}</td>
+        <td>${emp.ban}</td>
+        <td>${emp.name}</td>
+        <td>${formatDate(emp.dob)}</td>
+        <td>${emp.process}</td>
+        <td>${emp.otp}</td>
+        <td>${emp.role}</td>
+        <td>
+          <button onclick="editEmployee('${emp._docId}', '${emp.id}', '${emp.photo}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
+          <button onclick="deleteEmployee('${emp._docId}')">Xóa</button>
+        </td>
+      </tr>
+    `;
+  }
+}
+
 
     function formatDate(date) {
       if (!date) return "";
