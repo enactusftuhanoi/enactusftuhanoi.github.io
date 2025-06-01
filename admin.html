@@ -376,35 +376,23 @@ table tr:hover {
   });
 
   const banOrder = { MD: 1, HR: 2, PD: 3, ER: 4 };
-  const validImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
-
   employees.sort((a, b) => {
-    // Ưu tiên Active
     if (a.process !== b.process) return a.process === "Active" ? -1 : 1;
 
-    // Ưu tiên ảnh có đuôi hợp lệ
-    const hasValidPhoto = (photo) =>
-      photo &&
-      validImageExtensions.some((ext) =>
-        photo.toLowerCase().endsWith(ext)
-      );
-
-    const hasPhotoA = hasValidPhoto(a.photo);
-    const hasPhotoB = hasValidPhoto(b.photo);
+    const hasPhotoA = a.photo && a.photo.trim() !== "";
+    const hasPhotoB = b.photo && b.photo.trim() !== "";
     if (hasPhotoA !== hasPhotoB) return hasPhotoA ? -1 : 1;
 
-    // Ưu tiên theo ban
     const orderA = banOrder[a.ban] || 99;
     const orderB = banOrder[b.ban] || 99;
     return orderA - orderB;
   });
 
   for (const emp of employees) {
-    const photoURL = emp.photo || "default_avatar.png";
     tableBody.innerHTML += `
       <tr>
         <td>${emp.id}</td>
-        <td><img src="${photoURL}" class="profile-image" onerror="this.onerror=null;this.src='default_avatar.png';" /></td>
+        <td>${emp.photo}</td>
         <td>${emp.ban}</td>
         <td>${emp.name}</td>
         <td>${formatDate(emp.dob)}</td>
@@ -419,7 +407,6 @@ table tr:hover {
     `;
   }
 }
-
 
 
     function formatDate(date) {
