@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -185,6 +183,28 @@
     <hr>
 
     <h2>Danh sách nhân sự hiện có</h2>
+    <div class="form-row" style="margin-bottom: 10px;">
+  <input id="filterNameEmail" placeholder="Lọc theo tên hoặc email" />
+  <select id="filterBan">
+    <option value="">Tất cả ban</option>
+    <option value="MD">MD</option>
+    <option value="HR">HR</option>
+    <option value="ER">ER</option>
+    <option value="PD">PD</option>
+  </select>
+  <select id="filterProcess">
+    <option value="">Tất cả trạng thái</option>
+    <option value="Active">Active</option>
+    <option value="Inactive">Inactive</option>
+  </select>
+  <select id="filterRole">
+    <option value="">Tất cả vai trò</option>
+    <option value="Admin">Admin</option>
+    <option value="Member">Member</option>
+  </select>
+  <button onclick="applyFilters()">Lọc</button>
+</div>
+
     <table>
       <thead>
         <tr>
@@ -322,33 +342,46 @@
     };
 
     window.editEmployee = function (docId, id, photo, ban, name, dob, process, otp, email, phone, role) {
-      document.getElementById("id").value = id;
-      document.getElementById("photo").value = photo;
-      document.getElementById("ban").value = ban;
-      document.getElementById("name").value = name;
-      document.getElementById("dob").value = dob;
-      document.getElementById("process").value = process;
-      document.getElementById("email").value = email;
-      document.getElementById("phone").value = phone;
-      document.getElementById("role").value = role;
-      document.getElementById("saveButton").onclick = async function () {
-        await updateDoc(doc(db, "employees", docId), {
-          id: document.getElementById("id").value.trim(),
-          photo: document.getElementById("photo").value.trim(),
-          ban: document.getElementById("ban").value.trim(),
-          name: document.getElementById("name").value.trim(),
-          dob: document.getElementById("dob").value,
-          process: document.getElementById("process").value,
-          otp,
-          email: document.getElementById("email").value.trim(),
-          phone: document.getElementById("phone").value.trim(),
-          role: document.getElementById("role").value
-        });
-        alert("Cập nhật thành công!");
-        clearForm();
-        loadEmployees();
-      };
-    };
+  // Ẩn nút thêm nhân viên, hiển thị nút lưu
+  document.querySelector('button[onclick="addEmployee()"]').style.display = "none";
+  document.getElementById("saveButton").style.display = "inline-block";
+
+  // Điền dữ liệu vào form
+  document.getElementById("id").value = id;
+  document.getElementById("photo").value = photo;
+  document.getElementById("ban").value = ban;
+  document.getElementById("name").value = name;
+  document.getElementById("dob").value = dob;
+  document.getElementById("process").value = process;
+  document.getElementById("email").value = email;
+  document.getElementById("phone").value = phone;
+  document.getElementById("role").value = role;
+
+  // Gán sự kiện lưu
+  document.getElementById("saveButton").onclick = async function () {
+    try {
+      await updateDoc(doc(db, "employees", docId), {
+        id: document.getElementById("id").value.trim(),
+        photo: document.getElementById("photo").value.trim(),
+        ban: document.getElementById("ban").value.trim(),
+        name: document.getElementById("name").value.trim(),
+        dob: document.getElementById("dob").value,
+        process: document.getElementById("process").value,
+        otp,
+        email: document.getElementById("email").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        role: document.getElementById("role").value
+      });
+
+      alert("Cập nhật thành công!");
+      clearForm();
+      loadEmployees();
+    } catch (error) {
+      console.error("Lỗi khi cập nhật:", error);
+      alert("Đã xảy ra lỗi khi cập nhật. Vui lòng thử lại.");
+    }
+  };
+};
 
     window.deleteEmployee = async function (id) {
       if (!confirm("Bạn có chắc muốn xóa nhân sự này?")) return;
@@ -358,17 +391,22 @@
     };
 
     function clearForm() {
-      document.getElementById("id").value = "";
-      document.getElementById("photo").value = "";
-      document.getElementById("ban").value = "";
-      document.getElementById("name").value = "";
-      document.getElementById("dob").value = "";
-      document.getElementById("process").value = "Active";
-      document.getElementById("email").value = "";
-      document.getElementById("phone").value = "";
-      document.getElementById("role").value = "Member";
-      document.getElementById("saveButton").onclick = null;
-    }
+  document.getElementById("id").value = "";
+  document.getElementById("photo").value = "";
+  document.getElementById("ban").value = "";
+  document.getElementById("name").value = "";
+  document.getElementById("dob").value = "";
+  document.getElementById("process").value = "Active";
+  document.getElementById("email").value = "";
+  document.getElementById("phone").value = "";
+  document.getElementById("role").value = "Member";
+  document.getElementById("saveButton").onclick = null;
+
+  // Hiển thị lại nút thêm, ẩn nút lưu
+  document.querySelector('button[onclick="addEmployee()"]').style.display = "inline-block";
+  document.getElementById("saveButton").style.display = "none";
+}
+
 
     // ==================== CSV Import with Preview + Validation ===================
     const requiredHeaders = ["id","photo","ban","name","dob","process","email","phone","role"];
@@ -536,6 +574,44 @@
       };
       reader.readAsText(file);
     };
+  window.applyFilters = async function () {
+  const nameEmail = document.getElementById("filterNameEmail").value.toLowerCase();
+  const ban = document.getElementById("filterBan").value;
+  const process = document.getElementById("filterProcess").value;
+  const role = document.getElementById("filterRole").value;
+
+  const querySnapshot = await getDocs(collection(db, "employees"));
+  const tableBody = document.getElementById("employeeTableBody");
+  tableBody.innerHTML = "";
+
+  querySnapshot.forEach((docSnap) => {
+    const emp = docSnap.data();
+    if (
+      (nameEmail === "" || emp.name.toLowerCase().includes(nameEmail) || emp.email.toLowerCase().includes(nameEmail)) &&
+      (ban === "" || emp.ban === ban) &&
+      (process === "" || emp.process === process) &&
+      (role === "" || emp.role === role)
+    ) {
+      tableBody.innerHTML += `
+        <tr>
+          <td>${emp.id}</td>
+          <td>${emp.photo}</td>
+          <td>${emp.ban}</td>
+          <td>${emp.name}</td>
+          <td>${formatDate(emp.dob)}</td>
+          <td>${emp.process}</td>
+          <td>${emp.otp}</td>
+          <td>${emp.role}</td>
+          <td>
+            <button onclick="editEmployee('${docSnap.id}', '${emp.id}', '${emp.photo}', '${emp.ban}', '${emp.name}', '${emp.dob}', '${emp.process}', '${emp.otp}', '${emp.email}', '${emp.phone}', '${emp.role}')">Sửa</button>
+            <button onclick="deleteEmployee('${docSnap.id}')">Xóa</button>
+          </td>
+        </tr>
+      `;
+    }
+  });
+};
+
   </script>
 </head>
 </html>
