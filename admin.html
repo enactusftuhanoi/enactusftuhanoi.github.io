@@ -147,7 +147,7 @@
 <h2>Thêm / Sửa nhân sự</h2>
 <div class="form-row">
 <input id="id" placeholder="ID"/>
-<input id="ban" placeholder="Ban (ví dụ: MD, HR, IT)"/>
+<input id="ban" placeholder="Ban (ví dụ: MD, HR, PD, ER)"/>
 <input id="name" placeholder="Họ tên"/>
 <input id="dob" placeholder="Ngày sinh" type="date"/>
 <select id="process">
@@ -477,7 +477,30 @@
           previewDiv.innerHTML = "<p>Không có dữ liệu hợp lệ để xem trước.</p>";
           return;
         }
-
+<div class="form-row" style="margin-bottom: 20px;">
+  <input id="searchInput" placeholder="Tìm theo tên hoặc email..." oninput="filterEmployees()" />
+  <select id="filterBan" onchange="filterEmployees()">
+    <option value="">Tất cả Ban</option>
+    <option value="MD">MD</option>
+    <option value="HR">HR</option>
+    <option value="ER">ER</option>
+    <option value="PD">PD</option>
+    <option value="TBPD">Trưởng ban PD</option>
+    <option value="TBHR">Trưởng ban HR</option>
+    <option value="TBMD">Trưởng ban MD</option>
+    <option value="TBER">Trưởng ban ER</option>
+    <option value="PBMD">Phó ban MD</option>
+    <option value="PBHR">Phó ban HR</option>
+    <option value="PBER">Phó ban ER</option>
+    <option value="CT">Chủ tịch</option>
+    <option value="PCT">Phó chủ tịch</option>
+  </select>
+  <select id="filterRole" onchange="filterEmployees()">
+    <option value="">Tất cả Vai trò</option>
+    <option value="Member">Member</option>
+    <option value="Admin">Admin</option>
+  </select>
+</div>
         let html = `<table><thead><tr>
           <th>ID</th><th>Ảnh</th><th>BAN</th><th>Name</th><th>DOB</th><th>Process</th><th>Email</th><th>Phone</th><th>Role</th>
           </tr></thead><tbody>`;
