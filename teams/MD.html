@@ -276,16 +276,21 @@
 
 // Sắp xếp: ảnh thật trước, trong mỗi nhóm sắp xếp theo tên
 members.sort((a, b) => {
-  const getType = (id) => {
+  const parseID = (id) => {
     const parts = id.split(".");
-    return parseInt(parts[2]); // phần .0 hoặc .5
+    return {
+      type: parseInt(parts[2]), // .0 hoặc .5
+      number: parseInt(parts[3]) // số cuối
+    };
   };
 
-  const typeA = getType(a.id);
-  const typeB = getType(b.id);
+  const idA = parseID(a.id);
+  const idB = parseID(b.id);
 
-  return typeA - typeB; // .0 trước .5
+  if (idA.type !== idB.type) return idA.type - idB.type;
+  return idA.number - idB.number;
 });
+
 
   // Tạo thẻ thành viên
   members.forEach((data) => {
