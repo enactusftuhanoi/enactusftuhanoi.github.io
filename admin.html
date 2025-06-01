@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -186,6 +188,11 @@
 <div class="form-row" style="margin-bottom: 20px;">
   <input id="searchInput" placeholder="Tìm theo tên hoặc email..." oninput="filterEmployees()" />
   <select id="filterBan" onchange="filterEmployees()">
+<option value="">Tất cả Ban</option>
+<option value="MD">MD</option>
+<option value="HR">HR</option>
+<option value="ER">ER</option>
+<option value="PD">PD</option>
     <option value="">Tất cả Ban</option>
     <option value="MD">MD</option>
     <option value="HR">HR</option>
@@ -479,6 +486,11 @@
 <div class="form-row" style="margin-bottom: 20px;">
   <input id="searchInput" placeholder="Tìm theo tên hoặc email..." oninput="filterEmployees()" />
   <select id="filterBan" onchange="filterEmployees()">
+<option value="">Tất cả Ban</option>
+<option value="MD">MD</option>
+<option value="HR">HR</option>
+<option value="ER">ER</option>
+<option value="PD">PD</option>
     <option value="">Tất cả Ban</option>
     <option value="MD">MD</option>
     <option value="HR">HR</option>
@@ -1157,3 +1169,40 @@ window.editEmployee = function (docId, id, photo, ban, name, dob, process, otp, 
   </script>
 
 </body></html>
+
+<script>
+function addOrUpdateEmployee() {
+    const addButton = document.getElementById("addEmployeeButton");
+    if (addButton.innerText === "Thêm nhân sự") {
+        // Add employee logic
+        addEmployee();
+    } else {
+        // Update employee logic
+        saveEmployeeChanges();
+    }
+}
+
+window.editEmployee = function (id, empId, photo, ban, name, dob, process, otp, email, phone, role) {
+    document.getElementById("empId").value = empId;
+    document.getElementById("photo").value = photo;
+    document.getElementById("ban").value = ban;
+    document.getElementById("name").value = name;
+    document.getElementById("dob").value = dob;
+    document.getElementById("process").value = process;
+    document.getElementById("otp").value = otp;
+    document.getElementById("email").value = email;
+    document.getElementById("phone").value = phone;
+    document.getElementById("role").value = role;
+    document.getElementById("addEmployeeButton").innerText = "Lưu thay đổi";
+    document.getElementById("addEmployeeButton").onclick = function () {
+        saveEmployeeChanges(id);
+    };
+};
+
+function saveEmployeeChanges(id) {
+    // Logic to save changes to the employee
+    // After saving, change the button text back to "Thêm nhân sự"
+    document.getElementById("addEmployeeButton").innerText = "Thêm nhân sự";
+    document.getElementById("addEmployeeButton").onclick = addOrUpdateEmployee;
+}
+</script>
