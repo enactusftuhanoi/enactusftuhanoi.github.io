@@ -276,10 +276,15 @@
 
   // Sắp xếp: thành viên có ảnh (khác default) lên trước
   members.sort((a, b) => {
-    const hasPhotoA = a.photo && a.photo !== "default_avatar.png";
-    const hasPhotoB = b.photo && b.photo !== "default_avatar.png";
-    return hasPhotoB - hasPhotoA;
-  });
+  const getPriority = (member) => {
+    if (member.photo && member.photo !== "default_avatar.png") return 0; // Ưu tiên cao nhất
+    if (member.photo === "default_avatar.png") return 1; // Ảnh mặc định
+    return 2; // Không có ảnh
+  };
+
+  return getPriority(a) - getPriority(b);
+});
+
 
   // Tạo thẻ thành viên
   members.forEach((data) => {
