@@ -276,36 +276,15 @@
 
 // Sắp xếp: ảnh thật trước, trong mỗi nhóm sắp xếp theo tên
 members.sort((a, b) => {
-  const parseID = (id) => {
+  const getType = (id) => {
     const parts = id.split(".");
-    return {
-      ban: parts[0],
-      year: parseInt(parts[1]),
-      type: parseInt(parts[2]), // 0 hoặc 5
-      number: parseInt(parts[3])
-    };
+    return parseInt(parts[2]); // phần .0 hoặc .5
   };
 
-  const idA = parseID(a.id);
-  const idB = parseID(b.id);
+  const typeA = getType(a.id);
+  const typeB = getType(b.id);
 
-  // So sánh theo ban
-  if (idA.ban !== idB.ban) return idA.ban.localeCompare(idB.ban);
-  // So sánh theo năm
-  if (idA.year !== idB.year) return idA.year - idB.year;
-  // So sánh theo loại (.0 trước .5)
-  if (idA.type !== idB.type) return idA.type - idB.type;
-  // So sánh theo số thứ tự
-  return idA.number - idB.number;
-});
-
-
-  const priorityA = getPriority(a);
-  const priorityB = getPriority(b);
-
-  if (priorityA !== priorityB) {
-    return priorityA - priorityB;
-  } 
+  return typeA - typeB; // .0 trước .5
 });
 
   // Tạo thẻ thành viên
