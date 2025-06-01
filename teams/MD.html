@@ -270,20 +270,25 @@
 
   // Thu thập dữ liệu vào mảng
   querySnapshot.forEach((doc) => {
-    var data = doc.data();
-    members.push(data);
-  });
+  var data = doc.data();
+  members.push(data);
+});
 
-  // Sắp xếp: thành viên có ảnh (khác default) lên trước
-  members.sort((a, b) => {
+// Sắp xếp: ảnh thật trước, trong mỗi nhóm sắp xếp theo tên
+members.sort((a, b) => {
   const getPriority = (member) => {
-    if (member.photo && member.photo !== "default_avatar.png") return 0; // Ưu tiên cao nhất
+    if (member.photo && member.photo !== "default_avatar.png") return 0; // Ảnh thật
     if (member.photo === "default_avatar.png") return 1; // Ảnh mặc định
     return 2; // Không có ảnh
   };
-  return getPriority(a) - getPriority(b);
-});
 
+  const priorityA = getPriority(a);
+  const priorityB = getPriority(b);
+
+  if (priorityA !== priorityB) {
+    return priorityA - priorityB;
+  } 
+});
 
   // Tạo thẻ thành viên
   members.forEach((data) => {
