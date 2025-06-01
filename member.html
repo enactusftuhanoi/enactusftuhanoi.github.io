@@ -154,22 +154,31 @@
     function displayUserData(userData) {
   const container = document.getElementById("profileContainer");
 
-  const photoURL = userData.photoURL || "https://i.imgur.com/GZwfGjd.png"; // Placeholder nếu không có ảnh
+  const photoFile = userData.photo || "default_avatar.png";
+const photoURL = "teams/photo/" + photoFile;
 
-  container.innerHTML = `
-    <div class="profile-card">
-      <img class="profile-image" src="${photoURL}" alt="Ảnh đại diện"/>
-      <div class="profile-info">
-        <h2>${userData.name || "Chưa cập nhật"}</h2>
-        <p><strong>ID:</strong> ${userData.id}</p>
-        <p><strong>Ban:</strong> ${userData.ban}</p>
-        <p><strong>Email:</strong> ${userData.email}</p>
-        <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
-        <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
-        <p><strong>OTP:</strong> ${userData.otp}</p>
-      </div>
+container.innerHTML = `
+  <div class="profile-card">
+    <img class="profile-image" alt="Ảnh đại diện"/>
+    <div class="profile-info">
+      <h2>${userData.name || "Chưa cập nhật"}</h2>
+      <p><strong>ID:</strong> ${userData.id}</p>
+      <p><strong>Ban:</strong> ${userData.ban}</p>
+      <p><strong>Email:</strong> ${userData.email}</p>
+      <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
+      <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
+      <p><strong>OTP:</strong> ${userData.otp}</p>
     </div>
-  `;
+  </div>
+`;
+
+// Gán src và xử lý lỗi ảnh giống như bạn yêu cầu
+const img = container.querySelector(".profile-image");
+img.src = photoURL;
+img.onerror = function () {
+  this.onerror = null; // tránh lặp vô hạn nếu ảnh fallback cũng lỗi
+  this.src = "teams/photo/default_avatar.png";
+};
 
 }
   </script>
