@@ -331,10 +331,22 @@ if (data.id.startsWith("CT")) {
   title = "Chủ tịch";
 } else if (data.id.startsWith("PCT")) {
   title = "Phó chủ tịch";
-} else if (data.id.startsWith("TB")) {
-  title = "Trưởng ban";
-} else if (data.id.startsWith("PB")) {
-  title = "Phó ban";
+} else if (data.id.startsWith("TB.MD")) {
+  title = "Trưởng ban Truyền thông";
+  } else if (data.id.startsWith("TB.ER")) {
+  title = "Trưởng ban Đối ngoại";
+  } else if (data.id.startsWith("TB.HR")) {
+  title = "Trưởng ban Nhân sự - Sự kiện";
+  } else if (data.id.startsWith("TB.PD")) {
+  title = "Trưởng ban Dự án";
+} else if (data.id.startsWith("PB.MD")) {
+  title = "Phó ban Truyền thông";
+} else if (data.id.startsWith("PB.HR")) {
+  title = "Phó ban Nhân sự - Sự kiện";
+  } else if (data.id.startsWith("PB.ER")) {
+  title = "Phó ban Đối ngoại";
+  } else if (data.id.startsWith("PB.PD")) {
+  title = "Phó ban Dự án";
 } else {
   title = "Thành viên";
 }
