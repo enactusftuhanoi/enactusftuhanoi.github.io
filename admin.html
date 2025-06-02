@@ -220,59 +220,80 @@ table tr:hover {
     height: 40px;
     border-radius: 50%;
 }
-</style><style>
+</style>
+<style>
     body {
         font-family: 'Poppins', sans-serif;
-        background-color: #FFFFFF;
-        color: #202227;
+        color: #2E2E2E;
+        background-color: #F5F5F5;
         margin: 0;
-        font-size: 1rem;
-        line-height: 1.5;
+        padding: 0;
     }
     h1, h2, h3, h4, h5, h6 {
+        color: #F9D923;
         font-weight: 700;
-        color: #FFD700; /* Vàng nhạt */
+    }
+    p, span, a, li, td, th {
+        color: #2E2E2E;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    section {
+        padding: 2rem;
+        margin-bottom: 2rem;
+        background-color: #FFFFFF;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    input, select {
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        transition: all 0.2s ease-in-out;
+    }
+    input:focus, select:focus {
+        border-color: #F9D923;
+        box-shadow: 0 0 0 3px rgba(249, 217, 35, 0.3);
+        outline: none;
+    }
+    .btn {
+        background-color: #F9D923;
+        color: #2E2E2E;
+        padding: 0.6rem 1.2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: 0.3s ease;
+    }
+    .btn:hover {
+        background-color: #eac81d;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        cursor: pointer;
+    }
+    .card {
+        background-color: #fdfdfd;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     table {
         width: 100%;
         border-collapse: collapse;
     }
-    table, th, td {
-        border: 1px solid #D3D3D3; /* Xám nhạt */
-    }
     th, td {
-        padding: 8px;
-        text-align: left;
+        padding: 0.8rem;
+        border: 1px solid #DDDDDD;
     }
     tr:hover {
-        background-color: #FFFACD; /* Vàng nhạt */
+        background-color: #F9D923;
     }
-    .header {
-        background-color: #FFD700; /* Vàng nhạt */
-        color: #202227; /* Xám */
-        padding: 10px;
-        text-align: center;
-    }
-    .container {
-        padding: 20px;
-    }
-    .button {
-        background-color: #FFD700; /* Vàng nhạt */
-        color: #202227; /* Xám */
-        border: none;
-        padding: 10px 20px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        cursor: pointer;
-        border-radius: 16px;
-    }
-    .button:hover {
-        background-color: #FFFACD; /* Vàng nhạt */
-    }
-</style></head>
+</style>
+</head>
 <body>
 <div class="container" id="adminPage">
 <h1>Enactus FTU Hanoi</h1>
