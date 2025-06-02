@@ -263,6 +263,7 @@
   db.collection("employees")
     .where("ban", "==", "BCT")
     .where("process", "==", "Active")
+    .where("id", "!=", "ENT.2008.0703")
     .get()
     .then((querySnapshot) => {
   var memberCards = document.getElementById("member-cards");
