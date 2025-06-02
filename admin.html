@@ -224,25 +224,31 @@ table tr:hover {
 <style>
     body {
         font-family: 'Poppins', sans-serif;
+        color: #333;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: bold;
+        color: #333;
     }
     table {
-        border-collapse: collapse;
         width: 100%;
-        font-family: 'Poppins', sans-serif;
+        border-collapse: collapse;
+    }
+    table, th, td {
+        border: 1px solid #ccc;
     }
     th, td {
-        border: 1px solid #d3d3d3; /* Light gray border */
-        padding: 8px;
+        padding: 10px;
         text-align: left;
     }
-    th {
-        background-color: #f9f9f9; /* Light gray background for header */
-    }
-    tr:nth-child(even) {
-        background-color: #f2f2f2; /* Light gray background for even rows */
-    }
     tr:hover {
-        background-color: #ffffe0; /* Light yellow background for hover */
+        background-color: #f9f9f9;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    .highlight {
+        background-color: #ffeb3b;
     }
 </style>
 </head>
@@ -733,5 +739,4 @@ table tr:hover {
 };
 
   </script>
-
 </body></html>
