@@ -310,6 +310,7 @@ members.sort((a, b) => {
       this.onerror = null;
       this.src = "photo/default_avatar.png";
     };
+    
     card.appendChild(img);
 
     var h3 = document.createElement("h3");
@@ -320,8 +321,32 @@ members.sort((a, b) => {
     card.appendChild(h3);
 
     var p = document.createElement("p");
-    p.textContent = data.role;
-    card.appendChild(p);
+let title = "";
+if (data.id.startsWith("CT")) {
+  title = "Chủ tịch";
+} else if (data.id.startsWith("PCT")) {
+  title = "Phó chủ tịch";
+} else if (data.id.startsWith("TB.MD")) {
+  title = "Trưởng ban Truyền thông";
+  } else if (data.id.startsWith("TB.ER")) {
+  title = "Trưởng ban Đối ngoại";
+  } else if (data.id.startsWith("TB.HR")) {
+  title = "Trưởng ban Nhân sự - Sự kiện";
+  } else if (data.id.startsWith("TB.PD")) {
+  title = "Trưởng ban Dự án";
+} else if (data.id.startsWith("PB.MD")) {
+  title = "Phó ban Truyền thông";
+} else if (data.id.startsWith("PB.HR")) {
+  title = "Phó ban Nhân sự - Sự kiện";
+  } else if (data.id.startsWith("PB.ER")) {
+  title = "Phó ban Đối ngoại";
+  } else if (data.id.startsWith("PB.PD")) {
+  title = "Phó ban Dự án";
+} else {
+  title = "Thành viên";
+}
+p.textContent = title;
+card.appendChild(p);
 
     if (data.email) {
       var emailButton = document.createElement("a");
