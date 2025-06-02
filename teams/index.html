@@ -1,74 +1,418 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Các đội nhóm Enactus FTU Hanoi</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f9f9f9;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 80%;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-                       margin: 20px 0;
-            padding: 20px;
-            transition: transform 0.2s;
-        }
-        .team:hover {
-            transform: scale(1.02);
-        }
-        .team h2 {
-            color: #ff6f61;
-        }
-        .team p {
-            font-size: 1em;
-            line-height: 1.6;
-        }
-        .team a {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 10px 15px;
-            background-color: #ff6f61;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-        .team a:hover {
-            background-color: #ff3b2f;
-        }
-    </style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Enactus FTU Hanoi</title>
+<link href="icon.png" rel="icon" type="image/png"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&amp;family=Poppins:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"/>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<!-- Bootstrap CSS -->
+<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" rel="stylesheet"/>
+<!-- Add icon library -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+<link href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root {
+      --main-yellow: #f7b733;
+      --main-yellow-dark: #f5a623;
+      --text-color: #333;
+      --bg-color: #fff8e1;
+      --card-bg: #fff7dc;
+      --shadow-color: rgba(247, 183, 51, 0.4);
+    }
+
+    /* Reset cơ bản */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3 {
+      font-weight: 700;
+      color: var(--main-yellow-dark);
+      text-shadow: 1px 1px 2px #c07a00;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    p {
+      max-width: 800px;
+      margin: 0 auto 1.5rem auto;
+      font-weight: 100;
+      font-family: 'Montserrat', sans-serif;
+      color: #5a4a00;
+      text-align: center;
+      padding: 0 1rem;
+    }
+
+    a.button {
+      display: inline-block;
+      background: var(--main-yellow);
+      color: #fff;
+      font-weight: 700;
+      padding: 0.8rem 2rem;
+      border-radius: 30px;
+      text-decoration: none;
+      box-shadow: 0 6px 15px var(--shadow-color);
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      margin-top: 1rem;
+    }
+    a.button:hover {
+      background: var(--main-yellow-dark);
+      transform: scale(1.05);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+
+    /* Hero Section */
+    #hero {
+      padding: 6rem 1rem 5rem 1rem;
+      background: linear-gradient(135deg, #f7b733 0%, #f5a623 100%);
+      color: white;
+      text-align: center;
+      box-shadow: inset 0 0 150px #c28800;
+    }
+
+    #hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.25); /* tăng nổi khối */
+    }
+    #hero p {
+      font-size: 1.2rem;
+      color: #fefae0;
+      font-weight: 400;
+      margin-top: 1rem;
+    }
+
+    /* Section Titles */
+    section h2 {
+      font-size: 2.8rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Grid cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+      gap: 2rem;
+    }
+
+    /* Card style */
+    .card {
+      background: var(--card-bg);
+      border-radius: 15px;
+      box-shadow: 0 8px 20px var(--shadow-color);
+      padding: 1.5rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card:hover {
+      transform: translateY(-12px) scale(1.05);
+      box-shadow: 0 16px 40px var(--shadow-color);
+    }
+
+    .card img {
+      width: 100%;
+      max-width: 260px;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 6px 16px var(--shadow-color);
+      transition: transform 0.4s ease;
+      object-fit: cover;
+      aspect-ratio: 4 / 3;
+    }
+
+    .card:hover img {
+      transform: scale(1.1);
+    }
+
+    .card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.6rem;
+      color: var(--main-yellow-dark);
+      text-align: center;
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      color: #6b5500;
+      text-align: center;
+      flex-grow: 1;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--main-yellow);
+      color: #fff;
+      text-align: center;
+      padding: 1.5rem 1rem;
+      margin-top: 3rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      font-size: 0.95rem;
+      box-shadow: inset 0 0 40px #d6a911;
+    }
+
+    footer p {
+      margin: 0.2rem 0;
+    }
+
+    /* Responsive typography */
+    @media (max-width: 600px) {
+      #hero h1 {
+        font-size: 2.5rem;
+      }
+      section h2 {
+        font-size: 2rem;
+      }
+      .card img {
+        max-width: 100%;
+      }
+    }
+  
+.bct-card {
+  position: relative;
+}
+
+.bct-card .logo-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  transform: rotate(15deg);
+  opacity: 0.9;
+  z-index: 10;
+}
+
+
+.bct-card {
+  position: relative;
+}
+
+.bct-card .logo-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  transform: rotate(15deg);
+  opacity: 0.9;
+  z-index: 10;
+}
+
+</style>
+</link>
+<style>
+/* Hiệu ứng đặc biệt cho tất cả các thẻ ban */
+.card-grid .card {
+  border: 2px solid #f5a623;
+  box-shadow: 0 0 25px rgba(255, 193, 7, 0.6);
+  transform: scale(1.02);
+  transition: all 0.4s ease;
+}
+.card-grid .card:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 40px rgba(255, 193, 7, 0.8);
+}
+
+.bct-card {
+  position: relative;
+}
+
+.bct-card .logo-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  transform: rotate(30deg);
+  opacity: 0.9;
+  z-index: 10;
+}
+
+
+.bct-card {
+  position: relative;
+}
+
+.bct-card .logo-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  transform: rotate(15deg);
+  opacity: 0.9;
+  z-index: 10;
+}
+
+</style>
+
 </head>
 <body>
-    <div class="container">
-        <h1>Các đội nhóm Enactus FTU Hanoi</h1>
 
-        <div class="team">
-            <h2>MD Team</h2>
-            <p>MD (Management & Development) là đội ngũ phụ trách quản lý dự án và phát triển chiến lược. Nhóm tập trung vào việc xây dựng kế hoạch, giám sát tiến độ và đảm bảo chất lượng của các hoạt động Enactus.</p>
-            <a href="./MD/">Truy cập trang MD Team</a>
-        </div>
-
-        <div class="team">
-            <h2>Marketing Team</h2>
-            <p>Marketing Team chịu trách nhiệm truyền thông, xây dựng hình ảnh và lan tỏa giá trị của Enactus FTU Hanoi. Nhóm thường xuyên tổ chức các chiến dịch truyền thông sáng tạo và hiệu quả.</p>
-            <a href="./Marketing/">Truy cập trang Marketing Team</a>
-        </div>
-
-        <div class="team">
-            <h2>HR Team</h2>
-            <p>HR Team là bộ phận nhân sự, đảm bảo sự gắn kết nội bộ, tuyển dụng thành viên mới và tổ chức các hoạt động đào tạo, phát triển kỹ năng cho toàn đội.</p>
-            <a href="./HR/">Truy cập trang HR Team</a>
-        </div>
+<section class="container" data-aos="flip-left" data-aos-delay="200" data-aos-duration="1000" id="teams" style="margin-top: 3rem;">
+  <h2 data-aos="fade-up" data-aos-delay="350" data-aos-duration="800">PHÂN BAN</h2>
+  <div class="container mt-5">
+  <div class="row">
+    <!-- Cột trái: Ban Chủ Tịch -->
+    <div class="col-md-4 d-flex justify-content-center">
+      <div style="margin-top: 10rem;"> <!-- tăng khoảng cách xuống -->
+        <a href="teams/BCT" style="text-decoration: none; color: inherit;">
+          <div class="card p-3 bct-card" style="width: 100%; max-width: 340px;" data-aos="flip-left" data-aos-delay="200" data-aos-duration="1000"><img class="logo-overlay" src="icon.png" alt="Logo Icon">
+            <img src="photo/banchutich.png" alt="Ban Chủ Tịch" class="img-fluid mb-3" />
+            <h2 style="font-size: 1.6rem;">Ban Chủ Tịch</h2>
+            <p style="font-size: 1.05rem;">Ban này không có thật</p>
+          </div>
+        </a>
+      </div>
     </div>
+
+    <!-- Cột phải: Các ban còn lại -->
+    <div class="col-md-8">
+      <div class="row">
+        <div class="col-md-6 mb-4">
+          <a href="teams/PD" style="text-decoration: none; color: inherit;">
+            <div class="card" data-aos="flip-left" data-aos-delay="200" data-aos-duration="1000">
+              <img src="photo/banpd.JPG" alt="Ban Dự Án" class="img-fluid mb-3" />
+              <h3>Ban Dự Án</h3>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-6 mb-4">
+          <a href="teams/ER" style="text-decoration: none; color: inherit;">
+            <div class="card" data-aos="flip-left" data-aos-delay="200" data-aos-duration="1000">
+              <img src="photo/baner.JPG" alt="Ban Đối Ngoại" class="img-fluid mb-3" />
+              <h3>Ban Đối Ngoại</h3>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-6 mb-4">
+          <a href="teams/HR" style="text-decoration: none; color: inherit;">
+            <div class="card" data-aos="flip-left" data-aos-delay="200" data-aos-duration="1000">
+              <img src="photo/banhr.JPG" alt="Ban Nhân Sự" class="img-fluid mb-3" />
+              <h3>Ban Nhân Sự - Sự Kiện</h3>
+            </div>
+          </a>
+        </div>
+        <div class="col-md-6 mb-4">
+          <a href="teams/MD" style="text-decoration: none; color: inherit;">
+            <div class="card" data-aos="flip-left" data-aos-delay="200" data-aos-duration="1000">
+              <img src="photo/banmd.jpg" alt="Ban Truyền Thông" class="img-fluid mb-3" />
+              <h3>Ban Truyền Thông</h3>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</section>
+
+<!-- Footer -->
+<footer>
+<p>© 2023 Enactus FTU Hanoi. All Rights Reserved.</p>
+</footer>
+
+<!-- GSAP and ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Fade in các thẻ card khi cuộn
+    gsap.utils.toArray('.card').forEach(card => {
+      gsap.from(card, {
+        opacity: 0,
+        y: 50,
+        duration: 1,
+        scrollTrigger: {
+          trigger: card,
+          start: "top 80%",
+          toggleActions: "play none none none"
+        }
+      });
+    });
+
+    // Zoom in tiêu đề khi cuộn
+    gsap.from("section h2", {
+      scale: 0.8,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.2,
+      scrollTrigger: {
+        trigger: "section h2",
+        start: "top 90%",
+        toggleActions: "play none none none"
+      }
+    });
+
+    // Hero text animation on load
+    gsap.from("#hero h1", {
+      y: -50,
+      opacity: 0,
+      duration: 1.2,
+      ease: "power2.out"
+    });
+
+    gsap.from("#hero p", {
+      y: 30,
+      opacity: 0,
+      duration: 1,
+      delay: 0.3,
+      ease: "power2.out"
+    });
+ <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script crossorigin="anonymous" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script type="text/javascript">
+    function animateValue(obj, start, end, duration) {
+let startTimestamp = null;
+const step = (timestamp) => {
+  if (!startTimestamp) startTimestamp = timestamp;
+  const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+  obj.innerHTML = Math.floor(progress * (end - start) + start);
+  if (progress < 1) {
+    window.requestAnimationFrame(step);
+  }
+};
+window.requestAnimationFrame(step);
+}
+
+const obj = document.getElementById("value");
+animateValue(obj, 0, 100, 5000);
+const obj1 = document.getElementById("value1");
+animateValue(obj1, 0, 5, 5000);
+const obj2 = document.getElementById("value2");
+animateValue(obj2, 0, 10000, 5000);
+const obj3 = document.getElementById("value3");
+animateValue(obj3, 0, 50, 5000);
+    </script>
+<script>
+  AOS.init();
+</script>
 </body>
 </html>
