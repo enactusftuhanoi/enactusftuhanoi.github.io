@@ -7,7 +7,7 @@
   <link rel="icon" href="icon.png" type="image/png" />
   <style>
     body {
-      font-family: 'Arial', sans-serif;
+      font-family: 'Poppin', sans-serif;
       background: #f2f2f2;
       margin: 0;
       padding: 0;
@@ -27,11 +27,6 @@
       display: flex;
       align-items: center;
       gap: 30px;
-      position: relative;
-    }
-
-    .profile-image-container {
-      position: relative;
     }
 
     .profile-image {
@@ -40,19 +35,6 @@
       border-radius: 50%;
       object-fit: cover;
       border: 4px solid #ddd;
-    }
-
-    .badge {
-      position: absolute;
-      bottom: -10px;
-      right: -10px;
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
-      padding: 6px 12px;
-      font-size: 14px;
-      border-radius: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
     .profile-info {
@@ -88,34 +70,25 @@
         width: 120px;
         height: 120px;
       }
-
-      .badge {
-        bottom: 0;
-        right: 0;
-      }
     }
   </style>
 </head>
 
 <body>
-  <div id="adminButton" style="position: absolute; top: 20px; right: 20px; display: none;">
-    <button onclick="window.location.href='admin.html'" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-      🔒 Admin
-    </button>
-    <button onclick="window.location.href='attendance.html'" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-      ➕ Tạo phiên điểm danh
-    </button>
+ 
+  <!-- Thêm vào trong <body> ngay sau thẻ mở <body> -->
+  <div id="adminButton" style="position: absolute; top: 20px; right: 20px; display: none; position: relative;">
+  <button onclick="toggleAdminMenu()" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+    🔒 Admin ▾
+  </button>
+  <div id="adminDropdown" style="display: none; position: absolute; top: 48px; right: 0; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); min-width: 180px; z-index: 999;">
+    <a href="attendance.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">➕ Tạo phiên điểm danh</a>
+    <a href="admin.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">📊 Dashboard admin</a>
+    <a href="badge.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">🎖️ Huy hiệu</a>
   </div>
-
-  <div style="position: absolute; top: 20px; left: 20px;">
-    <button onclick="window.location.href='scan.html'" style="background: #ff6ec4; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-      📸 Điểm danh
-    </button>
-  </div>
-
+</div>
   <div id="profileContainer"></div>
   <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -132,76 +105,94 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    window.onload = async function () {
-      const userEmail = sessionStorage.getItem('userEmail');
-      const userRole = sessionStorage.getItem('userRole');
+    // Toggle dropdown menu
+window.toggleAdminMenu = function () {
+  const menu = document.getElementById("adminDropdown");
+  menu.style.display = (menu.style.display === "block") ? "none" : "block";
+};
 
-      if (!userEmail) {
-        window.location.href = "login.html";
-      } else {
-        if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
-          document.getElementById("adminButton").style.display = "block";
-        }
-        await getUserData(userEmail);
-      }
-    };
+// Ẩn dropdown nếu bấm ra ngoài
+document.addEventListener('click', function (event) {
+  const adminBtn = document.getElementById('adminButton');
+  if (!adminBtn.contains(event.target)) {
+    document.getElementById("adminDropdown").style.display = "none";
+  }
+});
+
+
+    window.onload = async function () {
+  const userEmail = sessionStorage.getItem('userEmail');
+  const userRole = sessionStorage.getItem('userRole');
+  
+  if (!userEmail) {
+    window.location.href = "login.html";
+  } else {
+    if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
+      document.getElementById("adminButton").style.display = "block";
+    }
+    await getUserData(userEmail);
+  }
+};
 
     async function getUserData(email) {
-      const employeesRef = collection(db, "employees");
-      const q = query(employeesRef, where("email", "==", email));
+  const employeesRef = collection(db, "employees");
+  const q = query(employeesRef, where("email", "==", email));
 
-      try {
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          const userData = querySnapshot.docs[0].data();
+  try {
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const userData = querySnapshot.docs[0].data();
 
-          const role = userData.role || "user";
-          sessionStorage.setItem('userRole', role);
+      // Lấy role từ dữ liệu
+      const role = userData.role || "user"; // Nếu không có thì mặc định là "user"
+      sessionStorage.setItem('userRole', role);
 
-          if (role.toLowerCase() === "admin") {
-            document.getElementById("adminButton").style.display = "block";
-          }
-
-          displayUserData(userData);
-        } else {
-          alert("Không tìm thấy thông tin người dùng trong hệ thống!");
-        }
-      } catch (error) {
-        console.error("Lỗi khi truy vấn dữ liệu:", error);
-        alert("Lỗi hệ thống, vui lòng thử lại.");
+      // Hiện nút Admin nếu role là admin
+      if (role.toLowerCase() === "admin") {
+        document.getElementById("adminButton").style.display = "block";
       }
+
+      displayUserData(userData);
+    } else {
+      alert("Không tìm thấy thông tin người dùng trong hệ thống!");
     }
+  } catch (error) {
+    console.error("Lỗi khi truy vấn dữ liệu:", error);
+    alert("Lỗi hệ thống, vui lòng thử lại.");
+  }
+}
+
 
     function displayUserData(userData) {
-      const container = document.getElementById("profileContainer");
-      const photoURL = "teams/photo/" + userData.photo || "assets/default_avatar.png";
-      const badge = userData.badge || "";
+  const container = document.getElementById("profileContainer");
 
-      container.innerHTML = `
-        <div class="profile-card">
-          <div class="profile-image-container">
-            <img class="profile-image" alt="Ảnh đại diện"/>
-            ${badge ? `<div class="badge">${badge}</div>` : ""}
-          </div>
-          <div class="profile-info">
-            <h2>${userData.name || "Chưa cập nhật"}</h2>
-            <p><strong>ID:</strong> ${userData.id}</p>
-            <p><strong>Ban:</strong> ${userData.ban}</p>
-            <p><strong>Email:</strong> ${userData.email}</p>
-            <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
-            <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
-            <p><strong>OTP:</strong> ${userData.otp}</p>
-          </div>
-        </div>
-      `;
+  const photoURL = ("teams/photo/" + userData.photo) || "assets/default_avatar.png";
 
-      const img = container.querySelector(".profile-image");
-      img.src = photoURL;
-      img.onerror = function () {
-        this.onerror = null;
-        this.src = "assets/default_avatar.png";
-      };
-    }
+container.innerHTML = `
+  <div class="profile-card">
+    <img class="profile-image" alt="Ảnh đại diện"/>
+    <div class="profile-info">
+      <h2>${userData.name || "Chưa cập nhật"}</h2>
+      <p><strong>ID:</strong> ${userData.id}</p>
+      <p><strong>Ban:</strong> ${userData.ban}</p>
+      <p><strong>Email:</strong> ${userData.email}</p>
+      <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
+      <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
+      <p><strong>OTP:</strong> ${userData.otp}</p>
+    </div>
+  </div>
+`;
+
+// Gán src và xử lý lỗi ảnh giống như bạn yêu cầu
+const img = container.querySelector(".profile-image");
+img.src = photoURL;
+img.onerror = function () {
+  this.onerror = null; // tránh lặp vô hạn nếu ảnh fallback cũng lỗi
+  this.src = "assets/default_avatar.png";
+};
+
+}
   </script>
+
 </body>
 </html>
