@@ -161,6 +161,41 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    let currentEditingId = null;
+
+document.getElementById("createBadgeModal").addEventListener("show.bs.modal", () => {
+  // Reset form mỗi khi mở modal tạo mới
+  document.getElementById("createBadgeForm").reset();
+  currentEditingId = null;
+});
+
+document.getElementById("createBadgeForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const title = document.querySelector("#badgeTitle").value.trim();
+  const type = document.querySelector("#badgeType").value;
+  const description = document.querySelector("#badgeDescription").value.trim();
+  const iconUrl = document.querySelector("#badgeIconUrl").value.trim();
+  const eventId = document.querySelector("#badgeEventId").value.trim();
+  const milestoneCondition = document.querySelector("#badgeMilestoneCondition").value.trim();
+  const isPublic = document.querySelector("#badgeIsPublic").value === "true";
+
+  if (currentEditingId) {
+    const docRef = doc(db, "badges", currentEditingId);
+    await updateDoc(docRef, {
+      title, type, description, iconUrl, eventId, milestoneCondition, isPublic
+    });
+  } else {
+    await addDoc(collection(db, "badges"), {
+      title, type, description, iconUrl, eventId, milestoneCondition, isPublic
+    });
+  }
+
+  const modal = bootstrap.Modal.getInstance(document.getElementById("createBadgeModal"));
+  modal.hide();
+  loadBadges();
+});
+
     async function loadBadges() {
       const badgeTable = document.querySelector("#badge-table-body");
       badgeTable.innerHTML = "";
@@ -342,7 +377,9 @@
   const isPublic = document.querySelector("#badgeIsPublic").value === "true";
 
   // Kiểm tra nếu đang ở chế độ tạo mới (không gọi từ editBadge)
-  if (!this.dataset.editing) {
+  async function editBadge(id) {
+  currentEditingId = id;
+    if (!this.dataset.editing) {
     await addDoc(collection(db, "badges"), {
       title,
       type,
@@ -352,6 +389,7 @@
       milestoneCondition,
       isPublic
     });
+    }
     this.reset();
     const modal = bootstrap.Modal.getInstance(document.getElementById("createBadgeModal"));
     modal.hide();
