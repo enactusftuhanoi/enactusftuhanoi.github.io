@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Quản lý Điểm danh</title>
+  <title>Attendance | Enactus FTU Hanoi</title>
   <link rel="icon" href="icon.png" type="image/png">
   <style>
     /* Reset & base */
@@ -196,28 +196,72 @@
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<!-- QRCode library -->
+<!-- QR Code -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <script>
   // ==== CẤU HÌNH FIREBASE ==== //
   const firebaseConfig = {
-      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
-      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
-      projectId: "enactusftuhanoi-tracuu",
-      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
-      messagingSenderId: "611356979403",
-      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+    authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+    projectId: "enactusftuhanoi-tracuu",
+    storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+    messagingSenderId: "611356979403",
+    appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
   };
   firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
   const db = firebase.firestore();
+
+  // ==== KIỂM TRA QUYỀN TRUY CẬP ==== //
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const userEmail = user.email;
+    if (!userEmail) {
+      alert("Tài khoản không có email, không thể xác minh.");
+      window.location.href = "login.html";
+      return;
+    }
+
+    try {
+      const snapshot = await db.collection("employees")
+        .where("email", "==", userEmail)
+        .get();
+
+      if (snapshot.empty) {
+        alert("Không tìm thấy thông tin người dùng.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const userData = snapshot.docs[0].data();
+      if (userData.role !== "Admin") {
+        alert("Bạn không có quyền truy cập trang này.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      // Nếu là Admin => tiếp tục tải nội dung
+      loadSessions();
+
+    } catch (error) {
+      console.error("Lỗi xác thực:", error);
+      alert("Đã xảy ra lỗi khi xác thực quyền truy cập.");
+      window.location.href = "login.html";
+    }
+  });
 
   const createSessionForm = document.getElementById('createSessionForm');
   const sessionsTbody = document.getElementById('sessionsTbody');
 
-  // ==== TẠO PHIÊN ĐIỂM DANH MỚI ==== //
+  // ==== TẠO PHIÊN MỚI ==== //
   createSessionForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -245,20 +289,24 @@
       createSessionForm.reset();
       loadSessions();
     } catch (error) {
-      console.error('Lỗi tạo phiên điểm danh:', error);
+      console.error('Lỗi tạo phiên:', error);
       alert('Có lỗi xảy ra, vui lòng thử lại.');
     }
   });
 
-  // ==== HIỂN THỊ DANH SÁCH PHIÊN ĐIỂM DANH ==== //
+  // ==== HIỂN THỊ DANH SÁCH ==== //
   async function loadSessions() {
     sessionsTbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Đang tải dữ liệu...</td></tr>';
     try {
-      const snapshot = await db.collection('attendanceSessions').orderBy('createdAt', 'desc').get();
+      const snapshot = await db.collection('attendanceSessions')
+        .orderBy('createdAt', 'desc')
+        .get();
+
       if (snapshot.empty) {
-        sessionsTbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Chưa có phiên điểm danh nào.</td></tr>';
+        sessionsTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Chưa có phiên điểm danh nào.</td></tr>';
         return;
       }
+
       let idx = 1;
       sessionsTbody.innerHTML = '';
       snapshot.forEach(doc => {
@@ -268,233 +316,168 @@
 
         const tr = document.createElement('tr');
 
-        const tdIdx = document.createElement('td');
-        tdIdx.textContent = idx++;
+        tr.innerHTML = `
+          <td>${idx++}</td>
+          <td>${data.name}${isLocked ? ' 🔒' : ''}</td>
+          <td>${data.startTime?.toDate().toLocaleString() || '-'}</td>
+          <td>${data.endTime?.toDate().toLocaleString() || '-'}</td>
+        `;
 
-        const tdName = document.createElement('td');
-        tdName.textContent = data.name.charAt(0).toUpperCase() + data.name.slice(1).toLowerCase() + (isLocked ? ' 🔒' : '');
-
-        const tdStart = document.createElement('td');
-        tdStart.textContent = data.startTime?.toDate().toLocaleString() || '-';
-
-        const tdEnd = document.createElement('td');
-        tdEnd.textContent = data.endTime?.toDate().toLocaleString() || '-';
-
-        // QR Code
         const tdQR = document.createElement('td');
         const qrBtn = document.createElement('button');
         qrBtn.textContent = 'Hiển thị QR';
         qrBtn.className = 'btn-small';
         qrBtn.disabled = isLocked;
-        qrBtn.addEventListener('click', () => showQRCode(id));
+        qrBtn.onclick = () => showQRCode(id);
         tdQR.appendChild(qrBtn);
 
-        // Người điểm danh
-        const tdAttendance = document.createElement('td');
-        const attendanceBtn = document.createElement('button');
-        attendanceBtn.textContent = 'Xem người điểm danh';
-        attendanceBtn.className = 'btn-small';
-        attendanceBtn.addEventListener('click', () => showAttendanceList(id));
-        tdAttendance.appendChild(attendanceBtn);
+        const tdView = document.createElement('td');
+        const viewBtn = document.createElement('button');
+        viewBtn.textContent = 'Xem người điểm danh';
+        viewBtn.className = 'btn-small';
+        viewBtn.onclick = () => showAttendanceList(id);
+        tdView.appendChild(viewBtn);
 
-        // Hành động
         const tdActions = document.createElement('td');
+        tdActions.innerHTML = `
+          <button class="btn-small" ${isLocked ? 'disabled' : ''} onclick="editSession('${id}', ${JSON.stringify(data)})">Chỉnh sửa</button>
+          <button class="btn-small" onclick="toggleLockSession('${id}', ${isLocked})">${isLocked ? 'Mở khóa' : 'Khóa'}</button>
+          <button class="btn-small" ${isLocked ? 'disabled' : ''} onclick="deleteSession('${id}')">Xóa</button>
+        `;
 
-        // Chỉnh sửa
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Chỉnh sửa';
-        editBtn.className = 'btn-small';
-        editBtn.disabled = isLocked;
-        editBtn.addEventListener('click', () => editSession(id, data));
-        tdActions.appendChild(editBtn);
-
-        // Khóa/Mở khóa
-        const lockBtn = document.createElement('button');
-        lockBtn.textContent = isLocked ? 'Mở khóa' : 'Khóa';
-        lockBtn.className = 'btn-small';
-        lockBtn.addEventListener('click', () => toggleLockSession(id, isLocked));
-        tdActions.appendChild(lockBtn);
-
-        // Xóa
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Xóa';
-        deleteBtn.className = 'btn-small';
-        deleteBtn.disabled = isLocked;
-        deleteBtn.addEventListener('click', () => deleteSession(id));
-        tdActions.appendChild(deleteBtn);
-
-        tr.append(tdIdx, tdName, tdStart, tdEnd, tdQR, tdAttendance, tdActions);
+        tr.append(tdQR, tdView, tdActions);
         sessionsTbody.appendChild(tr);
       });
+
     } catch (error) {
-      sessionsTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">Lỗi tải dữ liệu: ${error.message}</td></tr>`;
+      sessionsTbody.innerHTML = `<tr><td colspan="7" style="color:red;">Lỗi tải dữ liệu: ${error.message}</td></tr>`;
     }
   }
 
-  // ==== HIỂN THỊ QR CODE ==== //
+  // ==== QR CODE ==== //
   function showQRCode(sessionId) {
-    // Tạo modal hiện QR code
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'modal-overlay';
 
     const modal = document.createElement('div');
     modal.className = 'modal';
+    modal.innerHTML = `
+      <button class="close-btn">&times;</button>
+      <h3>QR Code cho phiên điểm danh</h3>
+    `;
 
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '&times;';
-    closeBtn.addEventListener('click', () => {
-      document.body.removeChild(modalOverlay);
-    });
+    const canvas = document.createElement('canvas');
+    canvas.style.marginTop = '15px';
+    modal.appendChild(canvas);
 
-    const title = document.createElement('h3');
-    title.textContent = 'QR Code cho phiên điểm danh';
-
-    const qrCanvas = document.createElement('canvas');
-    qrCanvas.style.marginTop = '15px';
-
-    modal.append(closeBtn, title, qrCanvas);
+    modal.querySelector('.close-btn').onclick = () => document.body.removeChild(modalOverlay);
     modalOverlay.appendChild(modal);
     document.body.appendChild(modalOverlay);
 
-    // Dữ liệu QR code (chỉ ví dụ là sessionId)
-    const qrData = sessionId;
-
-    QRCode.toCanvas(qrCanvas, qrData, { width: 220 }, function (error) {
+    QRCode.toCanvas(canvas, sessionId, { width: 220 }, (error) => {
       if (error) console.error(error);
     });
   }
 
-  // ==== HIỂN THỊ DANH SÁCH NGƯỜI ĐIỂM DANH ==== //
+  // ==== XEM NGƯỜI ĐIỂM DANH ==== //
   async function showAttendanceList(sessionId) {
-    if (!sessionId) {
-      console.error("Lỗi: sessionId không hợp lệ.");
-      return;
-    }
-
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'modal-overlay';
 
     const modal = document.createElement('div');
     modal.className = 'modal';
+    modal.innerHTML = `
+      <button class="close-btn">&times;</button>
+      <h3>Danh sách người điểm danh</h3>
+    `;
+    const listDiv = document.createElement('div');
+    listDiv.className = 'attendance-list';
+    listDiv.textContent = 'Đang tải dữ liệu...';
+    modal.appendChild(listDiv);
 
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '&times;';
-    closeBtn.addEventListener('click', () => {
-      document.body.removeChild(modalOverlay);
-    });
-
-    const title = document.createElement('h3');
-    title.textContent = 'Danh sách người điểm danh';
-
-    const attendanceListDiv = document.createElement('div');
-    attendanceListDiv.className = 'attendance-list';
-    attendanceListDiv.textContent = 'Đang tải dữ liệu...';
-
-    modal.append(closeBtn, title, attendanceListDiv);
+    modal.querySelector('.close-btn').onclick = () => document.body.removeChild(modalOverlay);
     modalOverlay.appendChild(modal);
     document.body.appendChild(modalOverlay);
 
     try {
-      const snapshot = await db
-        .collection('attendanceSessions')
+      const snapshot = await db.collection('attendanceSessions')
         .doc(sessionId)
         .collection('attendees')
         .get();
 
       if (snapshot.empty) {
-        attendanceListDiv.textContent = 'Chưa có ai điểm danh phiên này.';
+        listDiv.textContent = 'Chưa có ai điểm danh.';
         return;
       }
 
       const table = document.createElement('table');
-      const thead = document.createElement('thead');
-      const tbody = document.createElement('tbody');
-
-      thead.innerHTML = `
-        <tr>
-          <th>STT</th>
-          <th>Thời gian điểm danh</th>
-          <th>Họ tên</th>
-          <th>Ban</th>
-          <th>Email</th>
-        </tr>
+      table.innerHTML = `
+        <thead>
+          <tr><th>STT</th><th>Thời gian</th><th>Họ tên</th><th>Ban</th><th>Email</th></tr>
+        </thead><tbody></tbody>
       `;
+      const tbody = table.querySelector('tbody');
 
-      let index = 1;
+      let idx = 1;
       snapshot.forEach(doc => {
         const data = doc.data();
-        const name = data.name || 'Ẩn danh';
-        const email = data.email || doc.id;
-        const ban = data.ban || 'Không rõ';
-        const time = data.checkedInAt?.toDate?.().toLocaleString?.() || 'Không rõ';
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${index++}</td>
-          <td>${time}</td>
-          <td>${name}</td>
-          <td>${ban}</td>
-          <td>${email}</td>
+        const time = data.checkedInAt?.toDate().toLocaleString() || 'Không rõ';
+        tbody.innerHTML += `
+          <tr>
+            <td>${idx++}</td>
+            <td>${time}</td>
+            <td>${data.name || 'Ẩn danh'}</td>
+            <td>${data.ban || 'Không rõ'}</td>
+            <td>${data.email || doc.id}</td>
+          </tr>
         `;
-        tbody.appendChild(row);
       });
 
-      table.appendChild(thead);
-      table.appendChild(tbody);
-      attendanceListDiv.textContent = '';
-      attendanceListDiv.appendChild(table);
+      listDiv.innerHTML = '';
+      listDiv.appendChild(table);
+
     } catch (error) {
-      console.error("Lỗi khi tải dữ liệu:", error);
-      attendanceListDiv.textContent = `Lỗi tải dữ liệu: ${error.message}`;
+      listDiv.textContent = `Lỗi: ${error.message}`;
     }
   }
-  // ==== CHỈNH SỬA PHIÊN ĐIỂM DANH ==== //
+
+  // ==== CHỈNH SỬA ==== //
   function editSession(sessionId, data) {
-    const newName = prompt("Nhập tên mới cho phiên điểm danh:", data.name);
+    const newName = prompt("Nhập tên mới:", data.name);
     if (newName && newName.trim() !== "") {
-      db.collection('attendanceSessions').doc(sessionId).update({
-        name: newName.trim()
-      }).then(() => {
-        alert("Cập nhật tên phiên điểm danh thành công!");
-        loadSessions();
-      }).catch(error => {
-        console.error("Lỗi cập nhật tên phiên điểm danh:", error);
-        alert("Có lỗi xảy ra, vui lòng thử lại.");
-      });
+      db.collection('attendanceSessions').doc(sessionId).update({ name: newName.trim() })
+        .then(() => {
+          alert("Cập nhật thành công!");
+          loadSessions();
+        })
+        .catch(err => {
+          alert("Lỗi cập nhật: " + err.message);
+        });
     }
   }
 
-  // ==== KHÓA/MỞ KHÓA PHIÊN ĐIỂM DANH ==== //
+  // ==== KHÓA / MỞ KHÓA ==== //
   function toggleLockSession(sessionId, isLocked) {
-    db.collection('attendanceSessions').doc(sessionId).update({
-      locked: !isLocked
-    }).then(() => {
-      alert(isLocked ? "Mở khóa phiên điểm danh thành công!" : "Khóa phiên điểm danh thành công!");
-      loadSessions();
-    }).catch(error => {
-      console.error("Lỗi cập nhật trạng thái khóa:", error);
-      alert("Có lỗi xảy ra, vui lòng thử lại.");
-    });
+    db.collection('attendanceSessions').doc(sessionId).update({ locked: !isLocked })
+      .then(() => {
+        alert(isLocked ? "Mở khóa thành công!" : "Khóa thành công!");
+        loadSessions();
+      })
+      .catch(err => alert("Lỗi: " + err.message));
   }
 
-  // ==== XÓA PHIÊN ĐIỂM DANH ==== //
+  // ==== XÓA ==== //
   function deleteSession(sessionId) {
-    if (confirm("Bạn có chắc chắn muốn xóa phiên điểm danh này?")) {
-      db.collection('attendanceSessions').doc(sessionId).delete().then(() => {
-        alert("Xóa phiên điểm danh thành công!");
-        loadSessions();
-      }).catch(error => {
-        console.error("Lỗi xóa phiên điểm danh:", error);
-        alert("Có lỗi xảy ra, vui lòng thử lại.");
-      });
+    if (confirm("Bạn chắc chắn muốn xóa?")) {
+      db.collection('attendanceSessions').doc(sessionId).delete()
+        .then(() => {
+          alert("Đã xóa!");
+          loadSessions();
+        })
+        .catch(err => alert("Lỗi: " + err.message));
     }
   }
 
-  // === Khởi đầu ===
-  loadSessions();
 </script>
-
 </body>
 </html>
