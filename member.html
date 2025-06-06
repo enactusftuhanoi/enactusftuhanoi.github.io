@@ -253,43 +253,32 @@
     }
 
     async function getUserBadges(email) {
-      const userBadgesDocRef = doc(db, "userbadges", email);
+  const userBadgesRef = doc(db, "userbadges", email);
+  const userBadgesDoc = await getDoc(userBadgesRef);
 
-      try {
-        const userBadgesDoc = await getDoc(userBadgesDocRef);
-        if (!userBadgesDoc.exists()) {
-          document.getElementById("badge-list").innerHTML = "<p>Người dùng chưa nhận huy hiệu nào.</p>";
-          return;
-        }
+  if (userBadgesDoc.exists()) {
+    const badgeIds = userBadgesDoc.data().badges || [];
+    if (badgeIds.length === 0) {
+      return [];
+    }
 
-        const badgeIds = userBadgesDoc.data().badgeIds || [];
-        if (badgeIds.length === 0) {
-          document.getElementById("badge-list").innerHTML = "<p>Người dùng chưa nhận huy hiệu nào.</p>";
-          return;
-        }
+    // Lấy data của badges từ collection badges
+    const badgesRef = collection(db, "badges");
+    const badgesData = [];
 
-        const badgePromises = badgeIds.map(async (badgeId) => {
-          const badgeDocRef = doc(db, "badges", badgeId);
-          const badgeDoc = await getDoc(badgeDocRef);
-          if (badgeDoc.exists()) {
-            return badgeDoc.data();
-          }
-          return null;
-        });
-
-        const badges = (await Promise.all(badgePromises)).filter(b => b !== null);
-
-        if (badges.length === 0) {
-          document.getElementById("badge-list").innerHTML = "<p>Không tìm thấy thông tin huy hiệu.</p>";
-          return;
-        }
-
-        displayBadges(badges);
-      } catch (error) {
-        console.error("Lỗi khi lấy huy hiệu:", error);
-        document.getElementById("badge-list").innerHTML = "<p>Không thể tải huy hiệu.</p>";
+    for (const badgeId of badgeIds) {
+      const badgeDoc = await getDoc(doc(badgesRef, badgeId));
+      if (badgeDoc.exists()) {
+        badgesData.push(badgeDoc.data());
       }
     }
+
+    return badgesData;
+  } else {
+    return [];
+  }
+}
+
 
     function displayBadges(badges) {
       const badgeList = document.getElementById("badge-list");
