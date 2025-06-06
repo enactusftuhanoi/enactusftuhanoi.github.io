@@ -330,6 +330,34 @@
     window.editBadge = editBadge;
     window.viewBadge = viewBadge;
     window.deleteBadge = deleteBadge;
+    document.getElementById("createBadgeForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const title = document.querySelector("#badgeTitle").value.trim();
+  const type = document.querySelector("#badgeType").value;
+  const description = document.querySelector("#badgeDescription").value.trim();
+  const iconUrl = document.querySelector("#badgeIconUrl").value.trim();
+  const eventId = document.querySelector("#badgeEventId").value.trim();
+  const milestoneCondition = document.querySelector("#badgeMilestoneCondition").value.trim();
+  const isPublic = document.querySelector("#badgeIsPublic").value === "true";
+
+  // Kiểm tra nếu đang ở chế độ tạo mới (không gọi từ editBadge)
+  if (!this.dataset.editing) {
+    await addDoc(collection(db, "badges"), {
+      title,
+      type,
+      description,
+      iconUrl,
+      eventId,
+      milestoneCondition,
+      isPublic
+    });
+    this.reset();
+    const modal = bootstrap.Modal.getInstance(document.getElementById("createBadgeModal"));
+    modal.hide();
+    loadBadges();
+  }
+});
 
     window.addEventListener("DOMContentLoaded", loadBadges);
   </script>
