@@ -14,8 +14,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
       flex-direction: column;
+      min-height: 100vh;
+      padding-bottom: 60px;
     }
 
     .profile-card {
@@ -28,6 +29,7 @@
       display: flex;
       align-items: center;
       gap: 30px;
+      margin-top: 40px;
     }
 
     .profile-image {
@@ -54,11 +56,108 @@
       color: #555;
     }
 
+    /* Admin button and dropdown */
+    #adminButton {
+      position: absolute; 
+      top: 20px; 
+      right: 20px; 
+      display: none;
+      z-index: 1000;
+    }
+    #adminButton > button {
+      background: #007bff; 
+      color: white; 
+      border: none; 
+      padding: 10px 16px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: bold;
+    }
+    #adminDropdown {
+      display: none; 
+      position: absolute; 
+      top: 48px; 
+      right: 0; 
+      background: white; 
+      border: 1px solid #ccc; 
+      border-radius: 8px; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+      min-width: 180px; 
+      z-index: 999;
+    }
+    #adminDropdown a {
+      display: block; 
+      padding: 10px 16px; 
+      text-decoration: none; 
+      color: #333; 
+      font-weight: bold;
+    }
+
+    /* Điểm danh button */
+    #scanButton {
+      position: absolute; 
+      top: 20px; 
+      left: 20px;
+      background: #ff6ec4; 
+      color: white; 
+      border: none; 
+      padding: 10px 16px; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: bold;
+      z-index: 1000;
+    }
+
+    /* Footer */
     .footer-text {
       position: absolute;
       bottom: 20px;
       font-size: 14px;
       color: #aaa;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* Badge list styles */
+    #badge-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 40px auto 0 auto;
+      width: 90%;
+    }
+    .badge-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 12px rgb(0 0 0 / 0.1);
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    .badge-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 18px rgb(0 0 0 / 0.15);
+    }
+    .badge-image {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      background-color: #e0e7ff;
+      padding: 10px;
+    }
+    .badge-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+    .badge-info {
+      font-size: 14px;
+      color: #475569;
+      margin-bottom: 4px;
     }
 
     @media (max-width: 600px) {
@@ -72,81 +171,28 @@
         height: 120px;
       }
     }
-
-    /* Badge CSS */
-    #badge-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
-      gap: 20px;
-      max-width: 1000px;
-      margin: 30px auto 0 auto;
-      width: 90%;
-    }
-
-    .badge-card {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 6px 12px rgb(0 0 0 / 0.1);
-      text-align: center;
-      transition: transform 0.2s ease;
-    }
-
-    .badge-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 18px rgb(0 0 0 / 0.15);
-    }
-
-    .badge-image {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-      margin-bottom: 15px;
-      border-radius: 12px;
-      background-color: #e0e7ff;
-      padding: 10px;
-    }
-
-    .badge-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 6px;
-    }
-
-    .badge-info {
-      font-size: 14px;
-      color: #475569;
-      margin-bottom: 4px;
-    }
-
   </style>
 </head>
 
 <body>
-  <!-- Admin button -->
-  <div id="adminButton" style="position: absolute; top: 20px; right: 20px; display: none;">
-    <button onclick="toggleAdminMenu()" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+
+  <div id="adminButton">
+    <button onclick="toggleAdminMenu()">
       🔒 Admin ▾
     </button>
-    <div id="adminDropdown" style="display: none; position: absolute; top: 48px; right: 0; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); min-width: 180px; z-index: 999;">
-      <a href="attendance.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">➕ Điểm danh</a>
-      <a href="admin.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">📊 Dashboard </a>
-      <a href="badge.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">🎖️ Huy hiệu</a>
+    <div id="adminDropdown">
+      <a href="attendance.html">➕ Điểm danh</a>
+      <a href="admin.html">📊 Dashboard</a>
+      <a href="badge.html">🎖️ Huy hiệu</a>
     </div>
   </div>
 
-  <!-- Điểm danh button -->
-  <div style="position: absolute; top: 20px; left: 20px;">
-    <button onclick="window.location.href='scan.html'" style="background: #ff6ec4; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-      📸 Điểm danh
-    </button>
-  </div>
+  <button id="scanButton" onclick="window.location.href='scan.html'">
+    📸 Điểm danh
+  </button>
 
-  <!-- Profile container -->
   <div id="profileContainer"></div>
 
-  <!-- Badge list container -->
   <div id="badge-list"></div>
 
   <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
@@ -192,7 +238,10 @@
           document.getElementById("adminButton").style.display = "block";
         }
         await getUserData(userEmail);
-        await getUserBadges(userEmail);
+
+        // Lấy và hiển thị badges
+        const badges = await getUserBadges(userEmail);
+        displayBadges(badges);
       }
     };
 
@@ -244,51 +293,66 @@
         </div>
       `;
 
+      // Gán src và xử lý lỗi ảnh giống như bạn yêu cầu
       const img = container.querySelector(".profile-image");
       img.src = photoURL;
       img.onerror = function () {
-        this.onerror = null;
+        this.onerror = null; // tránh lặp vô hạn nếu ảnh fallback cũng lỗi
         this.src = "assets/default_avatar.png";
       };
     }
 
     async function getUserBadges(email) {
-  const userBadgesRef = doc(db, "userbadges", email);
-  const userBadgesDoc = await getDoc(userBadgesRef);
+      const userBadgesRef = doc(db, "userbadges", email);
+      const userBadgesDoc = await getDoc(userBadgesRef);
 
-  if (userBadgesDoc.exists()) {
-    const badgeIds = userBadgesDoc.data().badges || [];
-    if (badgeIds.length === 0) {
-      return [];
-    }
-
-    // Lấy data của badges từ collection badges
-    const badgesRef = collection(db, "badges");
-    const badgesData = [];
-
-    for (const badgeId of badgeIds) {
-      const badgeDoc = await getDoc(doc(badgesRef, badgeId));
-      if (badgeDoc.exists()) {
-        badgesData.push(badgeDoc.data());
+      console.log("userBadgesDoc.exists():", userBadgesDoc.exists());
+      if (!userBadgesDoc.exists()) {
+        console.log("Không tìm thấy document userbadges cho email:", email);
+        return [];
       }
+
+      const data = userBadgesDoc.data();
+      console.log("userbadges data:", data);
+
+      const badgeIds = data.badges || [];
+      if (badgeIds.length === 0) {
+        console.log("User chưa có badge nào");
+        return [];
+      }
+
+      const badgesRef = collection(db, "badges");
+      const badgesData = [];
+
+      for (const badgeId of badgeIds) {
+        const badgeDoc = await getDoc(doc(badgesRef, badgeId));
+        if (badgeDoc.exists()) {
+          badgesData.push(badgeDoc.data());
+        } else {
+          console.log(`Không tìm thấy badge với id: ${badgeId}`);
+        }
+      }
+
+      console.log("Badges lấy được:", badgesData);
+      return badgesData;
     }
-
-    return badgesData;
-  } else {
-    return [];
-  }
-}
-
 
     function displayBadges(badges) {
-      const badgeList = document.getElementById("badge-list");
-      badgeList.innerHTML = badges.map(badge => `
+      const container = document.getElementById("badge-list");
+      if (!container) return;
+
+      if (badges.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#666; font-style:italic;">Người dùng chưa nhận được huy hiệu nào.</p>`;
+        return;
+      }
+
+      container.innerHTML = badges.map(badge => `
         <div class="badge-card">
-          <img src="${badge.iconUrl || 'assets/default_badge.png'}" alt="${badge.title}" class="badge-image" />
-          <div class="badge-title">${badge.title || "Không có tên"}</div>
-          <div class="badge-info">${badge.description || ""}</div>
+          <img src="${badge.iconUrl}" alt="${badge.title}" class="badge-image" />
+          <div class="badge-title">${badge.title}</div>
+          <div class="badge-info">${badge.description || ''}</div>
         </div>
-      `).join("");
+      `).join('');
     }
   </script>
 
