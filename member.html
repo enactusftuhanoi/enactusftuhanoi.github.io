@@ -303,7 +303,7 @@
     }
 
     async function getUserBadges(email) {
-      const userBadgesRef = doc(db, "userbadges", email);
+      const userBadgesRef = doc(db, "userbadge", email);
       const userBadgesDoc = await getDoc(userBadgesRef);
 
       console.log("userBadgesDoc.exists():", userBadgesDoc.exists());
