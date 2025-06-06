@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -17,7 +15,7 @@
 </head>
 <body class="p-4 bg-light">
 
-  <div class="container">
+  <div class="container" id="adminPage">
     <h2 class="mb-4">🎖️ Danh sách Huy hiệu</h2>
 
     <div class="d-flex justify-content-end mb-3">
@@ -123,13 +121,14 @@
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Gắn huy hiệu</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
+  <!-- Modal xem huy hiệu -->
   <div class="modal fade" id="viewBadgeModal" tabindex="-1" aria-labelledby="viewBadgeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
@@ -138,7 +137,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
         </div>
         <div class="modal-body">
-          <!-- Nội dung sẽ được render bằng JS -->
+          <!-- Render bằng JS -->
         </div>
       </div>
     </div>
@@ -150,6 +149,9 @@
       getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc,
       getDoc, setDoc, query, where
     } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -162,42 +164,47 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    let currentEditingId = null;
+    // Auth + phân quyền admin
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
 
-document.getElementById("createBadgeModal").addEventListener("show.bs.modal", () => {
-  // Reset form mỗi khi mở modal tạo mới
-  document.getElementById("createBadgeForm").reset();
-  currentEditingId = null;
-});
+      const userEmail = user.email;
+      if (!userEmail) {
+        alert("Tài khoản chưa có email, không thể xác thực quyền admin.");
+        window.location.href = "login.html";
+        return;
+      }
 
-document.getElementById("createBadgeForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
+      try {
+        const q = query(collection(db, "employees"), where("email", "==", userEmail));
+        const snapshot = await getDocs(q);
 
-  const title = document.querySelector("#badgeTitle").value.trim();
-  const type = document.querySelector("#badgeType").value;
-  const description = document.querySelector("#badgeDescription").value.trim();
-  const iconUrl = document.querySelector("#badgeIconUrl").value.trim();
-  const eventId = document.querySelector("#badgeEventId").value.trim();
-  const milestoneCondition = document.querySelector("#badgeMilestoneCondition").value.trim();
-  const isPublic = document.querySelector("#badgeIsPublic").value === "true";
+        if (snapshot.empty) {
+          alert("Không tìm thấy thông tin người dùng.");
+          window.location.href = "login.html";
+          return;
+        }
 
-  if (currentEditingId) {
-    const docRef = doc(db, "badges", currentEditingId);
-    await updateDoc(docRef, {
-      title, type, description, iconUrl, eventId, milestoneCondition, isPublic
+        const userData = snapshot.docs[0].data();
+        if (userData.role === "Admin") {
+          await loadBadges();
+        } else {
+          alert("Bạn không có quyền truy cập trang này.");
+          window.location.href = "login.html";
+        }
+      } catch (error) {
+        console.error("Lỗi khi kiểm tra quyền admin:", error);
+        alert("Có lỗi xảy ra. Vui lòng thử lại sau.");
+        window.location.href = "login.html";
+      }
     });
-  } else {
-    await addDoc(collection(db, "badges"), {
-      title, type, description, iconUrl, eventId, milestoneCondition, isPublic
-    });
-  }
 
-  const modal = bootstrap.Modal.getInstance(document.getElementById("createBadgeModal"));
-  modal.hide();
-  loadBadges();
-});
-
+    // Các hàm xử lý huy hiệu
     async function loadBadges() {
       const badgeTable = document.querySelector("#badge-table-body");
       badgeTable.innerHTML = "";
@@ -302,7 +309,10 @@ document.getElementById("createBadgeForm").addEventListener("submit", async func
       document.querySelector("#badgeIsPublic").value = badge.isPublic ? "true" : "false";
 
       const form = document.querySelector("#createBadgeForm");
-      const handler = async function (e) {
+      form.replaceWith(form.cloneNode(true));
+      const newForm = document.querySelector("#createBadgeForm");
+
+      newForm.addEventListener("submit", async function handler(e) {
         e.preventDefault();
         await updateDoc(docRef, {
           title: document.querySelector("#badgeTitle").value,
@@ -313,11 +323,11 @@ document.getElementById("createBadgeForm").addEventListener("submit", async func
           milestoneCondition: document.querySelector("#badgeMilestoneCondition").value,
           isPublic: document.querySelector("#badgeIsPublic").value === "true"
         });
-        form.removeEventListener("submit", handler);
-        document.querySelector("#createBadgeModal .btn-close").click();
+        const modal = bootstrap.Modal.getInstance(document.getElementById("createBadgeModal"));
+        modal.hide();
         loadBadges();
-      };
-      form.addEventListener("submit", handler);
+      });
+
       new bootstrap.Modal(document.getElementById("createBadgeModal")).show();
     }
 
@@ -361,88 +371,12 @@ document.getElementById("createBadgeForm").addEventListener("submit", async func
     async function deleteBadge(id) {
       if (!confirm("Bạn có chắc chắn muốn xoá huy hiệu này không?")) return;
       await deleteDoc(doc(db, "badges", id));
-      //loadBadges();
+      loadBadges();
     }
 
     window.editBadge = editBadge;
     window.viewBadge = viewBadge;
     window.deleteBadge = deleteBadge;
-    document.getElementById("createBadgeForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-
-  const title = document.querySelector("#badgeTitle").value.trim();
-  const type = document.querySelector("#badgeType").value;
-  const description = document.querySelector("#badgeDescription").value.trim();
-  const iconUrl = document.querySelector("#badgeIconUrl").value.trim();
-  const eventId = document.querySelector("#badgeEventId").value.trim();
-  const milestoneCondition = document.querySelector("#badgeMilestoneCondition").value.trim();
-  const isPublic = document.querySelector("#badgeIsPublic").value === "true";
-
-  // Kiểm tra nếu đang ở chế độ tạo mới (không gọi từ editBadge)
-  async function editBadge(id) {
-  currentEditingId = id;
-    if (!this.dataset.editing) {
-    await addDoc(collection(db, "badges"), {
-      title,
-      type,
-      description,
-      iconUrl,
-      eventId,
-      milestoneCondition,
-      isPublic
-    });
-    }
-    this.reset();
-    const modal = bootstrap.Modal.getInstance(document.getElementById("createBadgeModal"));
-    modal.hide();
-    //loadBadges();
-  }
-});
-
-    
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
-const auth = getAuth(app);
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  const userEmail = user.email;
-  if (!userEmail) {
-    alert("Tài khoản chưa có email, không thể xác thực quyền admin.");
-    window.location.href = "login.html";
-    return;
-  }
-
-  try {
-    const q = query(collection(db, "employees"), where("email", "==", userEmail));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) {
-      alert("Không tìm thấy thông tin người dùng.");
-      window.location.href = "login.html";
-      return;
-    }
-
-    const userData = snapshot.docs[0].data();
-    if (userData.role === "Admin") {
-      document.getElementById("adminPage")?.classList?.remove("hidden");
-      //loadBadges();
-    } else {
-      alert("Bạn không có quyền truy cập trang này.");
-      window.location.href = "login.html";
-    }
-  } catch (error) {
-    console.error("Lỗi khi kiểm tra quyền admin:", error);
-    alert("Có lỗi xảy ra. Vui lòng thử lại sau.");
-    window.location.href = "login.html";
-  }
-});
-
-
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
