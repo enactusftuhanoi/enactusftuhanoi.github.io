@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Thông Tin Thành Viên</title>
+  <title>Profile Member | Enactus FTU Hanoi</title>
   <link rel="icon" href="icon.png" type="image/png" />
   <style>
     body {
@@ -15,6 +15,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      flex-direction: column;
     }
 
     .profile-card {
@@ -71,32 +72,88 @@
         height: 120px;
       }
     }
+
+    /* Badge CSS */
+    #badge-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 30px auto 0 auto;
+      width: 90%;
+    }
+
+    .badge-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 12px rgb(0 0 0 / 0.1);
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .badge-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 18px rgb(0 0 0 / 0.15);
+    }
+
+    .badge-image {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      background-color: #e0e7ff;
+      padding: 10px;
+    }
+
+    .badge-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+
+    .badge-info {
+      font-size: 14px;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+
   </style>
 </head>
 
 <body>
- 
-  <!-- Thêm vào trong <body> ngay sau thẻ mở <body> -->
+  <!-- Admin button -->
   <div id="adminButton" style="position: absolute; top: 20px; right: 20px; display: none;">
-  <button onclick="toggleAdminMenu()" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-    🔒 Admin ▾
-  </button>
-  <div id="adminDropdown" style="display: none; position: absolute; top: 48px; right: 0; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); min-width: 180px; z-index: 999;">
-    <a href="attendance.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">➕ Điểm danh</a>
-    <a href="admin.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">📊 Dashboard </a>
-    <a href="badge.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">🎖️ Huy hiệu</a>
+    <button onclick="toggleAdminMenu()" style="background: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+      🔒 Admin ▾
+    </button>
+    <div id="adminDropdown" style="display: none; position: absolute; top: 48px; right: 0; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); min-width: 180px; z-index: 999;">
+      <a href="attendance.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">➕ Điểm danh</a>
+      <a href="admin.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">📊 Dashboard </a>
+      <a href="badge.html" style="display: block; padding: 10px 16px; text-decoration: none; color: #333; font-weight: bold;">🎖️ Huy hiệu</a>
+    </div>
   </div>
-</div>
+
+  <!-- Điểm danh button -->
   <div style="position: absolute; top: 20px; left: 20px;">
-  <button onclick="window.location.href='scan.html'" style="background: #ff6ec4; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
-     📸 Điểm danh
-  </button>
-</div>
+    <button onclick="window.location.href='scan.html'" style="background: #ff6ec4; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+      📸 Điểm danh
+    </button>
+  </div>
+
+  <!-- Profile container -->
   <div id="profileContainer"></div>
+
+  <!-- Badge list container -->
+  <div id="badge-list"></div>
+
   <div class="footer-text">© 2025 Enactus FTU Hanoi</div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
@@ -111,92 +168,139 @@
     const db = getFirestore(app);
 
     // Toggle dropdown menu
-window.toggleAdminMenu = function () {
-  const menu = document.getElementById("adminDropdown");
-  menu.style.display = (menu.style.display === "block") ? "none" : "block";
-};
+    window.toggleAdminMenu = function () {
+      const menu = document.getElementById("adminDropdown");
+      menu.style.display = (menu.style.display === "block") ? "none" : "block";
+    };
 
-// Ẩn dropdown nếu bấm ra ngoài
-document.addEventListener('click', function (event) {
-  const adminBtn = document.getElementById('adminButton');
-  if (!adminBtn.contains(event.target)) {
-    document.getElementById("adminDropdown").style.display = "none";
-  }
-});
-
+    // Ẩn dropdown nếu bấm ra ngoài
+    document.addEventListener('click', function (event) {
+      const adminBtn = document.getElementById('adminButton');
+      if (!adminBtn.contains(event.target)) {
+        document.getElementById("adminDropdown").style.display = "none";
+      }
+    });
 
     window.onload = async function () {
-  const userEmail = sessionStorage.getItem('userEmail');
-  const userRole = sessionStorage.getItem('userRole');
-  
-  if (!userEmail) {
-    window.location.href = "login.html";
-  } else {
-    if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
-      document.getElementById("adminButton").style.display = "block";
-    }
-    await getUserData(userEmail);
-  }
-};
+      const userEmail = sessionStorage.getItem('userEmail');
+      const userRole = sessionStorage.getItem('userRole');
+
+      if (!userEmail) {
+        window.location.href = "login.html";
+      } else {
+        if (typeof userRole === 'string' && userRole.toLowerCase() === "admin") {
+          document.getElementById("adminButton").style.display = "block";
+        }
+        await getUserData(userEmail);
+        await getUserBadges(userEmail);
+      }
+    };
 
     async function getUserData(email) {
-  const employeesRef = collection(db, "employees");
-  const q = query(employeesRef, where("email", "==", email));
+      const employeesRef = collection(db, "employees");
+      const q = query(employeesRef, where("email", "==", email));
 
-  try {
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      const userData = querySnapshot.docs[0].data();
+      try {
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
 
-      // Lấy role từ dữ liệu
-      const role = userData.role || "user"; // Nếu không có thì mặc định là "user"
-      sessionStorage.setItem('userRole', role);
+          // Lấy role từ dữ liệu
+          const role = userData.role || "user"; // Nếu không có thì mặc định là "user"
+          sessionStorage.setItem('userRole', role);
 
-      // Hiện nút Admin nếu role là admin
-      if (role.toLowerCase() === "admin") {
-        document.getElementById("adminButton").style.display = "block";
+          // Hiện nút Admin nếu role là admin
+          if (role.toLowerCase() === "admin") {
+            document.getElementById("adminButton").style.display = "block";
+          }
+
+          displayUserData(userData);
+        } else {
+          alert("Không tìm thấy thông tin người dùng trong hệ thống!");
+        }
+      } catch (error) {
+        console.error("Lỗi khi truy vấn dữ liệu:", error);
+        alert("Lỗi hệ thống, vui lòng thử lại.");
       }
-
-      displayUserData(userData);
-    } else {
-      alert("Không tìm thấy thông tin người dùng trong hệ thống!");
     }
-  } catch (error) {
-    console.error("Lỗi khi truy vấn dữ liệu:", error);
-    alert("Lỗi hệ thống, vui lòng thử lại.");
-  }
-}
-
 
     function displayUserData(userData) {
-  const container = document.getElementById("profileContainer");
+      const container = document.getElementById("profileContainer");
 
-  const photoURL = ("teams/photo/" + userData.photo) || "assets/default_avatar.png";
+      const photoURL = ("teams/photo/" + userData.photo) || "assets/default_avatar.png";
 
-container.innerHTML = `
-  <div class="profile-card">
-    <img class="profile-image" alt="Ảnh đại diện"/>
-    <div class="profile-info">
-      <h2>${userData.name || "Chưa cập nhật"}</h2>
-      <p><strong>ID:</strong> ${userData.id}</p>
-      <p><strong>Ban:</strong> ${userData.ban}</p>
-      <p><strong>Email:</strong> ${userData.email}</p>
-      <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
-      <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
-      <p><strong>OTP:</strong> ${userData.otp}</p>
-    </div>
-  </div>
-`;
+      container.innerHTML = `
+        <div class="profile-card">
+          <img class="profile-image" alt="Ảnh đại diện"/>
+          <div class="profile-info">
+            <h2>${userData.name || "Chưa cập nhật"}</h2>
+            <p><strong>ID:</strong> ${userData.id}</p>
+            <p><strong>Ban:</strong> ${userData.ban}</p>
+            <p><strong>Email:</strong> ${userData.email}</p>
+            <p><strong>Ngày sinh:</strong> ${userData.dob || "Chưa cập nhật"}</p>
+            <p><strong>SĐT:</strong> ${userData.phone || "Chưa cập nhật"}</p>
+            <p><strong>OTP:</strong> ${userData.otp}</p>
+          </div>
+        </div>
+      `;
 
-// Gán src và xử lý lỗi ảnh giống như bạn yêu cầu
-const img = container.querySelector(".profile-image");
-img.src = photoURL;
-img.onerror = function () {
-  this.onerror = null; // tránh lặp vô hạn nếu ảnh fallback cũng lỗi
-  this.src = "assets/default_avatar.png";
-};
+      const img = container.querySelector(".profile-image");
+      img.src = photoURL;
+      img.onerror = function () {
+        this.onerror = null;
+        this.src = "assets/default_avatar.png";
+      };
+    }
 
-}
+    async function getUserBadges(email) {
+      const userBadgesDocRef = doc(db, "userbadges", email);
+
+      try {
+        const userBadgesDoc = await getDoc(userBadgesDocRef);
+        if (!userBadgesDoc.exists()) {
+          document.getElementById("badge-list").innerHTML = "<p>Người dùng chưa nhận huy hiệu nào.</p>";
+          return;
+        }
+
+        const badgeIds = userBadgesDoc.data().badgeIds || [];
+        if (badgeIds.length === 0) {
+          document.getElementById("badge-list").innerHTML = "<p>Người dùng chưa nhận huy hiệu nào.</p>";
+          return;
+        }
+
+        const badgePromises = badgeIds.map(async (badgeId) => {
+          const badgeDocRef = doc(db, "badges", badgeId);
+          const badgeDoc = await getDoc(badgeDocRef);
+          if (badgeDoc.exists()) {
+            return badgeDoc.data();
+          }
+          return null;
+        });
+
+        const badges = (await Promise.all(badgePromises)).filter(b => b !== null);
+
+        if (badges.length === 0) {
+          document.getElementById("badge-list").innerHTML = "<p>Không tìm thấy thông tin huy hiệu.</p>";
+          return;
+        }
+
+        displayBadges(badges);
+      } catch (error) {
+        console.error("Lỗi khi lấy huy hiệu:", error);
+        document.getElementById("badge-list").innerHTML = "<p>Không thể tải huy hiệu.</p>";
+      }
+    }
+
+    function displayBadges(badges) {
+      const badgeList = document.getElementById("badge-list");
+      badgeList.innerHTML = badges.map(badge => `
+        <div class="badge-card">
+          <img src="${badge.iconUrl || 'assets/default_badge.png'}" alt="${badge.title}" class="badge-image" />
+          <div class="badge-title">${badge.title || "Không có tên"}</div>
+          <div class="badge-info">${badge.description || ""}</div>
+        </div>
+      `).join("");
+    }
   </script>
 
 </body>
