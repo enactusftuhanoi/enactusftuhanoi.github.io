@@ -1,9 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Quản lý Huy hiệu</title>
+  <title>Badge | Enactus FTU Hanoi</title>
+  <link href="icon.png" rel="icon" type="image/png"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     .badge-icon {
@@ -47,7 +47,7 @@
         <form id="createBadgeForm">
           <div class="modal-header">
             <h5 class="modal-title" id="createBadgeModalLabel">Tạo huy hiệu mới</h5>
-            <button type="button" class="="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
           <div class="modal-body">
             <div class="row g-3">
@@ -109,7 +109,7 @@
           <div class="modal-body">
             <div class="mb-3">
               <label class="form-label">Nhập email thành viên (cách nhau bởi dấu `;`)</label>
-              <textarea class="form-control" id="badgeEmails" rows="2" placeholder="abc@gmail.com; xyz@gmail.com" required></textarea>
+              <textarea class="form-control" id="badgeEmails" rows="2" required></textarea>
             </div>
             <div class="mb-3">
               <label class="form-label">Chọn huy hiệu để gắn</label>
@@ -124,6 +124,20 @@
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="viewBadgeModal" tabindex="-1" aria-labelledby="viewBadgeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewBadgeModalLabel">Chi tiết huy hiệu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Nội dung sẽ được render bằng JS -->
+        </div>
       </div>
     </div>
   </div>
@@ -147,14 +161,13 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    
     async function loadBadges() {
       const badgeTable = document.querySelector("#badge-table-body");
       badgeTable.innerHTML = "";
       const badgeSnapshots = await getDocs(collection(db, "badges"));
       const userBadgeSnapshots = await getDocs(collection(db, "userbadge"));
 
-      const badgeUserCount = {}; // badgeId -> count
+      const badgeUserCount = {};
       userBadgeSnapshots.forEach(docSnap => {
         const data = docSnap.data();
         (data.badges || []).forEach(badgeId => {
@@ -182,7 +195,6 @@
         badgeTable.innerHTML += row;
       });
     }
-
 
     async function loadBadgeOptions() {
       const badgeSelect = document.getElementById("badgeSelect");
@@ -238,99 +250,90 @@
       loadBadges();
     });
 
+    async function editBadge(id) {
+      const docRef = doc(db, "badges", id);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) return alert("Badge không tồn tại!");
+
+      const badge = docSnap.data();
+      document.querySelector("#badgeTitle").value = badge.title;
+      document.querySelector("#badgeType").value = badge.type;
+      document.querySelector("#badgeDescription").value = badge.description;
+      document.querySelector("#badgeIconUrl").value = badge.iconUrl;
+      document.querySelector("#badgeEventId").value = badge.eventId || "";
+      document.querySelector("#badgeMilestoneCondition").value = badge.milestoneCondition || "";
+      document.querySelector("#badgeIsPublic").value = badge.isPublic ? "true" : "false";
+
+      const form = document.querySelector("#createBadgeForm");
+      const handler = async function (e) {
+        e.preventDefault();
+        await updateDoc(docRef, {
+          title: document.querySelector("#badgeTitle").value,
+          type: document.querySelector("#badgeType").value,
+          description: document.querySelector("#badgeDescription").value,
+          iconUrl: document.querySelector("#badgeIconUrl").value,
+          eventId: document.querySelector("#badgeEventId").value,
+          milestoneCondition: document.querySelector("#badgeMilestoneCondition").value,
+          isPublic: document.querySelector("#badgeIsPublic").value === "true"
+        });
+        form.removeEventListener("submit", handler);
+        document.querySelector("#createBadgeModal .btn-close").click();
+        loadBadges();
+      };
+      form.addEventListener("submit", handler);
+      new bootstrap.Modal(document.getElementById("createBadgeModal")).show();
+    }
+
+    async function viewBadge(id) {
+      const badgeRef = doc(db, "badges", id);
+      const badgeSnap = await getDoc(badgeRef);
+      if (!badgeSnap.exists()) return alert("Không tìm thấy huy hiệu");
+
+      const badge = badgeSnap.data();
+      let html = `
+        <h5>${badge.title}</h5>
+        <p>${badge.description || ""}</p>
+        <p><strong>Loại:</strong> ${badge.type}</p>
+        <hr>
+        <h6>Danh sách thành viên đạt:</h6>
+        <table class="table table-sm">
+          <thead><tr><th>#</th><th>Họ và tên</th><th>Ban</th></tr></thead>
+          <tbody>`;
+
+      const querySnapshot = await getDocs(collection(db, "userbadge"));
+      let index = 1;
+      for (const docSnap of querySnapshot.docs) {
+        const badges = docSnap.data().badges || [];
+        if (badges.includes(id)) {
+          const email = docSnap.id;
+          const q = query(collection(db, "employees"), where("email", "==", email));
+          const empSnap = await getDocs(q);
+          if (!empSnap.empty) {
+            const emp = empSnap.docs[0].data();
+            html += `<tr><td>${index++}</td><td>${emp.name || "-"}</td><td>${emp.ban || "-"}</td></tr>`;
+          }
+        }
+      }
+
+      html += "</tbody></table>";
+      const modalBody = document.querySelector("#viewBadgeModal .modal-body");
+      modalBody.innerHTML = html;
+      new bootstrap.Modal(document.getElementById("viewBadgeModal")).show();
+    }
+
+    async function deleteBadge(id) {
+      if (!confirm("Bạn có chắc chắn muốn xoá huy hiệu này không?")) return;
+      await deleteDoc(doc(db, "badges", id));
+      loadBadges();
+    }
+
+    window.editBadge = editBadge;
+    window.viewBadge = viewBadge;
+    window.deleteBadge = deleteBadge;
+
     window.addEventListener("DOMContentLoaded", loadBadges);
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Modal xem huy hiệu -->
-  <div class="modal fade" id="viewBadgeModal" tabindex="-1" aria-labelledby="viewBadgeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="viewBadgeModalLabel">Chi tiết huy hiệu</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-        </div>
-        <div class="modal-body">
-          <!-- Nội dung sẽ được render bằng JS -->
-        </div>
-      </div>
-    </div>
-  </div>
-    
-
-<script type="module">
-  async function editBadge(id) {
-    const docRef = doc(db, "badges", id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) return alert("Badge không tồn tại!");
-
-    const badge = docSnap.data();
-    document.querySelector("#badgeTitle").value = badge.title;
-    document.querySelector("#badgeType").value = badge.type;
-    document.querySelector("#badgeDescription").value = badge.description;
-    document.querySelector("#badgeIconUrl").value = badge.iconUrl;
-    document.querySelector("#badgeEventId").value = badge.eventId || "";
-    document.querySelector("#badgeMilestoneCondition").value = badge.milestoneCondition || "";
-    document.querySelector("#badgeIsPublic").value = badge.isPublic ? "true" : "false";
-
-    const form = document.querySelector("#createBadgeForm");
-    const handler = async function (e) {
-      e.preventDefault();
-      await updateDoc(docRef, {
-        title: document.querySelector("#badgeTitle").value,
-        type: document.querySelector("#badgeType").value,
-        description: document.querySelector("#badgeDescription").value,
-        iconUrl: document.querySelector("#badgeIconUrl").value,
-        eventId: document.querySelector("#badgeEventId").value,
-        milestoneCondition: document.querySelector("#badgeMilestoneCondition").value,
-        isPublic: document.querySelector("#badgeIsPublic").value === "true"
-      });
-      form.removeEventListener("submit", handler);
-      document.querySelector("#createBadgeModal .btn-close").click();
-      loadBadges();
-    };
-    form.addEventListener("submit", handler);
-    new bootstrap.Modal(document.getElementById("createBadgeModal")).show();
-  }
-
-  async function viewBadge(id) {
-    const badgeRef = doc(db, "badges", id);
-    const badgeSnap = await getDoc(badgeRef);
-    if (!badgeSnap.exists()) return alert("Không tìm thấy huy hiệu");
-
-    const badge = badgeSnap.data();
-    let html = `
-      <h5>${badge.title}</h5>
-      <p>${badge.description || ""}</p>
-      <p><strong>Loại:</strong> ${badge.type}</p>
-      <hr>
-      <h6>Danh sách thành viên đạt:</h6>
-      <table class="table table-sm">
-        <thead><tr><th>#</th><th>Họ và tên</th><th>Ban</th></tr></thead>
-        <tbody>`;
-
-    const querySnapshot = await getDocs(collection(db, "userbadge"));
-    let index = 1;
-    for (const docSnap of querySnapshot.docs) {
-      const badges = docSnap.data().badges || [];
-      if (badges.includes(id)) {
-        const email = docSnap.id;
-        const q = query(collection(db, "employees"), where("email", "==", email));
-        const empSnap = await getDocs(q);
-        if (!empSnap.empty) {
-          const emp = empSnap.docs[0].data();
-          html += `<tr><td>${index++}</td><td>${emp.name || "-"}</td><td>${emp.ban || "-"}</td></tr>`;
-        }
-      }
-    }
-
-    html += "</tbody></table>";
-    const modalBody = document.querySelector("#viewBadgeModal .modal-body");
-    modalBody.innerHTML = html;
-    new bootstrap.Modal(document.getElementById("viewBadgeModal")).show();
-  }
-</script>
-
 </body>
 </html>
