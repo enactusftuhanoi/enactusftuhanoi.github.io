@@ -74,10 +74,12 @@ button:hover {
 }
 table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 14px;
+  border-collapse: collapse;
   margin-top: 30px;
   font-size: 15px;
+  border: 1.5px solid #eee;
+  border-radius: 16px;
+  overflow: hidden;
 }
 thead th {
   background-color: #fff5cc;
@@ -85,25 +87,18 @@ thead th {
   font-weight: 700;
   text-align: left;
   padding: 14px 18px;
-  border-radius: 12px;
-  border: 1px solid #eee;
 }
 tbody tr {
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color 0.2s ease;
 }
 tbody tr:hover {
-  transform: scale(1.01);
-  box-shadow: 0 8px 20px rgba(255, 194, 34, 0.25);
+  background-color: #fef9e7;
 }
 tbody td {
-  padding: 14px 18px;
+  padding: 16px 18px;
   vertical-align: middle;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 10px;
+  border-top: 1px solid #eee;
 }
 tbody td:last-child {
   display: flex;
@@ -142,6 +137,7 @@ tbody button.delete-btn:hover {
   }
 }
 </style>
+
 </head>
 <body>
 <div class="container" id="adminPage">
