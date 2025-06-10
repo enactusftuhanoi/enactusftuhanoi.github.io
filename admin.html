@@ -99,6 +99,8 @@ tbody td {
   padding: 16px 18px;
   vertical-align: middle;
   border-top: 1px solid #eee;
+  word-break: break-word;
+  max-width: 250px;
 }
 tbody td:last-child {
   display: flex;
@@ -106,22 +108,23 @@ tbody td:last-child {
   justify-content: flex-start;
 }
 tbody button {
-  background: #1a73e8;
+  background: #ffc222;
   padding: 8px 16px;
   font-size: 14px;
   border-radius: 10px;
-  color: white;
+  color: #333;
   border: none;
   transition: background-color 0.2s;
 }
 tbody button:hover {
-  background-color: #1662c6;
+  background-color: #ffd956;
 }
 tbody button.delete-btn {
-  background: #e53935;
+  background: #f87171;
+  color: white;
 }
 tbody button.delete-btn:hover {
-  background-color: #cc2e2b;
+  background-color: #ef4444;
 }
 @media (max-width: 820px) {
   .form-row {
