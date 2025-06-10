@@ -8,249 +8,129 @@
 <title>Dashboard | Enactus FTU Hanoi</title>
 <link href="icon.png" rel="icon" type="image/png"/>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: #f5f7fa;
-    margin: 0;
-    padding: 20px;
-    color: #333;
-  }
-  h1, h2 {
-    text-align: center;
-    color: #1a73e8;
-  }
-  .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgb(0 0 0 / 0.1);
-    padding: 30px 40px;
-  }
-
-  /* Form nhập liệu */
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(to bottom right, #fffbea, #f0f0f0);
+  margin: 0;
+  padding: 40px 20px;
+  color: #333;
+}
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 40px;
+}
+h1, h2 {
+  text-align: center;
+  color: #333;
+  font-weight: 700;
+  margin-bottom: 30px;
+}
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 25px;
+}
+.form-row input,
+.form-row select {
+  flex: 1 1 200px;
+  padding: 12px 15px;
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: border-color 0.3s;
+}
+.form-row input:focus,
+.form-row select:focus {
+  outline: none;
+  border-color: #ffc222;
+  box-shadow: 0 0 5px rgba(255, 194, 34, 0.4);
+}
+button {
+  background: #ffc222;
+  color: #333;
+  border: none;
+  padding: 12px 25px;
+  font-size: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  margin-right: 10px;
+}
+button:hover {
+  background: #ffd956;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+#errorMessages {
+  margin: 15px 0;
+  color: #e53935;
+  font-weight: 600;
+  white-space: pre-wrap;
+}
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  margin-top: 20px;
+  font-size: 15px;
+}
+thead th {
+  color: #444;
+  font-weight: 700;
+  text-align: left;
+  padding: 12px 16px;
+  background-color: #fdf4c5;
+  border-radius: 10px 10px 0 0;
+}
+tbody tr {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+tbody tr:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 194, 34, 0.2);
+}
+tbody td {
+  padding: 12px 16px;
+  vertical-align: middle;
+}
+tbody td:last-child {
+  display: flex;
+  gap: 8px;
+}
+tbody button {
+  background: #1a73e8;
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 10px;
+  color: white;
+}
+tbody button.delete-btn {
+  background: #e53935;
+}
+@media (max-width: 820px) {
   .form-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-  .form-row input,
-  .form-row select {
-    flex: 1 1 180px;
-    padding: 12px 15px;
-    border: 1.5px solid #ddd;
-    border-radius: 8px;
-    font-size: 15px;
-    transition: border-color 0.3s;
-  }
-  .form-row input:focus,
-  .form-row select:focus {
-    outline: none;
-    border-color: #1a73e8;
-    box-shadow: 0 0 5px rgba(26,115,232,0.4);
-  }
-  button {
-    background: #1a73e8;
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    font-size: 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-right: 10px;
-  }
-  button:hover {
-    background: #155ab6;
-  }
-
-  /* Lỗi thông báo */
-  #errorMessages {
-    margin: 15px 0;
-    color: #e53935;
-    font-weight: 600;
-    white-space: pre-wrap;
-  }
-
-  /* Bảng danh sách */
-  table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 12px;
-    margin-top: 20px;
-    font-size: 15px;
-  }
-  thead tr {
-    background: transparent;
-  }
-  thead th {
-    color: #555;
-    font-weight: 700;
-    text-align: left;
-    padding: 10px 15px;
-  }
-  tbody tr {
-    background: #fefefe;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.07);
-    transition: transform 0.15s ease;
-  }
-  tbody tr:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgb(26 115 232 / 0.2);
-  }
-  tbody td {
-    padding: 12px 15px;
-    vertical-align: middle;
-    border-bottom: none;
+    flex-direction: column;
   }
   tbody td:last-child {
-    display: flex;
-    gap: 8px;
+    flex-direction: column;
+    gap: 6px;
   }
-  tbody button {
-    background: #4caf50;
-    padding: 6px 12px;
-    font-size: 14px;
-    border-radius: 8px;
-    margin: 0;
-  }
-  tbody button.delete-btn {
-    background: #e53935;
-  }
-  tbody button:hover {
-    filter: brightness(0.9);
-  }
-
-  /* Responsive */
-  @media (max-width: 820px) {
-    .form-row {
-      flex-direction: column;
-    }
-    tbody td:last-child {
-      flex-direction: column;
-      gap: 5px;
-    }
-    tbody td, thead th {
-      padding: 10px 8px;
-      font-size: 14px;
-    }
-  }
-
-</style>
-<style>
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: #FEF08A; /* Light Yellow-Orange */
-    color: #2E2E2E; /* Dark Gray */
-    margin: 0;
-    padding: 0;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    color: #2E2E2E; /* Dark Gray */
-}
-
-form {
-    background-color: #FFFFFF; /* White */
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-input[type="text"], input[type="email"], input[type="file"], select {
-    width: 100%;
+  tbody td, thead th {
     padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #6E6E6E; /* Medium Gray */
-    border-radius: 4px;
-}
-
-button {
-    background-color: #F97316; /* Orange */
-    color: #FFFFFF; /* White */
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #FBBF24; /* Yellow-Orange */
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-table th, table td {
-    padding: 12px;
-    border: 1px solid #6E6E6E; /* Medium Gray */
-    text-align: left;
-}
-
-table th {
-    background-color: #F97316; /* Orange */
-    color: #FFFFFF; /* White */
-}
-
-table tr:nth-child(even) {
-    background-color: #FEF08A; /* Light Yellow-Orange */
-}
-
-table tr:hover {
-    background-color: #FBBF24; /* Yellow-Orange */
-}
-
-.profile-image {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    font-size: 14px;
+  }
 }
 </style>
-<style>
-    body {
-        font-family: 'Poppins', sans-serif;
-        color: #333;
-    }
-    h1, h2, h3, h4, h5, h6 {
-        font-weight: bold;
-        color: #333;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    table, th, td {
-        border: 1px solid #ccc;
-    }
-    th, td {
-        padding: 10px;
-        text-align: left;
-    }
-    tr:hover {
-        background-color: #f9f9f9;
-    }
-    th {
-        background-color: #f2f2f2;
-    }
-    .highlight {
-        background-color: #ffeb3b;
-    }
-</style>
+
 </head>
 <body>
 <div class="container" id="adminPage">
