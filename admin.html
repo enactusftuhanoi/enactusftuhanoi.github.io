@@ -74,6 +74,7 @@ button:hover {
 }
 table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   margin-top: 30px;
   font-size: 15px;
@@ -87,6 +88,7 @@ thead th {
   font-weight: 700;
   text-align: left;
   padding: 14px 18px;
+  white-space: nowrap;
 }
 tbody tr {
   background: #ffffff;
@@ -100,7 +102,8 @@ tbody td {
   vertical-align: middle;
   border-top: 1px solid #eee;
   word-break: break-word;
-  max-width: 250px;
+  max-width: unset;
+  overflow-wrap: break-word;
 }
 tbody td:last-child {
   display: flex;
