@@ -209,6 +209,22 @@
 
   loadUserInfo();
 </script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+const firebaseConfig = { /* cấu hình của bạn */ };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const pageName = location.pathname.split("/").pop(); // "scan.html"
+const docRef = doc(db, "pages", pageName);
+
+getDoc(docRef).then((docSnap) => {
+  if (!docSnap.exists() || !docSnap.data().public) {
+    window.location.href = "/404.html";
+  }
+});
+</script>
 </body>
 </html>
