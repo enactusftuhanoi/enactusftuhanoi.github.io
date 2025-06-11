@@ -458,5 +458,30 @@ animateValue(obj3, 0, 50, 5000);
 <script>
   AOS.init();
 </script>
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+    authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+    projectId: "enactusftuhanoi-tracuu",
+    storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+    messagingSenderId: "611356979403",
+    appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const pageName = location.pathname.split('/').pop();
+  const pageRef = doc(db, "pages", pageName);
+
+  getDoc(pageRef).then((docSnap) => {
+    if (!docSnap.exists() || !docSnap.data().public) {
+      window.location.href = "404.html";
+    }
+  });
+</script>
 </body>
 </html>
