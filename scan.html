@@ -216,14 +216,6 @@
       resultEl.textContent = `Điểm danh thành công cho ${window.currentUser.name}`;
       resultEl.style.color = 'green';
 
-      sendAttendanceToSheet({
-        sessionId: sessionId,
-        name: window.currentUser.name,
-        email: window.currentUser.email,
-        uid: window.currentUser.email,
-        ban: window.currentUser.ban
-      });
-
     } catch (err) {
       console.error('Lỗi khi điểm danh:', err);
       resultEl.textContent = 'Lỗi khi điểm danh, vui lòng thử lại.';
