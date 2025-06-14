@@ -367,6 +367,11 @@
 <footer>
 <p>© 2025 Enactus FTU Hanoi. All Rights Reserved.</p>
 </footer>
+<script>
+  if (location.protocol !== 'https:') {
+    location.href = 'https:' + window.location.href.substring(location.protocol.length);
+  }
+</script>
 <!-- GSAP and ScrollTrigger -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
