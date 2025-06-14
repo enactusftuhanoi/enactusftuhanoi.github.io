@@ -185,9 +185,15 @@
 <body>
 
   <div id="adminButton">
-    <button onclick="window.open('https://admin.enactusftuhanoi.id.vn', '_blank')">
+    <button onclick="toggleAdminMenu()">
       ⚙️ Administration
     </button>
+    <div id="adminDropdown">
+      <a href="admin.html" target="_blank">📊 Dashboard</a>
+      <a href="admin/pages.html" target="_blank">📄 Page Status</a>
+      <a href="admin/attendance.html" target="_blank">⏱️ Attendance</a>
+      <a href="admin/badge.html" target="_blank">🎖️ Badge</a>
+    </div>
   </div>
 <button id="scanButton" onclick="window.open('member/scan.html', '_blank')">
   📸 Điểm danh
@@ -359,6 +365,18 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+    authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+    projectId: "enactusftuhanoi-tracuu",
+    storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+    messagingSenderId: "611356979403",
+    appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
   const pageName = location.pathname.split('/').pop();
   const pageRef = doc(db, "pages", pageName);

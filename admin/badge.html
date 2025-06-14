@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Badge | Enactus FTU Hanoi</title>
+  <link href="/icon.png" rel="icon" type="image/png"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: linear-gradient(to bottom right, #fffbea, #f9f9f9);
+    margin: 0;
+    padding: 40px 20px;
+    color: #333;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    padding: 40px;
+  }
+
+  h2 {
+    text-align: center;
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 30px;
+  }
+
+  .btn {
+    border-radius: 12px !important;
+    padding: 10px 20px;
+    font-size: 15px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    margin-top: 20px;
+    font-size: 15px;
+  }
+
+  thead th {
+    color: #444;
+    font-weight: 700;
+    text-align: left;
+    padding: 12px 16px;
+    background-color: #fdf4c5;
+    border-radius: 10px 10px 0 0;
+  }
+
+  tbody tr {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 194, 34, 0.2);
+  }
+
+  tbody td {
+    padding: 12px 16px;
+    vertical-align: middle;
+  }
+
+  tbody td:last-child {
+    display: flex;
+    gap: 8px;
+  }
+
+  tbody button {
+    background: #1a73e8;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 10px;
+    color: white;
+    border: none;
+  }
+
+  tbody button.delete-btn {
+    background: #e53935;
+  }
+
+  .badge-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    background-color: #f5f5f5;
+    padding: 4px;
+  }
+
+  .modal-content {
+    border-radius: 16px;
+    padding: 10px;
+  }
+
+  .form-label {
+    font-weight: 600;
+  }
+
+  .form-control, .form-select {
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .modal-footer .btn {
+    min-width: 120px;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding: 20px;
+    }
+
+    .btn {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .d-flex {
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+  }
+</style>
+</head>
+<body class="p-4 bg-light">
+
+  <div class="container" id="adminPage">
+    <h2 class="mb-4">🎖️ Danh sách Huy hiệu</h2>
+
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#createBadgeModal">+ Tạo huy hiệu mới</button>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignBadgeModal">🎁 Gắn huy hiệu</button>
+    </div>
+
+    <table class="table table-bordered table-hover bg-white">
+      <thead class="table-light">
+        <tr>
+          <th>Icon</th>
+          <th>Tên huy hiệu</th>
+          <th>Loại</th>
+          <th>Sự kiện/Dự án</th>
+          <th>Số người đạt</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="badge-table-body">
+        <tr><td colspan="6">Đang tải dữ liệu...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal tạo huy hiệu -->
+  <div class="modal fade" id="createBadgeModal" tabindex="-1" aria-labelledby="createBadgeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form id="createBadgeForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="createBadgeModalLabel">Tạo huy hiệu mới</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Tên huy hiệu</label>
+                <input type="text" class="form-control" id="badgeTitle" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Loại</label>
+                <select class="form-select" id="badgeType">
+                  <option value="event">Sự kiện</option>
+                  <option value="project">Dự án</option>
+                  <option value="milestone">Cột mốc</option>
+                </select>
+              </div>
+              <div class="col-md-12">
+                <label class="form-label">Mô tả</label>
+                <textarea class="form-control" id="badgeDescription" rows="2"></textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Icon URL</label>
+                <input type="text" class="form-control" id="badgeIconUrl">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">ID sự kiện (nếu có)</label>
+                <input type="text" class="form-control" id="badgeEventId">
+              </div>
+              <div class="col-md-12">
+                <label class="form-label">Điều kiện (nếu là milestone)</label>
+                <input type="text" class="form-control" id="badgeMilestoneCondition">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Hiển thị công khai?</label>
+                <select class="form-select" id="badgeIsPublic">
+                  <option value="true">Có</option>
+                  <option value="false">Không</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Lưu huy hiệu</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal gắn huy hiệu -->
+  <div class="modal fade" id="assignBadgeModal" tabindex="-1" aria-labelledby="assignBadgeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form id="assignBadgeForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="assignBadgeModalLabel">Gắn huy hiệu cho thành viên</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Nhập email thành viên (cách nhau bởi dấu `;`)</label>
+              <textarea class="form-control" id="badgeEmails" rows="2" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Chọn huy hiệu để gắn</label>
+              <select class="form-select" id="badgeSelect" required>
+                <option value="">-- Chọn huy hiệu --</option>
+              </select>
+            </div>
+            <div id="emailValidationResults" class="small text-muted mt-2"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Gắn huy hiệu</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal xem huy hiệu -->
+  <div class="modal fade" id="viewBadgeModal" tabindex="-1" aria-labelledby="viewBadgeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewBadgeModalLabel">Chi tiết huy hiệu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Render bằng JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import {
+      getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc,
+      getDoc, setDoc, query, where
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+      authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+      projectId: "enactusftuhanoi-tracuu",
+      storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+      messagingSenderId: "611356979403",
+      appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // Auth + phân quyền admin
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+        return;
+      }
+
+      const userEmail = user.email;
+      if (!userEmail) {
+        alert("Tài khoản chưa có email, không thể xác thực quyền admin.");
+        window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+        return;
+      }
+
+      try {
+        const q = query(collection(db, "employees"), where("email", "==", userEmail));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          alert("Không tìm thấy thông tin người dùng.");
+          window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+          return;
+        }
+
+        const userData = snapshot.docs[0].data();
+        if (userData.role === "Admin") {
+          await loadBadges();
+        } else {
+          alert("Bạn không có quyền truy cập trang này.");
+          window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+        }
+      } catch (error) {
+        console.error("Lỗi khi kiểm tra quyền admin:", error);
+        alert("Có lỗi xảy ra. Vui lòng thử lại sau.");
+        window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+      }
+    });
+
+    // Các hàm xử lý huy hiệu
+    async function loadBadges() {
+      const badgeTable = document.querySelector("#badge-table-body");
+      badgeTable.innerHTML = "";
+      const badgeSnapshots = await getDocs(collection(db, "badges"));
+      const userBadgeSnapshots = await getDocs(collection(db, "userbadge"));
+
+      const badgeUserCount = {};
+      userBadgeSnapshots.forEach(docSnap => {
+        const data = docSnap.data();
+        (data.badges || []).forEach(badgeId => {
+          if (!badgeUserCount[badgeId]) badgeUserCount[badgeId] = 0;
+          badgeUserCount[badgeId]++;
+        });
+      });
+
+      badgeSnapshots.forEach((doc) => {
+        const badge = doc.data();
+        const count = badgeUserCount[doc.id] || 0;
+        const row = `
+          <tr>
+            <td><img src="${badge.iconUrl}" class="badge-icon" alt="${badge.title}"></td>
+            <td>${badge.title}</td>
+            <td>${badge.type}</td>
+            <td>${badge.eventId || "-"}</td>
+            <td>${count}</td>
+            <td>
+              <button class="btn btn-sm btn-info" onclick="viewBadge('${doc.id}')">Xem</button>
+              <button class="btn btn-sm btn-primary" onclick="editBadge('${doc.id}')">Sửa</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteBadge('${doc.id}')">Xoá</button>
+            </td>
+          </tr>`;
+        badgeTable.innerHTML += row;
+      });
+    }
+
+    async function loadBadgeOptions() {
+      const badgeSelect = document.getElementById("badgeSelect");
+      badgeSelect.innerHTML = `<option value="">-- Chọn huy hiệu --</option>`;
+      const querySnapshot = await getDocs(collection(db, "badges"));
+      querySnapshot.forEach((docSnap) => {
+        const badge = docSnap.data();
+        const option = document.createElement("option");
+        option.value = docSnap.id;
+        option.textContent = badge.title;
+        badgeSelect.appendChild(option);
+      });
+    }
+
+    document.getElementById("assignBadgeModal").addEventListener("show.bs.modal", loadBadgeOptions);
+
+    document.getElementById("assignBadgeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const rawEmails = document.getElementById("badgeEmails").value;
+      const badgeId = document.getElementById("badgeSelect").value;
+      const resultDiv = document.getElementById("emailValidationResults");
+      resultDiv.innerHTML = "🔄 Đang kiểm tra email...";
+
+      const emails = rawEmails.split(";").map(email => email.trim()).filter(e => e);
+      const validUsers = [];
+      const invalidEmails = [];
+
+      for (const email of emails) {
+        const q = query(collection(db, "employees"), where("email", "==", email));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          validUsers.push(email);
+        } else {
+          invalidEmails.push(email);
+        }
+      }
+
+      if (invalidEmails.length > 0) {
+        resultDiv.innerHTML = `❌ Không tìm thấy: ${invalidEmails.join(", ")}`;
+        return;
+      }
+
+      for (const email of validUsers) {
+        const userBadgeRef = doc(db, "userbadge", email);
+        const userBadgeSnap = await getDoc(userBadgeRef);
+        const existing = userBadgeSnap.exists() ? userBadgeSnap.data().badges || [] : [];
+        const updatedBadges = [...new Set([...existing, badgeId])];
+        await setDoc(userBadgeRef, { badges: updatedBadges }, { merge: true });
+      }
+
+      resultDiv.innerHTML = `✅ Gắn huy hiệu thành công cho: ${validUsers.join(", ")}`;
+      document.getElementById("assignBadgeForm").reset();
+      loadBadges();
+    });
+
+    async function editBadge(id) {
+      const docRef = doc(db, "badges", id);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) return alert("Badge không tồn tại!");
+
+      const badge = docSnap.data();
+      document.querySelector("#badgeTitle").value = badge.title;
+      document.querySelector("#badgeType").value = badge.type;
+      document.querySelector("#badgeDescription").value = badge.description;
+      document.querySelector("#badgeIconUrl").value = badge.iconUrl;
+      document.querySelector("#badgeEventId").value = badge.eventId || "";
+      document.querySelector("#badgeMilestoneCondition").value = badge.milestoneCondition || "";
+      document.querySelector("#badgeIsPublic").value = badge.isPublic ? "true" : "false";
+
+      const form = document.querySelector("#createBadgeForm");
+      form.replaceWith(form.cloneNode(true));
+      const newForm = document.querySelector("#createBadgeForm");
+
+      newForm.addEventListener("submit", async function handler(e) {
+        e.preventDefault();
+        await updateDoc(docRef, {
+          title: document.querySelector("#badgeTitle").value,
+          type: document.querySelector("#badgeType").value,
+          description: document.querySelector("#badgeDescription").value,
+          iconUrl: document.querySelector("#badgeIconUrl").value,
+          eventId: document.querySelector("#badgeEventId").value,
+          milestoneCondition: document.querySelector("#badgeMilestoneCondition").value,
+          isPublic: document.querySelector("#badgeIsPublic").value === "true"
+        });
+        const modal = bootstrap.Modal.getInstance(document.getElementById("createBadgeModal"));
+        modal.hide();
+        loadBadges();
+      });
+
+      new bootstrap.Modal(document.getElementById("createBadgeModal")).show();
+    }
+
+    async function viewBadge(id) {
+      const badgeRef = doc(db, "badges", id);
+      const badgeSnap = await getDoc(badgeRef);
+      if (!badgeSnap.exists()) return alert("Không tìm thấy huy hiệu");
+
+      const badge = badgeSnap.data();
+      let html = `
+        <h5>${badge.title}</h5>
+        <p>${badge.description || ""}</p>
+        <p><strong>Loại:</strong> ${badge.type}</p>
+        <hr>
+        <h6>Danh sách thành viên đạt:</h6>
+        <table class="table table-sm">
+          <thead><tr><th>#</th><th>Họ và tên</th><th>Ban</th></tr></thead>
+          <tbody>`;
+
+      const querySnapshot = await getDocs(collection(db, "userbadge"));
+      let index = 1;
+      for (const docSnap of querySnapshot.docs) {
+        const badges = docSnap.data().badges || [];
+        if (badges.includes(id)) {
+          const email = docSnap.id;
+          const q = query(collection(db, "employees"), where("email", "==", email));
+          const empSnap = await getDocs(q);
+          if (!empSnap.empty) {
+            const emp = empSnap.docs[0].data();
+            html += `<tr><td>${index++}</td><td>${emp.name || "-"}</td><td>${emp.ban || "-"}</td></tr>`;
+          }
+        }
+      }
+
+      html += "</tbody></table>";
+      const modalBody = document.querySelector("#viewBadgeModal .modal-body");
+      modalBody.innerHTML = html;
+      new bootstrap.Modal(document.getElementById("viewBadgeModal")).show();
+    }
+
+    async function deleteBadge(id) {
+      if (!confirm("Bạn có chắc chắn muốn xoá huy hiệu này không?")) return;
+      await deleteDoc(doc(db, "badges", id));
+      loadBadges();
+    }
+
+    window.editBadge = editBadge;
+    window.viewBadge = viewBadge;
+    window.deleteBadge = deleteBadge;
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
