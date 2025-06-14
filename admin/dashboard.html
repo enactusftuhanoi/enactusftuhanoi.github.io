@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="vi">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>Dashboard | Enactus FTU Hanoi</title>
-<link href="icon.png" rel="icon" type="image/png"/>
+<link href="/icon.png" rel="icon" type="image/png"/>
   <style>
     body {
       font-family: 'Montserrat', sans-serif;
@@ -133,7 +132,7 @@
 <h2>Quản lý nhân sự</h2>
 <div class="form-row">
 <input id="id" placeholder="ID"/>
-<input id="ban" placeholder="Ban (ví dụ: BCT, MD, HR, PD, ER)"/>
+<input id="ban" placeholder="Ban (MD, HR, PD, ER)"/>
 <input id="name" placeholder="Họ và tên"/>
 <input id="dob" placeholder="Ngày sinh" type="date"/>
 <select id="process">
@@ -252,7 +251,7 @@
 
         if (snapshot.empty) {
           alert("Không tìm thấy thông tin người dùng.");
-          window.location.href = "login.html";
+          window.location.href = "/login.html";
           return;
         }
 
