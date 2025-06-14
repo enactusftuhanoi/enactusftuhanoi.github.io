@@ -291,14 +291,14 @@
     // Auth + phân quyền admin
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+        window.location.href = "/login.html";
         return;
       }
 
       const userEmail = user.email;
       if (!userEmail) {
         alert("Tài khoản chưa có email, không thể xác thực quyền admin.");
-        window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+        window.location.href = "/login.html";
         return;
       }
 
@@ -308,7 +308,7 @@
 
         if (snapshot.empty) {
           alert("Không tìm thấy thông tin người dùng.");
-          window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+          window.location.href = "/login.html";
           return;
         }
 
@@ -317,12 +317,12 @@
           await loadBadges();
         } else {
           alert("Bạn không có quyền truy cập trang này.");
-          window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+          window.location.href = "/login.html";
         }
       } catch (error) {
         console.error("Lỗi khi kiểm tra quyền admin:", error);
         alert("Có lỗi xảy ra. Vui lòng thử lại sau.");
-        window.location.href = "https://enactusftuhanoi.github.io/vn/login.html";
+        window.location.href = "/login.html";
       }
     });
 
