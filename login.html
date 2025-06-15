@@ -64,6 +64,7 @@
             color: red;
             margin-top: 15px;
             font-size: 14px;
+            min-height: 20px;
         }
         .footer-text {
             margin-top: 25px;
@@ -76,7 +77,6 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
             authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
@@ -86,12 +86,16 @@
             appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
         };
 
-        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Hàm đăng nhập Google
+        // Hàm lấy tham số returnUrl từ URL
+        function getReturnUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('returnUrl');
+        }
+
         window.loginWithGoogle = async function () {
             try {
                 const result = await signInWithPopup(auth, provider);
@@ -103,7 +107,6 @@
             }
         };
 
-        // Hàm kiểm tra email trong Firestore và redirect về trang cũ hoặc member.html
         async function checkUserInFirestore(email) {
             const db = getFirestore();
             const employeesRef = collection(db, "employees");
@@ -111,13 +114,12 @@
             try {
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
-                    const redirectUrl = sessionStorage.getItem('redirectAfterLogin') || 'member.html';
-                    sessionStorage.removeItem('redirectAfterLogin');
-                    // Tránh redirect về login.html gây vòng lặp
-                    if (redirectUrl.includes('login.html')) {
-                        window.location.href = 'member.html';
+                    // Lấy URL redirect sau login
+                    const returnUrl = getReturnUrl();
+                    if (returnUrl) {
+                        window.location.href = returnUrl;
                     } else {
-                        window.location.href = redirectUrl;
+                        window.location.href = "member.html";
                     }
                 } else {
                     document.getElementById('errorMessage').innerText = "Email không có quyền truy cập! Vui lòng liên hệ quản trị viên.";
@@ -127,23 +129,12 @@
             }
         }
 
-        // Khi trạng thái xác thực thay đổi (ví dụ reload trang, user vẫn đăng nhập)
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log("User logged in:", user.email);
-                checkUserInFirestore(user.email);
+                // Có thể xử lý tự động redirect nếu muốn ở đây
             }
         });
-
-        // Tự động lưu trang hiện tại nếu chưa có redirect lưu và KHÔNG phải trang login
-        (function saveRedirectUrl() {
-            const currentPath = window.location.pathname;
-            if (!sessionStorage.getItem('redirectAfterLogin')) {
-                if (!currentPath.endsWith('/login.html') && !currentPath.endsWith('/')) {
-                    sessionStorage.setItem('redirectAfterLogin', window.location.href);
-                }
-            }
-        })();
     </script>
 </head>
 <body>
@@ -151,11 +142,7 @@
         <img src="assets/logo_den.png" alt="Enactus Logo" class="logo" />
         <h2>Đăng nhập hệ thống</h2>
         <button class="google-btn" onclick="loginWithGoogle()">
-            <img
-                class="google-logo"
-                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                alt="Google Logo"
-            />
+            <img class="google-logo" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" />
             Đăng nhập với Google
         </button>
         <div id="errorMessage" class="error-message"></div>
