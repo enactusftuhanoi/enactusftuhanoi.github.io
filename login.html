@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Đăng nhập | Enactus FTU Hanoi</title>
-    <link rel="icon" href="icon.png" type="image/png" />
+    <link rel="icon" href="/icon.png" type="image/png" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
     <style>
         body {
@@ -111,11 +111,14 @@
             try {
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
-                    // Lấy link cũ (nếu có) trong sessionStorage
                     const redirectUrl = sessionStorage.getItem('redirectAfterLogin') || 'member.html';
-                    // Xóa để tránh dùng lại lần sau
                     sessionStorage.removeItem('redirectAfterLogin');
-                    window.location.href = redirectUrl;
+                    // Tránh redirect về login.html gây vòng lặp
+                    if (redirectUrl.includes('login.html')) {
+                        window.location.href = 'member.html';
+                    } else {
+                        window.location.href = redirectUrl;
+                    }
                 } else {
                     document.getElementById('errorMessage').innerText = "Email không có quyền truy cập! Vui lòng liên hệ quản trị viên.";
                 }
@@ -132,14 +135,15 @@
             }
         });
 
-        // Tự động lưu trang hiện tại nếu chưa ở trang login
-        // (nếu bạn redirect user từ 1 trang khác sang trang login thì nên lưu URL đó trước)
-        if (!sessionStorage.getItem('redirectAfterLogin')) {
-            // Tránh lưu trang login hiện tại làm redirect vòng lặp
-            if (!window.location.href.includes('login.html')) {
-                sessionStorage.setItem('redirectAfterLogin', window.location.href);
+        // Tự động lưu trang hiện tại nếu chưa có redirect lưu và KHÔNG phải trang login
+        (function saveRedirectUrl() {
+            const currentPath = window.location.pathname;
+            if (!sessionStorage.getItem('redirectAfterLogin')) {
+                if (!currentPath.endsWith('/login.html') && !currentPath.endsWith('/')) {
+                    sessionStorage.setItem('redirectAfterLogin', window.location.href);
+                }
             }
-        }
+        })();
     </script>
 </head>
 <body>
