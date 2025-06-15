@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập | Enactus FTU Hanoi</title>
-    <link rel="icon" href="/icon.png" type="image/png" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
@@ -50,7 +50,6 @@
             justify-content: center;
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            cursor: pointer;
         }
         .google-btn:hover {
             background-color: #ffda64;
@@ -64,7 +63,6 @@
             color: red;
             margin-top: 15px;
             font-size: 14px;
-            min-height: 20px;
         }
         .footer-text {
             margin-top: 25px;
@@ -90,12 +88,6 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Hàm lấy tham số returnUrl từ URL
-        function getReturnUrl() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('returnUrl');
-        }
-
         window.loginWithGoogle = async function () {
             try {
                 const result = await signInWithPopup(auth, provider);
@@ -114,13 +106,7 @@
             try {
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
-                    // Lấy URL redirect sau login
-                    const returnUrl = getReturnUrl();
-                    if (returnUrl) {
-                        window.location.href = returnUrl;
-                    } else {
-                        window.location.href = "member.html";
-                    }
+                    window.location.href = "member.html"; // Chuyển trong tab hiện tại
                 } else {
                     document.getElementById('errorMessage').innerText = "Email không có quyền truy cập! Vui lòng liên hệ quản trị viên.";
                 }
@@ -132,17 +118,16 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log("User logged in:", user.email);
-                // Có thể xử lý tự động redirect nếu muốn ở đây
             }
         });
     </script>
 </head>
 <body>
     <div class="login-container">
-        <img src="assets/logo_den.png" alt="Enactus Logo" class="logo" />
+        <img src="assets/logo_den.png" alt="Enactus Logo" class="logo">
         <h2>Đăng nhập hệ thống</h2>
         <button class="google-btn" onclick="loginWithGoogle()">
-            <img class="google-logo" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo" />
+            <img class="google-logo" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
             Đăng nhập với Google
         </button>
         <div id="errorMessage" class="error-message"></div>
