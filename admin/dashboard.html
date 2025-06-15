@@ -234,14 +234,14 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        window.location.href = "login.html";
+        window.location.href = "/login.html";
         return;
       }
 
       const userEmail = user.email;
       if (!userEmail) {
         alert("Tài khoản chưa có email, không thể xác thực quyền admin.");
-        window.location.href = "login.html";
+        window.location.href = "/login.html";
         return;
       }
 
@@ -261,12 +261,12 @@
           await loadEmployees();
         } else {
           alert("Bạn không có quyền truy cập trang này.");
-          window.location.href = "login.html";
+          window.location.href = "/login.html";
         }
       } catch (error) {
         console.error("Lỗi khi kiểm tra quyền admin:", error);
         alert("Có lỗi xảy ra. Vui lòng thử lại sau.");
-        window.location.href = "login.html";
+        window.location.href = "/login.html";
       }
     });
 
