@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TRS 501 | Grade Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #ffffff);
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 900px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    caption {
+      caption-side: top;
+      padding: 16px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #007acc;
+    }
+
+    thead {
+      background-color: #007acc;
+      color: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 14px;
+      text-align: center;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f9fbfc;
+    }
+
+    tbody tr:hover {
+      background-color: #eef6ff;
+      transition: background-color 0.3s ease;
+    }
+
+    input[type="text"] {
+      width: 90%;
+      padding: 8px;
+      font-size: 14px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #007acc;
+      box-shadow: 0 0 4px #007acc66;
+    }
+
+    input[readonly] {
+      background-color: #f0f0f0;
+      font-weight: bold;
+      color: #555;
+      border: none;
+    }
+
+    .total-row input[readonly] {
+      background-color: #eaf4fb;
+      color: #007acc;
+    }
+
+    .average-row input[readonly] {
+      background-color: #fff3cd;
+      color: #8a6d3b;
+    }
+  </style>
+</head>
+<body>
+
+<table>
+  <caption>✨ Grade Summary</caption>
+  <thead>
+    <tr>
+      <th>GRADE CATEGORY</th>
+      <th>GRADE ITEM</th>
+      <th>WEIGHT</th>
+      <th>VALUE</th>
+      <th>COMMENT</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Presentation -->
+    <tr>
+      <td rowspan="2">Presentation</td>
+      <td>Presentation</td>
+      <td>20%</td>
+      <td><input type="text" class="input-grade" data-weight="0.2" data-total="presentation"></td>
+      <td></td>
+    </tr>
+    <tr class="total-row">
+      <td><strong>Total</strong></td>
+      <td><strong>20%</strong></td>
+      <td><input type="text" readonly id="total-presentation"></td>
+      <td></td>
+    </tr>
+
+    <!-- Progress test -->
+    <tr>
+      <td rowspan="3">Progress test</td>
+      <td>Progress test 1</td>
+      <td>20%</td>
+      <td><input type="text" class="input-grade" data-weight="0.2" data-total-group="progress"></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Progress test 2</td>
+      <td>20%</td>
+      <td><input type="text" class="input-grade" data-weight="0.2" data-total-group="progress"></td>
+      <td></td>
+    </tr>
+    <tr class="total-row">
+      <td><strong>Total</strong></td>
+      <td><strong>40%</strong></td>
+      <td><input type="text" readonly id="total-progress"></td>
+      <td></td>
+    </tr>
+
+    <!-- Final Exam -->
+    <tr>
+      <td rowspan="4">Final Exam</td>
+      <td>FE: Vocabulary</td>
+      <td>10%</td>
+      <td><input type="text" class="input-grade" data-weight="0.1" data-total-group="final"></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>FE: Writing</td>
+      <td>10%</td>
+      <td><input type="text" class="input-grade" data-weight="0.1" data-total-group="final"></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>FE: Reading</td>
+      <td>20%</td>
+      <td><input type="text" class="input-grade" data-weight="0.2" data-total-group="final"></td>
+      <td></td>
+    </tr>
+    <tr class="total-row">
+      <td><strong>Total</strong></td>
+      <td><strong>40%</strong></td>
+      <td><input type="text" readonly id="total-final"></td>
+      <td></td>
+    </tr>
+
+    <!-- Course Average -->
+    <tr class="average-row">
+      <td colspan="2"><strong>COURSE AVERAGE</strong></td>
+      <td></td>
+      <td><input type="text" readonly id="total-average"></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+  function updateTotals() {
+    let presentation = 0;
+    const presInput = document.querySelector('[data-total="presentation"]');
+    if (presInput.value && !isNaN(presInput.value)) {
+      presentation = parseFloat(presInput.value) * parseFloat(presInput.dataset.weight);
+    }
+    document.getElementById('total-presentation').value = presentation.toFixed(2);
+
+    function calcGroupTotal(groupName, outputId) {
+      const inputs = document.querySelectorAll(`[data-total-group="${groupName}"]`);
+      let sum = 0;
+      inputs.forEach(input => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+          sum += val * parseFloat(input.dataset.weight);
+        }
+      });
+      document.getElementById(outputId).value = sum.toFixed(2);
+      return sum;
+    }
+
+    const progress = calcGroupTotal("progress", "total-progress");
+    const final = calcGroupTotal("final", "total-final");
+
+    const total = presentation + progress + final;
+    document.getElementById('total-average').value = total.toFixed(2);
+  }
+
+  document.querySelectorAll('.input-grade').forEach(input => {
+    input.addEventListener('input', updateTotals);
+  });
+</script>
+
+</body>
+</html>
