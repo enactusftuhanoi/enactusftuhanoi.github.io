@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enactus FTU Hanoi - A Head for Business. A Heart for the World.</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+    <style>
+        :root {
+            --primary: #f7b733;
+            --primary-dark: #f5a623;
+            --secondary: #2c3e50;
+            --light: #fff8e1;
+            --light-alt: #fff7dc;
+            --dark: #333;
+            --text: #444;
+            --white: #ffffff;
+            --gray: #f5f5f5;
+            --gray-dark: #e0e0e0;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--light);
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+        
+        p {
+            margin-bottom: 1.5rem;
+        }
+        
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--white);
+            font-weight: 600;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(247, 183, 51, 0.3);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        /* Header & Navigation */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(247, 183, 51, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        
+        .header.scrolled {
+            padding: 0.7rem 0;
+            background: rgba(247, 183, 51, 0.98);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+        
+        .logo i {
+            color: var(--secondary);
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .nav-links ul {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: var(--white);
+            font-weight: 600;
+            position: relative;
+            padding: 0.5rem 0;
+            font-size: 1.1rem;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--white);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        .nav-button {
+            background: var(--white);
+            color: var(--primary-dark);
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 700;
+            transition: var(--transition);
+        }
+        
+        .nav-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: var(--white);
+            margin: 5px 0;
+            transition: var(--transition);
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 12rem 0 6rem;
+            background: linear-gradient(135deg, #f7b733 0%, #f5a623 100%);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><circle cx="50" cy="50" r="40" stroke="white" stroke-width="1" fill="none" opacity="0.1"/></svg>');
+            background-size: 120px;
+            animation: moveBackground 60s linear infinite;
+            z-index: 1;
+        }
+        
+        @keyframes moveBackground {
+            0% { background-position: 0 0; }
+            100% { background-position: 120px 120px; }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            color: var(--white);
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.25);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        /* Stats Section */
+        .stats {
+            background: var(--white);
+            padding: 4rem 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+        
+        .stat-card {
+            padding: 2rem 1rem;
+        }
+        
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 1.2rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        /* About Section */
+        .section {
+            padding: 6rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+        
+        .section-title h2 {
+            font-size: 2.8rem;
+            color: var(--primary-dark);
+            text-shadow: 1px 1px 2px rgba(192, 122, 0, 0.2);
+            display: inline-block;
+            padding-bottom: 1rem;
+        }
+        
+        .section-title h2:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        
+        .about-text h2 {
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+        }
+        
+        .about-image {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .about-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+        
+        .about-image:hover img {
+            transform: scale(1.05);
+        }
+        
+        /* Teams Section */
+        .teams {
+            background: var(--light-alt);
+        }
+        
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+        }
+        
+        .team-card {
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(247, 183, 51, 0.1);
+            padding: 2rem;
+            transition: var(--transition);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .team-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--primary);
+            transition: height 0.4s ease;
+            z-index: -1;
+        }
+        
+        .team-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .team-card:hover::before {
+            height: 100%;
+        }
+        
+        .team-card:hover h3,
+        .team-card:hover p {
+            color: var(--white);
+        }
+        
+        .team-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 1.5rem;
+            border: 4px solid var(--light);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .team-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .team-card:hover .team-image img {
+            transform: scale(1.1);
+        }
+        
+        .team-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.8rem;
+            transition: color 0.3s ease;
+        }
+        
+        .team-card p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            transition: color 0.3s ease;
+        }
+        
+        /* Projects Section */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+        }
+        
+        .project-card {
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(247, 183, 51, 0.1);
+            transition: var(--transition);
+        }
+        
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .project-image {
+            height: 220px;
+            overflow: hidden;
+        }
+        
+        .project-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .project-card:hover .project-image img {
+            transform: scale(1.1);
+        }
+        
+        .project-content {
+            padding: 1.8rem;
+        }
+        
+        .project-content h3 {
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 0.8rem;
+        }
+        
+        .project-content p {
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Values Section */
+        .values {
+            background: var(--light-alt);
+        }
+        
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+        }
+        
+        .value-card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(247, 183, 51, 0.1);
+            transition: var(--transition);
+        }
+        
+        .value-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .value-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-dark);
+        }
+        
+        /* Testimonials */
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+        }
+        
+        .testimonial-card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 10px 25px rgba(247, 183, 51, 0.1);
+            position: relative;
+            transition: var(--transition);
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: 1rem;
+            left: 1.5rem;
+            font-size: 5rem;
+            color: var(--light);
+            font-family: Georgia, serif;
+            line-height: 1;
+        }
+        
+        .testimonial-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .testimonial-card p {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .author-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 1rem;
+            border: 3px solid var(--light);
+        }
+        
+        .author-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .author-info h4 {
+            margin-bottom: 0.3rem;
+            color: var(--primary-dark);
+        }
+        
+        .author-info p {
+            font-size: 0.9rem;
+            color: #777;
+            margin: 0;
+            font-style: normal;
+        }
+        
+        /* CTA Section */
+        .cta {
+            background: linear-gradient(135deg, #f7b733 0%, #f5a623 100%);
+            color: var(--white);
+            padding: 6rem 0;
+        }
+        
+        .cta-content {
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: 2.8rem;
+            color: var(--white);
+            margin-bottom: 1.5rem;
+        }
+        
+        .cta p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2.5rem;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--secondary);
+            color: var(--white);
+            padding: 4rem 0 2rem;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .footer-col h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.8rem;
+        }
+        
+        .footer-col h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--primary);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            transition: var(--transition);
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary);
+            padding-left: 5px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: var(--white);
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* CRM Admin Button */
+        .cms-admin {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: var(--white);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 999;
+            transition: var(--transition);
+        }
+        
+        .cms-admin:hover {
+            transform: translateY(-5px) rotate(10deg);
+            background: var(--primary-dark);
+        }
+        
+        /* Modal & Page Transitions */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .image-upload {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .image-upload:hover {
+            border-color: var(--primary);
+        }
+        
+        .image-upload i {
+            font-size: 40px;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 3rem;
+            }
+            
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .about-image {
+                order: -1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                padding: 10rem 0 4rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 80px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 80px);
+                background: var(--primary);
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 2rem;
+                padding-top: 3rem;
+                transition: all 0.5s ease;
+            }
+            
+            .nav-links.active {
+                left: 0;
+            }
+            
+            .nav-links ul {
+                flex-direction: column;
+                align-items: center;
+                gap: 2rem;
+            }
+            
+            .hamburger {
+                display: block;
+            }
+            
+            .hamburger.active span:nth-child(1) {
+                transform: rotate(45deg) translate(5px, 5px);
+            }
+            
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+            
+            .hamburger.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(5px, -5px);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .section-title h2 {
+                font-size: 2.2rem;
+            }
+            
+            .cta h2 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- CRM Admin Button -->
+    <a href="#" class="cms-admin" id="cms-button">
+        <i class="fas fa-cog"></i>
+    </a>
+    
+    <!-- Login Modal -->
+    <div class="modal" id="cms-modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem; text-align: center;">Đăng nhập Hệ thống Quản lý</h3>
+            <form id="cms-form">
+                <div class="form-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" class="form-control" id="login-email" placeholder="admin@enactus.edu.vn">
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" class="form-control" id="login-password" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Đăng nhập</button>
+                <div id="login-error" style="color: red; margin-top: 1rem; display: none;"></div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Admin Panel -->
+    <div class="modal" id="admin-panel">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1.5rem; text-align: center;">Bảng điều khiển quản trị</h3>
+            <div class="form-group">
+                <label>Tiêu đề chính</label>
+                <input type="text" class="form-control" id="hero-title" value="A Head for Business. A Heart for the World.">
+            </div>
+            
+            <div class="form-group">
+                <label>Mô tả ngắn</label>
+                <textarea class="form-control" id="hero-description">Enactus FTU Hanoi tự hào là CLB duy nhất chạy dự án xã hội, qua đó trao quyền cho những đối tượng yếu thế và nâng cao chất lượng cuộc sống của hàng nghìn đối tượng hưởng lợi.</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Hình ảnh nền</label>
+                <input type="file" id="hero-image" accept="image/*" style="display: none;">
+                <div class="image-upload" id="image-upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Kéo thả hình ảnh vào đây hoặc click để chọn</p>
+                </div>
+                <div id="image-preview" style="margin-top: 1rem; text-align: center;"></div>
+            </div>
+            
+            <div class="form-group">
+                <label>Nút hành động 1</label>
+                <input type="text" class="form-control" id="button1-text" value="Tìm hiểu thêm">
+            </div>
+            
+            <div class="form-group">
+                <label>Nút hành động 2</label>
+                <input type="text" class="form-control" id="button2-text" value="Tham gia ngay">
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                <button class="btn" style="flex: 1;" id="save-changes">Lưu thay đổi</button>
+                <button class="btn btn-secondary" style="flex: 1;" id="logout-btn">Đăng xuất</button>
+            </div>
+            <div id="save-status" style="margin-top: 1rem; text-align: center;"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <i class="fas fa-hands-helping"></i>
+                <span>Enactus FTU</span>
+            </a>
+            <div class="nav-links">
+                <ul>
+                    <li><a href="#home">Trang chủ</a></li>
+                    <li><a href="#about">Về chúng tôi</a></li>
+                    <li><a href="#teams">Các ban</a></li>
+                    <li><a href="#projects">Dự án</a></li>
+                    <li><a href="#contact">Liên hệ</a></li>
+                </ul>
+                <a href="#join" class="nav-button">Tham gia ngay</a>
+            </div>
+            <button class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container hero-content">
+            <h1 id="hero-title-display">A Head for Business.<br>A Heart for the World.</h1>
+            <p id="hero-description-display">Enactus FTU Hanoi tự hào là CLB duy nhất chạy dự án xã hội, qua đó trao quyền cho những đối tượng yếu thế và nâng cao chất lượng cuộc sống của hàng nghìn đối tượng hưởng lợi.</p>
+            <div class="hero-buttons">
+                <a href="#about" class="btn" id="button1-display">Tìm hiểu thêm</a>
+                <a href="#join" class="btn btn-secondary" id="button2-display">Tham gia ngay</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">16+</div>
+                    <div class="stat-label">Năm hoạt động</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">150+</div>
+                    <div class="stat-label">Thành viên</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">25+</div>
+                    <div class="stat-label">Dự án</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">5000+</div>
+                    <div class="stat-label">Người hưởng lợi</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Enactus FTU Hanoi là ai?</h2>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>Hành trình 16 năm</h2>
+                    <p>Thành lập vào ngày 07/03/2008 dưới sự bảo trợ của Khoa Quản trị Kinh doanh, trong 16 năm, các thành viên của đội tuyển Enactus FTU Hanoi thực hiện các dự án xã hội để trao quyền cho những người cần sự giúp đỡ, nâng cao chất lượng cuộc sống tại Việt Nam.</p>
+                    <p>Chúng tôi ghi dấu ấn với nhiều dự án và cuộc thi hướng tới các mục tiêu phát triển bền vững (SDGs) của Liên Hợp Quốc, cùng với các chi nhánh Enactus khác nhằm lan tỏa tinh thần, giá trị kinh doanh - xã hội của tổ chức.</p>
+                    <a href="#" class="btn" style="margin-top: 1.5rem;">Xem thêm</a>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1521737852567-6949f3f9f2b5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80" alt="Enactus FTU Hanoi Team">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Teams Section -->
+    <section id="teams" class="section teams">
+        <div class="container">
+            <div class="section-title">
+                <h2>Các Ban Hoạt Động</h2>
+            </div>
+            <div class="teams-grid">
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Ban Dự Án">
+                    </div>
+                    <h3>Ban Dự Án</h3>
+                    <p>Đầu não sáng tạo và vận hành các dự án xã hội. Nơi các ý tưởng được hình thành và triển khai.</p>
+                    <a href="teams/PD" class="btn btn-secondary">Tìm hiểu</a>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Ban Nhân Sự">
+                    </div>
+                    <h3>Ban Nhân Sự</h3>
+                    <p>Kết nối, tổ chức nội bộ và sự kiện gắn kết. Trái tim của Enactus FTU Hanoi.</p>
+                    <a href="teams/HR" class="btn btn-secondary">Tìm hiểu</a>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Ban Đối Ngoại">
+                    </div>
+                    <h3>Ban Đối Ngoại</h3>
+                    <p>Gây quỹ, giữ mối quan hệ với đối tác & cựu thành viên. Cầu nối với thế giới bên ngoài.</p>
+                    <a href="teams/ER" class="btn btn-secondary">Tìm hiểu</a>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-image">
+                        <img src="https://images.unsplash.com/photo-1463171379579-3fdfb86d6285?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Ban Truyền Thông">
+                    </div>
+                    <h3>Ban Truyền Thông</h3>
+                    <p>Lan tỏa hình ảnh Enactus qua nội dung & thiết kế sáng tạo. Tiếng nói của tổ chức.</p>
+                    <a href="teams/MD" class="btn btn-secondary">Tìm hiểu</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Dự án tiêu biểu</h2>
+            </div>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80" alt="Thử thách Sáng tạo xã hội Việt Nam">
+                    </div>
+                    <div class="project-content">
+                        <h3>Thử thách Sáng tạo xã hội Việt Nam</h3>
+                        <p>Cuộc thi khởi nghiệp xã hội dành cho người trẻ trên phạm vi toàn quốc. Môi trường để các bạn trẻ phát triển ý tưởng và tạo tác động xã hội.</p>
+                        <a href="#" class="btn">Xem dự án</a>
+                    </div>
+                </div>
+                
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80" alt="Teen Entrepreneurship Bootcamp">
+                    </div>
+                    <div class="project-content">
+                        <h3>Teen Entrepreneurship Bootcamp</h3>
+                        <p>TEB là trại hè hướng nghiệp dành cho học sinh THPT. Giúp các bạn trẻ khám phá bản thân và phát triển tư duy khởi nghiệp.</p>
+                        <a href="#" class="btn">Xem dự án</a>
+                    </div>
+                </div>
+                
+                <div class="project-card">
+                    <div class="project-image">
+                        <img src="https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80" alt="Enactus FTU Hanoi X Refillables Hanoi">
+                    </div>
+                    <div class="project-content">
+                        <h3>Enactus FTU Hanoi X Refillables Hanoi</h3>
+                        <p>Một trong những cửa hàng áp dụng mô hình Refill (làm đầy) & Package - free (không sử dụng bao bì đóng gói) tại Hà Nội.</p>
+                        <a href="#" class="btn">Xem dự án</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="#" class="btn">Xem tất cả dự án</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="section values">
+        <div class="container">
+            <div class="section-title">
+                <h2>Sứ mệnh - Tầm nhìn - Giá trị cốt lõi</h2>
+            </div>
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>Sứ mệnh</h3>
+                    <p>Trao quyền cho cộng đồng thông qua các dự án xã hội bền vững, tạo cơ hội phát triển cho các đối tượng yếu thế và lan tỏa tinh thần kinh doanh vì xã hội.</p>
+                </div>
+                
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h3>Tầm nhìn</h3>
+                    <p>Trở thành tổ chức hàng đầu về phát triển bền vững và trao quyền cho cộng đồng tại Việt Nam, là nơi ươm mầm các nhà lãnh đạo trẻ có trái tim và trí tuệ.</p>
+                </div>
+                
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3>Giá trị cốt lõi</h3>
+                    <p>Đoàn kết, sáng tạo, trách nhiệm xã hội và phát triển bền vững. Chúng tôi tin rằng kinh doanh và nhân văn có thể song hành cùng nhau.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Enactus-ers nói gì về ngôi nhà E</h2>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"Tham gia Enactus FTU Hanoi đã thay đổi cuộc đời tôi. Tôi học được cách lãnh đạo, làm việc nhóm và tạo ra tác động tích cực cho cộng đồng."</p>
+                        <div class="testimonial-author">
+                            <div class="author-image">
+                                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Nguyễn Văn A">
+                            </div>
+                            <div class="author-info">
+                                <h4>Nguyễn Văn A</h4>
+                                <p>Cựu Trưởng ban Dự án</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"Enactus FTU Hanoi là nơi tôi tìm thấy đam mê và sứ mệnh của mình. Tôi tự hào là một phần của tổ chức đã giúp thay đổi cuộc sống của hàng ngàn người."</p>
+                        <div class="testimonial-author">
+                            <div class="author-image">
+                                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Trần Thị B">
+                            </div>
+                            <div class="author-info">
+                                <h4>Trần Thị B</h4>
+                                <p>Cựu Trưởng ban Truyền thông</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"Mỗi dự án của Enactus FTU Hanoi đều mang lại giá trị thực sự cho cộng đồng. Tôi rất vui khi được đóng góp sức mình vào những thay đổi tích cực này."</p>
+                        <div class="testimonial-author">
+                            <div class="author-image">
+                                <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="Lê Văn C">
+                            </div>
+                            <div class="author-info">
+                                <h4>Lê Văn C</h4>
+                                <p>Thành viên ban Đối ngoại</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="join" class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Sẵn sàng tham gia cùng chúng tôi?</h2>
+                <p>Hãy trở thành một phần của Enactus FTU Hanoi để cùng tạo nên những thay đổi tích cực cho cộng đồng và phát triển bản thân.</p>
+                <a href="#" class="btn" style="background: white; color: var(--primary-dark); font-size: 1.1rem; padding: 1rem 2.5rem;">Đăng ký ngay</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>Enactus FTU Hanoi</h3>
+                    <p>CLB duy nhất chạy dự án xã hội tại FTU Hanoi, hoạt động vì sự phát triển bền vững của cộng đồng.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h3>Liên kết nhanh</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Trang chủ</a></li>
+                        <li><a href="#about">Về chúng tôi</a></li>
+                        <li><a href="#teams">Các ban</a></li>
+                        <li><a href="#projects">Dự án</a></li>
+                        <li><a href="#contact">Liên hệ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h3>Dự án tiêu biểu</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Thử thách Sáng tạo xã hội</a></li>
+                        <li><a href="#">Teen Entrepreneurship Bootcamp</a></li>
+                        <li><a href="#">Refillables Hanoi</a></li>
+                        <li><a href="#">Thương Thương Handmade</a></li>
+                        <li><a href="#">Colors Dance</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h3>Liên hệ</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-map-marker-alt"></i> Đại học Ngoại thương, Hà Nội</li>
+                        <li><i class="fas fa-envelope"></i> contact@enactusftuhanoi.edu.vn</li>
+                        <li><i class="fas fa-phone"></i> +84 123 456 789</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>© 2025 Enactus FTU Hanoi. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDuTvBn8Xl01DYddVXQ7M0L24K3l-GyG0c",
+            authDomain: "enactusftuhanoi-tracuu.firebaseapp.com",
+            projectId: "enactusftuhanoi-tracuu",
+            storageBucket: "enactusftuhanoi-tracuu.appspot.com",
+            messagingSenderId: "611356979403",
+            appId: "1:611356979403:web:2c9a4cffb2b323ce3deb4e"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // DOM Elements
+        const cmsButton = document.getElementById('cms-button');
+        const cmsModal = document.getElementById('cms-modal');
+        const loginForm = document.getElementById('cms-form');
+        const loginEmail = document.getElementById('login-email');
+        const loginPassword = document.getElementById('login-password');
+        const loginError = document.getElementById('login-error');
+        const adminPanel = document.getElementById('admin-panel');
+        const logoutBtn = document.getElementById('logout-btn');
+        const saveChangesBtn = document.getElementById('save-changes');
+        const saveStatus = document.getElementById('save-status');
+        const imageUploadBtn = document.getElementById('image-upload-btn');
+        const heroImageInput = document.getElementById('hero-image');
+        const imagePreview = document.getElementById('image-preview');
+
+        // Page Elements
+        const heroTitleDisplay = document.getElementById('hero-title-display');
+        const heroDescriptionDisplay = document.getElementById('hero-description-display');
+        const button1Display = document.getElementById('button1-display');
+        const button2Display = document.getElementById('button2-display');
+
+        // Form Elements
+        const heroTitleInput = document.getElementById('hero-title');
+        const heroDescriptionInput = document.getElementById('hero-description');
+        const button1TextInput = document.getElementById('button1-text');
+        const button2TextInput = document.getElementById('button2-text');
+
+        // Current user state
+        let currentUser = null;
+        let currentImageFile = null;
+
+        // Initialize functions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load page data from Firestore
+            loadPageData();
+            
+            // Mobile menu toggle
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            
+            hamburger.addEventListener('click', function() {
+                this.classList.toggle('active');
+                navLinks.classList.toggle('active');
+            });
+            
+            // Close menu when clicking a link
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', function() {
+                    hamburger.classList.remove('active');
+                    navLinks.classList.remove('active');
+                });
+            });
+            
+            // Navbar scroll effect
+            window.addEventListener('scroll', function() {
+                const navbar = document.querySelector('.header');
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        window.scrollTo({
+                            top: target.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // CMS Admin Button Functionality
+            cmsButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                cmsModal.style.display = 'flex';
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target === cmsModal) {
+                    cmsModal.style.display = 'none';
+                }
+                if (e.target === adminPanel) {
+                    adminPanel.style.display = 'none';
+                }
+            });
+            
+            // Login form submission
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = loginEmail.value;
+                const password = loginPassword.value;
+                
+                // Simple validation
+                if (!email || !password) {
+                    showLoginError('Vui lòng nhập đầy đủ thông tin');
+                    return;
+                }
+                
+                // Firebase authentication
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // Signed in
+                        currentUser = userCredential.user;
+                        cmsModal.style.display = 'none';
+                        adminPanel.style.display = 'flex';
+                        loadPageDataForEditing();
+                    })
+                    .catch((error) => {
+                        showLoginError('Sai email hoặc mật khẩu');
+                    });
+            });
+            
+            // Logout functionality
+            logoutBtn.addEventListener('click', function() {
+                auth.signOut().then(() => {
+                    currentUser = null;
+                    adminPanel.style.display = 'none';
+                });
+            });
+            
+            // Save changes button
+            saveChangesBtn.addEventListener('click', function() {
+                savePageData();
+            });
+            
+            // Image upload handling
+            imageUploadBtn.addEventListener('click', function() {
+                heroImageInput.click();
+            });
+            
+            heroImageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    currentImageFile = file;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.innerHTML = `
+                            <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
+                            <p>Hình ảnh đã chọn: ${file.name}</p>
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+        
+        function showLoginError(message) {
+            loginError.textContent = message;
+            loginError.style.display = 'block';
+            setTimeout(() => {
+                loginError.style.display = 'none';
+            }, 3000);
+        }
+        
+        function loadPageData() {
+            db.collection('pages').doc('home').get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        heroTitleDisplay.textContent = data.title || "A Head for Business. A Heart for the World.";
+                        heroDescriptionDisplay.textContent = data.description || "Enactus FTU Hanoi tự hào là CLB duy nhất chạy dự án xã hội, qua đó trao quyền cho những đối tượng yếu thế và nâng cao chất lượng cuộc sống của hàng nghìn đối tượng hưởng lợi.";
+                        button1Display.textContent = data.button1 || "Tìm hiểu thêm";
+                        button2Display.textContent = data.button2 || "Tham gia ngay";
+                        
+                        if (data.imageUrl) {
+                            document.querySelector('.hero').style.backgroundImage = `linear-gradient(135deg, #f7b733 0%, #f5a623 100%), url('${data.imageUrl}')`;
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.log("Error getting document:", error);
+                });
+        }
+        
+        function loadPageDataForEditing() {
+            db.collection('pages').doc('home').get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        heroTitleInput.value = data.title || "A Head for Business. A Heart for the World.";
+                        heroDescriptionInput.value = data.description || "Enactus FTU Hanoi tự hào là CLB duy nhất chạy dự án xã hội, qua đó trao quyền cho những đối tượng yếu thế và nâng cao chất lượng cuộc sống của hàng nghìn đối tượng hưởng lợi.";
+                        button1TextInput.value = data.button1 || "Tìm hiểu thêm";
+                        button2TextInput.value = data.button2 || "Tham gia ngay";
+                        
+                        if (data.imageUrl) {
+                            imagePreview.innerHTML = `
+                                <img src="${data.imageUrl}" style="max-width: 100%; max-height: 200px; border-radius: 5px;">
+                                <p>Hình ảnh hiện tại</p>
+                            `;
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.log("Error getting document:", error);
+                });
+        }
+        
+        function savePageData() {
+            if (!currentUser) {
+                saveStatus.textContent = "Bạn chưa đăng nhập";
+                saveStatus.style.color = "red";
+                return;
+            }
+            
+            saveStatus.textContent = "Đang lưu dữ liệu...";
+            saveStatus.style.color = "var(--primary-dark)";
+            
+            const pageData = {
+                title: heroTitleInput.value,
+                description: heroDescriptionInput.value,
+                button1: button1TextInput.value,
+                button2: button2TextInput.value,
+                lastUpdated: new Date(),
+                updatedBy: currentUser.email
+            };
+            
+            // If new image is uploaded
+            if (currentImageFile) {
+                const storageRef = storage.ref(`hero-images/${currentImageFile.name}`);
+                const uploadTask = storageRef.put(currentImageFile);
+                
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        // Progress monitoring can be added here
+                    }, 
+                    (error) => {
+                        saveStatus.textContent = "Lỗi khi tải ảnh lên";
+                        saveStatus.style.color = "red";
+                    }, 
+                    () => {
+                        // Upload completed successfully
+                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            pageData.imageUrl = downloadURL;
+                            saveToFirestore(pageData);
+                        });
+                    }
+                );
+            } else {
+                saveToFirestore(pageData);
+            }
+        }
+        
+        function saveToFirestore(pageData) {
+            db.collection('pages').doc('home').set(pageData)
+                .then(() => {
+                    saveStatus.textContent = "Lưu thành công!";
+                    saveStatus.style.color = "green";
+                    
+                    // Update the live page
+                    heroTitleDisplay.textContent = pageData.title;
+                    heroDescriptionDisplay.textContent = pageData.description;
+                    button1Display.textContent = pageData.button1;
+                    button2Display.textContent = pageData.button2;
+                    
+                    if (pageData.imageUrl) {
+                        document.querySelector('.hero').style.backgroundImage = `linear-gradient(135deg, #f7b733 0%, #f5a623 100%), url('${pageData.imageUrl}')`;
+                    }
+                    
+                    // Reset image state
+                    currentImageFile = null;
+                    setTimeout(() => {
+                        saveStatus.textContent = "";
+                    }, 3000);
+                })
+                .catch((error) => {
+                    saveStatus.textContent = "Lỗi khi lưu dữ liệu";
+                    saveStatus.style.color = "red";
+                });
+        }
+    </script>
+</body>
+</html>
